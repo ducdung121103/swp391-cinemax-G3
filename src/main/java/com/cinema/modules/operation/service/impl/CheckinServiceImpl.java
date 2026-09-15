@@ -13,8 +13,18 @@ import java.time.LocalDateTime;
  * Cài đặt nghiệp vụ Soát vé bằng Camera QR hoặc máy bắn mã vạch (TV 5).
  */
 public class CheckinServiceImpl implements CheckinService {
-    private final BookingEngineService bookingEngineService = new BookingEngineServiceImpl();
-    private final TicketCheckinLogDAO checkinLogDAO = new TicketCheckinLogDAO();
+    private final BookingEngineService bookingEngineService;
+    private final TicketCheckinLogDAO checkinLogDAO;
+
+    public CheckinServiceImpl() {
+        this.bookingEngineService = new BookingEngineServiceImpl();
+        this.checkinLogDAO = new TicketCheckinLogDAO();
+    }
+
+    public CheckinServiceImpl(BookingEngineService bookingEngineService, TicketCheckinLogDAO checkinLogDAO) {
+        this.bookingEngineService = bookingEngineService;
+        this.checkinLogDAO = checkinLogDAO;
+    }
 
     @Override
     public TicketCheckinLog checkinTicket(String barcode, Long staffId) {
@@ -42,7 +52,9 @@ public class CheckinServiceImpl implements CheckinService {
             return log;
         }
 
-        // Hợp lệ -> Checkin thành công
+        // Hợp lệ -> Đánh dấu vé đã sử dụng và ghi log checkin thành công
+        bookingEngineService.updateTicketStatus(ticket.getId(), "CHECKED_IN");
+        ticket.setStatus("CHECKED_IN");
         log.setStatus("SUCCESS");
         checkinLogDAO.insertLog(log);
         return log;

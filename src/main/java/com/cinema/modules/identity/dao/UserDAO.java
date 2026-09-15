@@ -97,6 +97,9 @@ public class UserDAO {
         u.setPhone(rs.getString("phone"));
         u.setLoyaltyPoints(rs.getInt("loyalty_points"));
         u.setStatus(rs.getString("status"));
+        u.setBranchId(rs.getObject("branch_id") != null ? rs.getLong("branch_id") : null);
+        u.setTierId(rs.getObject("tier_id") != null ? rs.getLong("tier_id") : null);
+        u.setAvatarUrl(rs.getString("avatar_url"));
 
         Role r = new Role();
         r.setId(rs.getLong("role_id"));

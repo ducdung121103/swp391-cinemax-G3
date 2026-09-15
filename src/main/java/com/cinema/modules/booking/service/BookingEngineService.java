@@ -16,4 +16,5 @@ public interface BookingEngineService {
     boolean releaseHoldSeats(Long showtimeId, List<Long> seatIds);
     BookingResult createBooking(CreateBookingDTO dto);
     Ticket getTicketByBarcode(String barcode);
+    boolean updateTicketStatus(Long ticketId, String status);
 }

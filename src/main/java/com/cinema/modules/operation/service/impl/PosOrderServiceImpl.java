@@ -13,7 +13,15 @@ import com.cinema.modules.operation.service.PosOrderService;
  */
 public class PosOrderServiceImpl implements PosOrderService {
     // Ủy quyền nghiệp vụ xử lý Transaction cho BookingEngineService của TV 4
-    private final BookingEngineService bookingEngineService = new BookingEngineServiceImpl();
+    private final BookingEngineService bookingEngineService;
+
+    public PosOrderServiceImpl() {
+        this.bookingEngineService = new BookingEngineServiceImpl();
+    }
+
+    public PosOrderServiceImpl(BookingEngineService bookingEngineService) {
+        this.bookingEngineService = bookingEngineService;
+    }
 
     @Override
     public BookingResult processCounterCheckout(CreateBookingDTO request) {

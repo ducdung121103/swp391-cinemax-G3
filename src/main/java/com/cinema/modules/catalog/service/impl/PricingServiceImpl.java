@@ -10,17 +10,25 @@ import java.time.LocalDateTime;
  * Cài đặt nghiệp vụ Tính giá vé (TV 3).
  */
 public class PricingServiceImpl implements PricingService {
-    private final TicketPricingDAO pricingDAO = new TicketPricingDAO();
+    private final TicketPricingDAO pricingDAO;
+
+    public PricingServiceImpl() {
+        this.pricingDAO = new TicketPricingDAO();
+    }
+
+    public PricingServiceImpl(TicketPricingDAO pricingDAO) {
+        this.pricingDAO = pricingDAO;
+    }
 
     @Override
     public BigDecimal calculateTicketPrice(Long showtimeId, Long seatTypeId, LocalDateTime showTime, String format) {
         BigDecimal basePrice = pricingDAO.findBasePrice(showTime, format);
-        // Nếu là ghế VIP cộng thêm 15k, Ghế Đôi cộng thêm 30k
+        // Nếu là ghế VIP cộng thêm 15k, Ghế Đôi (Sweetbox) cộng thêm 40k
         if (seatTypeId != null) {
             if (seatTypeId == 2L) {
                 basePrice = basePrice.add(new BigDecimal("15000.00")); // VIP
             } else if (seatTypeId == 3L) {
-                basePrice = basePrice.add(new BigDecimal("30000.00")); // COUPLE
+                basePrice = basePrice.add(new BigDecimal("40000.00")); // COUPLE
             }
         }
         return basePrice;

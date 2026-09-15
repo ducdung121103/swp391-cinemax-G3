@@ -21,6 +21,15 @@ public class TransactionManager {
 
     private TransactionManager() {}
 
+    public static void setTestConnection(Connection conn) {
+        connectionHolder.set(conn);
+    }
+
+    public static void clearTestConnection() {
+        connectionHolder.remove();
+        depthHolder.remove();
+    }
+
     /**
      * Lấy Connection hiện tại của Transaction (nếu có) hoặc mở mới.
      */
@@ -43,9 +52,12 @@ public class TransactionManager {
 
         try {
             if (isRoot) {
-                conn = DBContext.getConnection();
+                conn = connectionHolder.get();
+                if (conn == null || conn.isClosed()) {
+                    conn = DBContext.getConnection();
+                    connectionHolder.set(conn);
+                }
                 conn.setAutoCommit(false); // Bắt đầu Transaction tại Root
-                connectionHolder.set(conn);
             } else {
                 conn = connectionHolder.get(); // Tái sử dụng Connection của Root
             }

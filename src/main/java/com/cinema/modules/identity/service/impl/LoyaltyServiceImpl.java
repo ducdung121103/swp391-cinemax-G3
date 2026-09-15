@@ -112,8 +112,8 @@ public class LoyaltyServiceImpl implements LoyaltyService {
         MembershipTier tier = getTierByUserId(userId);
         if (tier != null && tier.getDiscountPercent() > 0 && orderTotal != null) {
             BigDecimal rate = BigDecimal.valueOf(tier.getDiscountPercent()).divide(BigDecimal.valueOf(100));
-            return orderTotal.multiply(rate);
+            return orderTotal.multiply(rate).setScale(2, java.math.RoundingMode.HALF_UP);
         }
-        return BigDecimal.ZERO;
+        return BigDecimal.ZERO.setScale(2, java.math.RoundingMode.HALF_UP);
     }
 }

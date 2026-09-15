@@ -73,4 +73,26 @@ public class TicketDAO {
         }
         return null;
     }
+
+    public boolean updateStatus(Connection conn, Long ticketId, String status) throws SQLException {
+        String sql = "UPDATE tickets SET status = ? WHERE id = ?";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, status);
+            ps.setLong(2, ticketId);
+            return ps.executeUpdate() > 0;
+        }
+    }
+
+    public boolean updateStatus(Long ticketId, String status) {
+        String sql = "UPDATE tickets SET status = ? WHERE id = ?";
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, status);
+            ps.setLong(2, ticketId);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
 }
