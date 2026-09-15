@@ -1,0 +1,26 @@
+# Compiled class files & build directories
+target/
+*.class
+
+# Log files
+*.log
+
+# IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+
+# Eclipse
+.settings/
+.project
+.classpath
+
+# VS Code
+.vscode/
+
+# OS specific files
+.DS_Store
+Thumbs.db
+
+# Local database properties containing personal password
+src/main/resources/db.local.properties

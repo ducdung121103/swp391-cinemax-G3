@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns="https://jakarta.ee/xml/ns/jakartaee"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="https://jakarta.ee/xml/ns/jakartaee 
+                             https://jakarta.ee/xml/ns/jakartaee/web-app_5_0.xsd"
+         version="5.0">
+
+    <display-name>Multi-Branch Cinema Management System</display-name>
+
+    <!-- ==================================================================== -->
+    <!-- ABSOLUTE RULE: DO NOT REGISTER SERVLETS HERE. USE @WebServlet!      -->
+    <!-- This web.xml file is LOCKED for Filters and System Error Pages only. -->
+    <!-- ==================================================================== -->
+
+    <!-- 1. Global UTF-8 Encoding Filter -->
+    <filter>
+        <filter-name>EncodingFilter</filter-name>
+        <filter-class>com.cinema.common.filter.EncodingFilter</filter-class>
+    </filter>
+    <filter-mapping>
+        <filter-name>EncodingFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
+    <!-- 2. Authentication Filter (Session verification) -->
+    <filter>
+        <filter-name>AuthenticationFilter</filter-name>
+        <filter-class>com.cinema.common.filter.AuthenticationFilter</filter-class>
+    </filter>
+    <filter-mapping>
+        <filter-name>AuthenticationFilter</filter-name>
+        <url-pattern>/admin/*</url-pattern>
+        <url-pattern>/customer/account/*</url-pattern>
+    </filter-mapping>
+
+    <!-- 3. Authorization Filter (RBAC Role checking) -->
+    <filter>
+        <filter-name>AuthorizationFilter</filter-name>
+        <filter-class>com.cinema.common.filter.AuthorizationFilter</filter-class>
+    </filter>
+    <filter-mapping>
+        <filter-name>AuthorizationFilter</filter-name>
+        <url-pattern>/admin/*</url-pattern>
+    </filter-mapping>
+
+    <!-- Welcome File List -->
+    <welcome-file-list>
+        <welcome-file>index.jsp</welcome-file>
+    </welcome-file-list>
+
+    <!-- Standard Error Pages -->
+    <error-page>
+        <error-code>403</error-code>
+        <location>/WEB-INF/views/common/403.jsp</location>
+    </error-page>
+    <error-page>
+        <error-code>404</error-code>
+        <location>/WEB-INF/views/common/404.jsp</location>
+    </error-page>
+    <error-page>
+        <error-code>500</error-code>
+        <location>/WEB-INF/views/common/500.jsp</location>
+    </error-page>
+
+</web-app>

@@ -1,0 +1,44 @@
+package com.cinema.modules.catalog.dao;
+
+import com.cinema.common.context.DBContext;
+import com.cinema.model.TicketPricing;
+
+import java.math.BigDecimal;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.time.DayOfWeek;
+import java.time.LocalDateTime;
+
+/**
+ * DAO quản lý bảng ticket_pricings (TV 3).
+ */
+public class TicketPricingDAO {
+
+    public BigDecimal findBasePrice(LocalDateTime showTime, String format) {
+        DayOfWeek dow = showTime.getDayOfWeek();
+        String dayType = (dow == DayOfWeek.FRIDAY || dow == DayOfWeek.SATURDAY || dow == DayOfWeek.SUNDAY) ? "WEEKEND" : "WEEKDAY";
+        int hour = showTime.getHour();
+        String timeSlot = (hour < 12) ? "EARLY" : (hour < 17 ? "STANDARD" : "PRIME");
+
+        String sql = "SELECT base_price FROM ticket_pricings " +
+                     "WHERE day_type = ? AND time_slot = ? AND experience_format = ? AND is_deleted = 0 " +
+                     "ORDER BY id DESC LIMIT 1";
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, dayType);
+            ps.setString(2, timeSlot);
+            ps.setString(3, format);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getBigDecimal("base_price");
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        // Giá mặc định nếu chưa cấu hình
+        return new BigDecimal("85000.00");
+    }
+}

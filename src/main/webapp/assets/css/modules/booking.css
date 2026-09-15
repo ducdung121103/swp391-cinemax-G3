@@ -1,0 +1,32 @@
+/* Module 4: Core Booking, Checkout & Billing (TV 4) */
+.checkout-container {
+    max-width: 900px;
+    margin: 40px auto;
+    background: #fff;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.countdown-timer {
+    background: #fff3cd;
+    color: #856404;
+    padding: 12px;
+    text-align: center;
+    font-weight: bold;
+    font-size: 18px;
+    border-radius: 6px;
+    margin-bottom: 20px;
+}
+
+.order-summary-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+}
+
+.order-summary-table th, .order-summary-table td {
+    padding: 12px;
+    border-bottom: 1px solid #dee2e6;
+    text-align: left;
+}

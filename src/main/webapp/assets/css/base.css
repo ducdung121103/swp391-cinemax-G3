@@ -1,0 +1,111 @@
+/* Global CSS Variables & Reset */
+:root {
+    --primary-color: #e50914;
+    --primary-hover: #b20710;
+    --dark-bg: #141414;
+    --card-bg: #1f1f1f;
+    --text-color: #ffffff;
+    --text-muted: #aaaaaa;
+    --border-color: #333333;
+    --success: #28a745;
+    --warning: #ffc107;
+    --danger: #dc3545;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f8f9fa;
+    color: #333333;
+    line-height: 1.6;
+}
+
+.main-header {
+    background-color: var(--dark-bg);
+    color: var(--text-color);
+    padding: 15px 30px;
+    border-bottom: 2px solid var(--primary-color);
+}
+
+.header-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.logo {
+    color: var(--primary-color);
+    font-size: 22px;
+    font-weight: bold;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.nav-menu {
+    display: flex;
+    gap: 20px;
+}
+
+.nav-menu a {
+    color: var(--text-color);
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.2s;
+}
+
+.nav-menu a:hover {
+    color: var(--primary-color);
+}
+
+.user-action a {
+    padding: 6px 14px;
+    border-radius: 4px;
+    text-decoration: none;
+    font-size: 14px;
+}
+
+.btn-login {
+    background: transparent;
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+    margin-right: 8px;
+}
+
+.btn-register, .btn-admin {
+    background: var(--primary-color);
+    color: #fff;
+}
+
+.btn-logout {
+    background: #6c757d;
+    color: #fff;
+    margin-left: 10px;
+}
+
+.main-footer {
+    background: var(--dark-bg);
+    color: var(--text-muted);
+    padding: 30px 20px;
+    text-align: center;
+    margin-top: 50px;
+    border-top: 1px solid var(--border-color);
+}
+
+.footer-container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.footer-copy {
+    margin-top: 15px;
+    font-size: 13px;
+}
