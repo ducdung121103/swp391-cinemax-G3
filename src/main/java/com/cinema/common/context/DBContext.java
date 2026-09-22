@@ -17,9 +17,9 @@ public class DBContext {
     static {
         try {
             HikariConfig config = new HikariConfig();
-            config.setDriverClassName(DatabaseConfig.getProperty("db.driver", "com.mysql.cj.jdbc.Driver"));
-            config.setJdbcUrl(DatabaseConfig.getProperty("db.url", "jdbc:mysql://localhost:3306/cinema_chain_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Ho_Chi_Minh&characterEncoding=UTF-8"));
-            config.setUsername(DatabaseConfig.getProperty("db.username", "root"));
+            config.setDriverClassName(DatabaseConfig.getProperty("db.driver", "com.microsoft.sqlserver.jdbc.SQLServerDriver"));
+            config.setJdbcUrl(DatabaseConfig.getProperty("db.url", "jdbc:sqlserver://localhost:1433;databaseName=cinema_chain_db;encrypt=true;trustServerCertificate=true"));
+            config.setUsername(DatabaseConfig.getProperty("db.username", "sa"));
             config.setPassword(DatabaseConfig.getProperty("db.password", "123456"));
 
             // Cấu hình Pool
@@ -28,12 +28,6 @@ public class DBContext {
             config.setIdleTimeout(DatabaseConfig.getIntProperty("hikari.idleTimeout", 30000));
             config.setMaxLifetime(DatabaseConfig.getIntProperty("hikari.maxLifetime", 1800000));
             config.setConnectionTimeout(DatabaseConfig.getIntProperty("hikari.connectionTimeout", 10000));
-
-            // Tối ưu hóa cho MySQL
-            config.addDataSourceProperty("cachePrepStmts", "true");
-            config.addDataSourceProperty("prepStmtCacheSize", "250");
-            config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
-            config.addDataSourceProperty("useServerPrepStmts", "true");
 
             dataSource = new HikariDataSource(config);
             System.out.println("[DBContext] Khởi tạo HikariCP Connection Pool thành công!");

@@ -17,7 +17,8 @@ public class SeatHoldingDAO {
      * Tầng 1: Xóa toàn bộ các bản ghi giữ ghế đã hết hạn trên toàn hệ thống.
      */
     public void cleanExpiredHoldings(Connection conn) throws SQLException {
-        String sql = "DELETE FROM seat_holdings WHERE expires_at <= NOW()";
+        // Cú pháp SQL Server: dùng GETDATE() thay cho NOW()
+        String sql = "DELETE FROM seat_holdings WHERE expires_at <= GETDATE()";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.executeUpdate();
         }
@@ -25,16 +26,23 @@ public class SeatHoldingDAO {
 
     /**
      * Tầng 2: Giữ ghế với cơ chế Upsert an toàn chống race-condition.
+     * Housekeeping protocol chống lỗi Duplicate Key.
+     * Đã chuyển đổi sang MERGE WITH (HOLDLOCK) trong Microsoft SQL Server để đảm bảo tính nguyên tử (atomic),
+     * tuyệt đối ngăn chặn 2 session đồng thời đặt trùng 1 ghế còn hạn (chống double-booking).
      */
     public boolean holdSeat(Connection conn, Long showtimeId, Long seatId, String sessionId) throws SQLException {
         cleanExpiredHoldings(conn);
 
-        String sql = "INSERT INTO seat_holdings (showtime_id, seat_id, session_id, held_at, expires_at) " +
-                     "VALUES (?, ?, ?, NOW(), DATE_ADD(NOW(), INTERVAL 5 MINUTE)) " +
-                     "ON DUPLICATE KEY UPDATE " +
-                     "session_id = IF(expires_at <= NOW(), VALUES(session_id), session_id), " +
-                     "held_at = IF(expires_at <= NOW(), VALUES(held_at), held_at), " +
-                     "expires_at = IF(expires_at <= NOW(), VALUES(expires_at), expires_at)";
+        String sql = "MERGE INTO seat_holdings WITH (HOLDLOCK) AS target " +
+                     "USING (SELECT ? AS showtime_id, ? AS seat_id, ? AS session_id) AS source " +
+                     "ON target.showtime_id = source.showtime_id AND target.seat_id = source.seat_id " +
+                     "WHEN MATCHED AND target.expires_at <= GETDATE() THEN " +
+                     "    UPDATE SET session_id = source.session_id, " +
+                     "               held_at = GETDATE(), " +
+                     "               expires_at = DATEADD(MINUTE, 5, GETDATE()) " +
+                     "WHEN NOT MATCHED THEN " +
+                     "    INSERT (showtime_id, seat_id, session_id, held_at, expires_at) " +
+                     "    VALUES (source.showtime_id, source.seat_id, source.session_id, GETDATE(), DATEADD(MINUTE, 5, GETDATE()));";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setLong(1, showtimeId);
             ps.setLong(2, seatId);

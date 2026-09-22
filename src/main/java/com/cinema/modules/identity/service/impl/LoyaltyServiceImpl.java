@@ -59,7 +59,7 @@ public class LoyaltyServiceImpl implements LoyaltyService {
 
     @Override
     public boolean addPoints(Long userId, Long bookingId, int points, String description) {
-        String updateSql = "UPDATE users SET loyalty_points = loyalty_points + ? WHERE id = ?";
+        String updateSql = "UPDATE users SET loyalty_points = loyalty_points + ?, updated_at = GETDATE() WHERE id = ?";
         String logSql = "INSERT INTO point_histories (user_id, booking_id, points, type, description) VALUES (?, ?, ?, 'EARNED', ?)";
         try (Connection conn = DBContext.getConnection()) {
             try (PreparedStatement ps1 = conn.prepareStatement(updateSql);
@@ -83,7 +83,7 @@ public class LoyaltyServiceImpl implements LoyaltyService {
 
     @Override
     public boolean deductPoints(Long userId, Long bookingId, int points, String description) {
-        String updateSql = "UPDATE users SET loyalty_points = loyalty_points - ? WHERE id = ? AND loyalty_points >= ?";
+        String updateSql = "UPDATE users SET loyalty_points = loyalty_points - ?, updated_at = GETDATE() WHERE id = ? AND loyalty_points >= ?";
         String logSql = "INSERT INTO point_histories (user_id, booking_id, points, type, description) VALUES (?, ?, ?, 'REDEEMED', ?)";
         try (Connection conn = DBContext.getConnection()) {
             try (PreparedStatement ps1 = conn.prepareStatement(updateSql);

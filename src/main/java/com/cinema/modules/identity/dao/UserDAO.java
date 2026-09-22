@@ -75,7 +75,7 @@ public class UserDAO {
     }
 
     public boolean updatePassword(Long userId, String newPasswordHash) {
-        String sql = "UPDATE users SET password_hash = ? WHERE id = ?";
+        String sql = "UPDATE users SET password_hash = ?, updated_at = GETDATE() WHERE id = ?";
         try (Connection conn = DBContext.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, newPasswordHash);

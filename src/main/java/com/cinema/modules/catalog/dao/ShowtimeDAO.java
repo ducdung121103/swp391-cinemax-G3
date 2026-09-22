@@ -25,7 +25,7 @@ public class ShowtimeDAO {
                      "FROM showtimes st " +
                      "JOIN movies m ON st.movie_id = m.id " +
                      "JOIN screening_rooms sr ON st.screening_room_id = sr.id " +
-                     "WHERE st.movie_id = ? AND DATE(st.start_time) = ? AND st.is_deleted = 0 " +
+                     "WHERE st.movie_id = ? AND CAST(st.start_time AS DATE) = ? AND st.is_deleted = 0 " +
                      "ORDER BY st.start_time ASC";
         try (Connection conn = DBContext.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {

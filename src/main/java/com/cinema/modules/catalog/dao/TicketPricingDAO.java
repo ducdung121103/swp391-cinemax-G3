@@ -22,9 +22,10 @@ public class TicketPricingDAO {
         int hour = showTime.getHour();
         String timeSlot = (hour < 12) ? "EARLY" : (hour < 17 ? "STANDARD" : "PRIME");
 
-        String sql = "SELECT base_price FROM ticket_pricings " +
+        // Cú pháp SQL Server: dùng SELECT TOP 1 thay vì LIMIT 1
+        String sql = "SELECT TOP 1 base_price FROM ticket_pricings " +
                      "WHERE day_type = ? AND time_slot = ? AND experience_format = ? AND is_deleted = 0 " +
-                     "ORDER BY id DESC LIMIT 1";
+                     "ORDER BY id DESC";
         try (Connection conn = DBContext.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, dayType);
