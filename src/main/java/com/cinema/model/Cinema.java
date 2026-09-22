@@ -8,7 +8,7 @@ import lombok.Setter;
 import lombok.ToString;
 
 /**
- * Entity Chi nhánh rạp chiếu (Bảng branches - Zone 1)
+ * Entity Cụm rạp chiếu (Bảng cinemas - Zone 1)
  */
 @Getter
 @Setter
@@ -16,12 +16,12 @@ import lombok.ToString;
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString(callSuper = true)
-public class Branch extends BaseEntity {
-    private String branchCode;
+public class Cinema extends BaseEntity {
+    private String cinemaCode;
     private String name;
     private String address;
     private String city;
     private String phone;
     private String email;
-    private Integer totalHalls;
+    private Integer totalRooms;
 }

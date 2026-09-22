@@ -9,8 +9,8 @@
 
         <!-- TV 1: Infrastructure -->
         <li class="menu-header">HẠ TẦNG & RẠP (TV 1)</li>
-        <li><a href="${pageContext.request.contextPath}/admin/infrastructure/branches"><i class="icon">🏢</i> Chi nhánh cụm rạp</a></li>
-        <li><a href="${pageContext.request.contextPath}/admin/infrastructure/halls"><i class="icon">🎥</i> Phòng chiếu & Sơ đồ ghế</a></li>
+        <li><a href="${pageContext.request.contextPath}/admin/infrastructure/cinemas"><i class="icon">🏢</i> Cụm rạp chiếu phim</a></li>
+        <li><a href="${pageContext.request.contextPath}/admin/infrastructure/rooms"><i class="icon">🎥</i> Phòng chiếu & Sơ đồ ghế</a></li>
 
         <!-- TV 2: Identity -->
         <li class="menu-header">NGƯỜI DÙNG & HỘI VIÊN (TV 2)</li>

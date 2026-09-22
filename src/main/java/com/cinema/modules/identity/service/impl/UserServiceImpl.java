@@ -3,13 +3,16 @@ package com.cinema.modules.identity.service.impl;
 import com.cinema.common.util.PasswordUtil;
 import com.cinema.model.User;
 import com.cinema.modules.identity.dao.UserDAO;
+import com.cinema.modules.identity.service.EmailService;
 import com.cinema.modules.identity.service.UserService;
+import java.util.UUID;
 
 /**
  * Cài đặt nghiệp vụ tài khoản và phân quyền (TV 2).
  */
 public class UserServiceImpl implements UserService {
     private final UserDAO userDAO = new UserDAO();
+    private final EmailService emailService = new EmailServiceImpl();
 
     @Override
     public User authenticate(String email, String plainPassword) {
@@ -32,6 +35,9 @@ public class UserServiceImpl implements UserService {
                 .build();
         Long generatedId = userDAO.insertCustomer(user);
         if (generatedId != null) {
+            // M-01.2: Gửi OTP xác thực tài khoản qua stub EmailService
+            String simulatedOtp = String.valueOf((int) ((Math.random() * 900000) + 100000));
+            emailService.sendOtpEmail(user.getEmail(), simulatedOtp);
             return userDAO.findById(generatedId);
         }
         return null;
@@ -48,6 +54,19 @@ public class UserServiceImpl implements UserService {
         if (user != null && PasswordUtil.checkPassword(oldPassword, user.getPasswordHash())) {
             String newHash = PasswordUtil.hashPassword(newPassword);
             return userDAO.updatePassword(userId, newHash);
+        }
+        return false;
+    }
+
+    @Override
+    public boolean sendPasswordResetOtp(String email) {
+        if (email == null) return false;
+        User user = userDAO.findByEmail(email.trim().toLowerCase());
+        if (user != null) {
+            // M-01.2: Gửi link/token reset mật khẩu qua stub EmailService
+            String resetToken = UUID.randomUUID().toString();
+            emailService.sendPasswordResetEmail(user.getEmail(), resetToken);
+            return true;
         }
         return false;
     }

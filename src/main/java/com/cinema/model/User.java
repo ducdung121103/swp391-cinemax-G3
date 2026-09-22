@@ -18,7 +18,7 @@ import lombok.ToString;
 @ToString(callSuper = true, exclude = "passwordHash")
 public class User extends BaseEntity {
     private Long roleId;
-    private Long branchId;
+    private Long cinemaId;
     private String email;
     private String passwordHash;
     private String fullName;
@@ -27,9 +27,15 @@ public class User extends BaseEntity {
     private Long tierId;
     private String avatarUrl;
     private String status; // ACTIVE, BANNED, UNVERIFIED
+    private Boolean is2faEnabled;
+    private Boolean emailVerified;
+    private String otpCode;
+    private java.time.LocalDateTime otpExpiresAt;
+    private String resetPasswordToken;
+    private java.time.LocalDateTime resetTokenExpiresAt;
 
     // Quan hệ điều hướng
     private Role role;
     private MembershipTier membershipTier;
-    private Branch branch;
+    private Cinema cinema;
 }

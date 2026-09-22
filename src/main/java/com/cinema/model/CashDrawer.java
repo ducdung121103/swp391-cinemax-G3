@@ -20,7 +20,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @ToString(callSuper = true)
 public class CashDrawer extends BaseEntity {
-    private Long branchId;
+    private Long cinemaId;
     private Long staffId;
     private LocalDateTime openingTime;
     private LocalDateTime closingTime;
@@ -31,6 +31,6 @@ public class CashDrawer extends BaseEntity {
     private String status; // OPEN, CLOSED
 
     // Quan hệ điều hướng
-    private Branch branch;
+    private Cinema cinema;
     private User staff;
 }

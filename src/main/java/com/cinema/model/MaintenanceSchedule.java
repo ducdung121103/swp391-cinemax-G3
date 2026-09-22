@@ -19,7 +19,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @ToString(callSuper = true)
 public class MaintenanceSchedule extends BaseEntity {
-    private Long screeningHallId;
+    private Long screeningRoomId;
     private LocalDateTime startTime;
     private LocalDateTime endTime;
     private String reason;

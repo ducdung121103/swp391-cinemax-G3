@@ -48,7 +48,6 @@
         <div style="margin-top: 25px;">
             <h3>Phương thức thanh toán</h3>
             <label style="display: block; margin: 10px 0;"><input type="radio" name="payMethod" value="VNPAY" checked> Cổng thanh toán trực tuyến VNPAY (ATM/QR/Visa)</label>
-            <label style="display: block; margin: 10px 0;"><input type="radio" name="payMethod" value="MOMO"> Ví điện tử MoMo</label>
         </div>
 
         <button type="button" class="btn-register" style="width: 100%; padding: 14px; font-size: 18px; margin-top: 25px; border: none; cursor: pointer;">

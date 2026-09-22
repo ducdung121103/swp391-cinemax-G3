@@ -4,7 +4,7 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Quản lý Chi nhánh - Cinema Admin</title>
+    <title>Quản lý Cụm Rạp - Cinema Admin</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/base.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/admin-layout.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/modules/infrastructure.css">
@@ -16,7 +16,7 @@
             <jsp:include page="../../common/navbar.jsp" />
             <div class="admin-content">
                 <div class="admin-card">
-                    <h2>Danh sách Cụm Rạp Chi Chi Nhánh (TV 1)</h2>
+                    <h2>Danh sách Cụm Rạp Chiếu Phim (TV 1)</h2>
                     <table class="order-summary-table" style="margin-top: 15px;">
                         <thead>
                             <tr>
@@ -30,17 +30,17 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <c:forEach items="${branches}" var="b">
+                            <c:forEach items="${cinemas}" var="c">
                                 <tr>
-                                    <td><strong>${b.branchCode}</strong></td>
-                                    <td>${b.name}</td>
-                                    <td>${b.city}</td>
-                                    <td>${b.address}</td>
-                                    <td>${b.phone}</td>
-                                    <td>${b.totalHalls} phòng</td>
+                                    <td><strong>${c.cinemaCode}</strong></td>
+                                    <td>${c.name}</td>
+                                    <td>${c.city}</td>
+                                    <td>${c.address}</td>
+                                    <td>${c.phone}</td>
+                                    <td>${c.totalRooms} phòng</td>
                                     <td>
                                         <c:choose>
-                                            <c:when test="${b.isActive}"><span style="color: green;">● Đang hoạt động</span></c:when>
+                                            <c:when test="${c.isActive}"><span style="color: green;">● Đang hoạt động</span></c:when>
                                             <c:otherwise><span style="color: red;">● Tạm đóng cửa</span></c:otherwise>
                                         </c:choose>
                                     </td>

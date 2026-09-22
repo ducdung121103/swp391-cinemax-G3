@@ -8,7 +8,7 @@ import lombok.Setter;
 import lombok.ToString;
 
 /**
- * Entity Phòng chiếu phim (Bảng screening_halls - Zone 1)
+ * Entity Phòng chiếu phim (Bảng screening_rooms - Zone 1)
  */
 @Getter
 @Setter
@@ -16,15 +16,15 @@ import lombok.ToString;
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString(callSuper = true)
-public class ScreeningHall extends BaseEntity {
-    private Long branchId;
+public class ScreeningRoom extends BaseEntity {
+    private Long cinemaId;
     private String name;
-    private String hallType; // STANDARD_2D, IMAX_3D, VIP_LUXURY
+    private String roomType; // STANDARD_2D, IMAX_3D, VIP_LUXURY
     private Integer totalRows;
     private Integer totalColumns;
     private Integer totalCapacity;
     private String status; // ACTIVE, MAINTENANCE, CLOSED
 
     // Quan hệ điều hướng
-    private Branch branch;
+    private Cinema cinema;
 }

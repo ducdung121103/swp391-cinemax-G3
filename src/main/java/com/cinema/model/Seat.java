@@ -17,7 +17,7 @@ import lombok.ToString;
 @AllArgsConstructor
 @ToString(callSuper = true)
 public class Seat extends BaseEntity {
-    private Long screeningHallId;
+    private Long screeningRoomId;
     private Long seatTypeId;
     private String seatRow; // A, B, C...
     private Integer seatNumber; // 1, 2, 3...

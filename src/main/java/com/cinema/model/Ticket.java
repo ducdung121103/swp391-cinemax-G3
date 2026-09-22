@@ -24,6 +24,7 @@ public class Ticket extends BaseEntity {
     private Long showtimeId;
     private Long seatId;
     private String barcode;
+    private String qrSignature; // HMAC-SHA256 signature for anti-counterfeit QR code
     private BigDecimal ticketPrice;
     private String status; // VALID, CHECKED_IN, REFUNDED
 

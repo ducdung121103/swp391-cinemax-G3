@@ -97,7 +97,7 @@ public class UserDAO {
         u.setPhone(rs.getString("phone"));
         u.setLoyaltyPoints(rs.getInt("loyalty_points"));
         u.setStatus(rs.getString("status"));
-        u.setBranchId(rs.getObject("branch_id") != null ? rs.getLong("branch_id") : null);
+        u.setCinemaId(rs.getObject("cinema_id") != null ? rs.getLong("cinema_id") : null);
         u.setTierId(rs.getObject("tier_id") != null ? rs.getLong("tier_id") : null);
         u.setAvatarUrl(rs.getString("avatar_url"));
 

@@ -8,7 +8,7 @@ import lombok.Setter;
 import lombok.ToString;
 
 /**
- * Entity Quản lý tồn kho bắp nước tại từng chi nhánh (Bảng branch_inventories - Zone 5)
+ * Entity Quản lý tồn kho bắp nước tại từng rạp (Bảng cinema_inventories - Zone 5)
  */
 @Getter
 @Setter
@@ -16,13 +16,13 @@ import lombok.ToString;
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString(callSuper = true)
-public class BranchInventory extends BaseEntity {
-    private Long branchId;
+public class CinemaInventory extends BaseEntity {
+    private Long cinemaId;
     private Long fnbItemId;
     private Integer stockQuantity;
     private Integer warningThreshold;
 
     // Quan hệ điều hướng
-    private Branch branch;
+    private Cinema cinema;
     private FnBItem fnbItem;
 }

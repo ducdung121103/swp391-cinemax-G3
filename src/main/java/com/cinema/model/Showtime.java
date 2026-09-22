@@ -20,7 +20,7 @@ import java.time.LocalDateTime;
 @ToString(callSuper = true)
 public class Showtime extends BaseEntity {
     private Long movieId;
-    private Long screeningHallId;
+    private Long screeningRoomId;
     private LocalDateTime startTime;
     private LocalDateTime endTime;
     private String experienceFormat; // 2D, 3D, IMAX
@@ -28,5 +28,5 @@ public class Showtime extends BaseEntity {
 
     // Quan hệ điều hướng
     private Movie movie;
-    private ScreeningHall screeningHall;
+    private ScreeningRoom screeningRoom;
 }

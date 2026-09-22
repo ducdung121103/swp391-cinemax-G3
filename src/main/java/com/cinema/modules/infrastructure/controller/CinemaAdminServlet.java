@@ -1,7 +1,6 @@
 package com.cinema.modules.infrastructure.controller;
 
 import com.cinema.model.Cinema;
-import com.cinema.model.User;
 import com.cinema.modules.infrastructure.service.ScreeningRoomService;
 import com.cinema.modules.infrastructure.service.impl.ScreeningRoomServiceImpl;
 import jakarta.servlet.ServletException;
@@ -9,28 +8,22 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 
 import java.io.IOException;
 import java.util.List;
 
 /**
- * Controller hiển thị Bảng điều khiển Quản trị Trung tâm (Admin Dashboard).
- * Do Leader (TV 1) phụ trách quản trị tổng quan hệ thống.
+ * Controller quản trị cụm rạp (TV 1).
+ * Tuân thủ quy tắc: 100% dùng @WebServlet, KHÔNG khai báo trong web.xml!
  */
-@WebServlet(name = "AdminDashboardServlet", urlPatterns = {"/admin/dashboard"})
-public class AdminDashboardServlet extends HttpServlet {
+@WebServlet(name = "CinemaAdminServlet", urlPatterns = {"/admin/infrastructure/cinemas", "/admin/cinemas"})
+public class CinemaAdminServlet extends HttpServlet {
     private final ScreeningRoomService screeningRoomService = new ScreeningRoomServiceImpl();
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        HttpSession session = req.getSession(false);
-        User currentUser = (session != null) ? (User) session.getAttribute("currentUser") : null;
-
         List<Cinema> cinemas = screeningRoomService.getAllCinemas();
         req.setAttribute("cinemas", cinemas);
-        req.setAttribute("totalCinemas", cinemas != null ? cinemas.size() : 0);
-
-        req.getRequestDispatcher("/WEB-INF/views/admin/dashboard.jsp").forward(req, resp);
+        req.getRequestDispatcher("/WEB-INF/views/admin/infrastructure/cinemas.jsp").forward(req, resp);
     }
 }

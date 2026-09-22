@@ -67,11 +67,26 @@ INSERT INTO `fnb_categories` (`id`, `name`, `description`, `is_active`, `is_dele
 -- BCrypt Hash: $2a$12$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy
 -- ----------------------------------------------------------------------------
 TRUNCATE TABLE `users`;
-INSERT INTO `users` (`id`, `role_id`, `branch_id`, `email`, `password_hash`, `full_name`, `phone`, `loyalty_points`, `tier_id`, `avatar_url`, `status`, `is_deleted`, `created_at`) VALUES
-(1, 1, NULL, 'admin@cinema.com', '$2a$12$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'Hệ Thống Quản Trị Viên', '0900000001', 0, NULL, '/assets/images/avatars/admin.png', 'ACTIVE', 0, NOW()),
-(2, 2, NULL, 'manager.hn@cinema.com', '$2a$12$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'Trần Quản Lý Hà Nội', '0900000002', 0, NULL, '/assets/images/avatars/manager.png', 'ACTIVE', 0, NOW()),
-(3, 3, NULL, 'staff.hn@cinema.com', '$2a$12$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'Lê Thu Ngân Viên Hà Nội', '0900000003', 0, NULL, '/assets/images/avatars/staff.png', 'ACTIVE', 0, NOW()),
-(4, 3, NULL, 'staff.sg@cinema.com', '$2a$12$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'Phạm Thu Ngân Sài Gòn', '0900000004', 0, NULL, '/assets/images/avatars/staff.png', 'ACTIVE', 0, NOW()),
-(5, 4, NULL, 'customer@gmail.com', '$2a$12$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'Nguyễn Văn Khách Hàng', '0987654321', 250, 1, '/assets/images/avatars/customer.png', 'ACTIVE', 0, NOW());
+INSERT INTO `users` (`id`, `role_id`, `cinema_id`, `email`, `password_hash`, `full_name`, `phone`, `loyalty_points`, `tier_id`, `avatar_url`, `status`, `is_2fa_enabled`, `email_verified`, `is_deleted`, `created_at`) VALUES
+(1, 1, NULL, 'admin@cinema.com', '$2a$12$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'Hệ Thống Quản Trị Viên', '0900000001', 0, NULL, '/assets/images/avatars/admin.png', 'ACTIVE', 0, 1, 0, NOW()),
+(2, 2, NULL, 'manager.hn@cinema.com', '$2a$12$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'Trần Quản Lý Hà Nội', '0900000002', 0, NULL, '/assets/images/avatars/manager.png', 'ACTIVE', 0, 1, 0, NOW()),
+(3, 3, NULL, 'staff.hn@cinema.com', '$2a$12$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'Lê Thu Ngân Viên Hà Nội', '0900000003', 0, NULL, '/assets/images/avatars/staff.png', 'ACTIVE', 0, 1, 0, NOW()),
+(4, 3, NULL, 'staff.sg@cinema.com', '$2a$12$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'Phạm Thu Ngân Sài Gòn', '0900000004', 0, NULL, '/assets/images/avatars/staff.png', 'ACTIVE', 0, 1, 0, NOW()),
+(5, 4, NULL, 'customer@gmail.com', '$2a$12$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'Nguyễn Văn Khách Hàng', '0987654321', 250, 1, '/assets/images/avatars/customer.png', 'ACTIVE', 0, 1, 0, NOW());
+
+-- ----------------------------------------------------------------------------
+-- 7. SEED SYSTEM SETTINGS (Cấu hình tham số toàn cục dùng chung cho M-03.1, M-05.3, M-09.2)
+-- ----------------------------------------------------------------------------
+TRUNCATE TABLE `system_settings`;
+INSERT INTO `system_settings` (`setting_key`, `setting_value`, `description`, `group_name`, `updated_by`, `updated_at`) VALUES
+('SEAT_HOLD_DURATION_SECONDS', '300', 'Thời gian giữ ghế tạm thời khi khách thanh toán (giây)', 'BOOKING', 1, NOW()),
+('CLEANING_BUFFER_MINUTES', '15', 'Thời gian giãn cách dọn dẹp phòng chiếu giữa 2 suất chiếu (phút)', 'SHOWTIME', 1, NOW()),
+('POINT_EARN_RATE_VND', '10000', 'Số tiền chi tiêu (VND) để quy đổi ra 1 điểm thưởng', 'LOYALTY', 1, NOW()),
+('POINT_REDEEM_VALUE_VND', '1000', 'Giá trị quy đổi của 1 điểm thưởng khi thanh toán (VND)', 'LOYALTY', 1, NOW()),
+('PASSWORD_RESET_TOKEN_EXPIRY_MINUTES', '15', 'Thời hạn hiệu lực của link đặt lại mật khẩu qua email (phút)', 'SECURITY', 1, NOW()),
+('OTP_EXPIRY_SECONDS', '300', 'Thời hạn mã xác thực OTP gửi qua email (giây)', 'SECURITY', 1, NOW()),
+('VNPAY_TMN_CODE', 'DEMO_TMN', 'Mã định danh terminal VNPAY', 'PAYMENT', 1, NOW()),
+('VNPAY_HASH_SECRET', 'DEMO_HASH_SECRET_KEY_CINEMA_2026', 'Mã băm bí mật checksum HMAC-SHA512 VNPAY', 'PAYMENT', 1, NOW()),
+('QR_HMAC_SECRET', 'CINEMA_SECURE_QR_HMAC_SECRET_2026', 'Khóa bí mật tạo chữ ký số chống làm giả vé QR Code', 'SECURITY', 1, NOW());
 
 SET FOREIGN_KEY_CHECKS = 1;

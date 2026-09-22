@@ -21,7 +21,7 @@ import java.time.LocalDateTime;
 @ToString(callSuper = true)
 public class Payment extends BaseEntity {
     private Long bookingId;
-    private String paymentMethod; // VNPAY, CASH, MOMO, POINTS
+    private String paymentMethod; // VNPAY, CASH, POINTS
     private BigDecimal amount;
     private String transactionNo;
     private LocalDateTime paymentTime;

@@ -10,4 +10,5 @@ public interface UserService {
     User registerCustomer(String email, String plainPassword, String fullName, String phone);
     User getUserById(Long userId);
     boolean changePassword(Long userId, String oldPassword, String newPassword);
+    boolean sendPasswordResetOtp(String email);
 }

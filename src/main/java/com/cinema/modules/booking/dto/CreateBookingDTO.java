@@ -24,7 +24,7 @@ public class CreateBookingDTO {
     private Long showtimeId;
     private Long voucherId;
     private String channel; // ONLINE, POS
-    private String paymentMethod; // VNPAY, CASH, MOMO, POINTS
+    private String paymentMethod; // VNPAY, CASH, POINTS
     private String sessionId;
 
     /** Danh sách ID ghế chọn mua */

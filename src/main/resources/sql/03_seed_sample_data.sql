@@ -9,26 +9,26 @@ USE `cinema_chain_db`;
 SET FOREIGN_KEY_CHECKS = 0;
 
 -- ----------------------------------------------------------------------------
--- 1. SEED BRANCHES (Cụm rạp chi nhánh Hà Nội & Sài Gòn)
+-- 1. SEED CINEMAS (Cụm rạp chiếu phim Hà Nội & Sài Gòn)
 -- ----------------------------------------------------------------------------
-TRUNCATE TABLE `branches`;
-INSERT INTO `branches` (`id`, `branch_code`, `name`, `address`, `city`, `phone`, `email`, `total_halls`, `is_active`, `is_deleted`, `created_at`) VALUES
-(1, 'B-HN01', 'CineMax Vincom Bà Triệu', 'Tầng 6, TTTM Vincom Center, 191 Bà Triệu, Q. Hai Bà Trưng', 'Hà Nội', '02439741234', 'hn.batrieu@cinemax.vn', 2, 1, 0, NOW()),
-(2, 'B-SG01', 'CineMax Landmark 81', 'Tầng B1, Tòa Landmark 81, 720A Điện Biên Phủ, Q. Bình Thạnh', 'Hồ Chí Minh', '02838991234', 'sg.landmark81@cinemax.vn', 2, 1, 0, NOW());
+TRUNCATE TABLE `cinemas`;
+INSERT INTO `cinemas` (`id`, `cinema_code`, `name`, `address`, `city`, `phone`, `email`, `total_rooms`, `is_active`, `is_deleted`, `created_at`) VALUES
+(1, 'C-HN01', 'CineMax Vincom Bà Triệu', 'Tầng 6, TTTM Vincom Center, 191 Bà Triệu, Q. Hai Bà Trưng', 'Hà Nội', '02439741234', 'hn.batrieu@cinemax.vn', 2, 1, 0, NOW()),
+(2, 'C-SG01', 'CineMax Landmark 81', 'Tầng B1, Tòa Landmark 81, 720A Điện Biên Phủ, Q. Bình Thạnh', 'Hồ Chí Minh', '02838991234', 'sg.landmark81@cinemax.vn', 2, 1, 0, NOW());
 
--- Liên kết tài khoản nhân sự với chi nhánh làm việc
-UPDATE `users` SET `branch_id` = 1 WHERE `id` IN (2, 3); -- Manager HN & Staff HN
-UPDATE `users` SET `branch_id` = 2 WHERE `id` = 4;        -- Staff SG
+-- Liên kết tài khoản nhân sự với rạp làm việc
+UPDATE `users` SET `cinema_id` = 1 WHERE `id` IN (2, 3); -- Manager HN & Staff HN
+UPDATE `users` SET `cinema_id` = 2 WHERE `id` = 4;        -- Staff SG
 
 -- ----------------------------------------------------------------------------
--- 2. SEED SCREENING HALLS (Phòng chiếu mỗi chi nhánh: 1 Standard 2D, 1 IMAX 3D)
+-- 2. SEED SCREENING ROOMS (Phòng chiếu mỗi chi nhánh: 1 Standard 2D, 1 IMAX 3D)
 -- ----------------------------------------------------------------------------
-TRUNCATE TABLE `screening_halls`;
-INSERT INTO `screening_halls` (`id`, `branch_id`, `name`, `hall_type`, `total_rows`, `total_columns`, `total_capacity`, `status`, `is_deleted`, `created_at`) VALUES
-(1, 1, 'Cinema Hall 01 (2D Digital)', 'STANDARD_2D', 10, 10, 100, 'ACTIVE', 0, NOW()),
-(2, 1, 'IMAX Laser Hall 02',          'IMAX_3D',    10, 10, 100, 'ACTIVE', 0, NOW()),
-(3, 2, 'Cinema Hall 01 (2D Digital)', 'STANDARD_2D', 10, 10, 100, 'ACTIVE', 0, NOW()),
-(4, 2, 'IMAX Laser Hall 02',          'IMAX_3D',    10, 10, 100, 'ACTIVE', 0, NOW());
+TRUNCATE TABLE `screening_rooms`;
+INSERT INTO `screening_rooms` (`id`, `cinema_id`, `name`, `room_type`, `total_rows`, `total_columns`, `total_capacity`, `status`, `is_deleted`, `created_at`) VALUES
+(1, 1, 'Cinema Room 01 (2D Digital)', 'STANDARD_2D', 10, 10, 100, 'ACTIVE', 0, NOW()),
+(2, 1, 'IMAX Laser Room 02',          'IMAX_3D',    10, 10, 100, 'ACTIVE', 0, NOW()),
+(3, 2, 'Cinema Room 01 (2D Digital)', 'STANDARD_2D', 10, 10, 100, 'ACTIVE', 0, NOW()),
+(4, 2, 'IMAX Laser Room 02',          'IMAX_3D',    10, 10, 100, 'ACTIVE', 0, NOW());
 
 -- ----------------------------------------------------------------------------
 -- 3. SEED SEATS (Tạo ma trận 100 ghế ngồi 10x10 cho 4 phòng chiếu = 400 ghế)
@@ -36,9 +36,9 @@ INSERT INTO `screening_halls` (`id`, `branch_id`, `name`, `hall_type`, `total_ro
 -- ----------------------------------------------------------------------------
 TRUNCATE TABLE `seats`;
 
-DROP PROCEDURE IF EXISTS `sp_seed_hall_seats`;
+DROP PROCEDURE IF EXISTS `sp_seed_room_seats`;
 DELIMITER $$
-CREATE PROCEDURE `sp_seed_hall_seats`(IN p_hall_id INT)
+CREATE PROCEDURE `sp_seed_room_seats`(IN p_room_id INT)
 BEGIN
     DECLARE r INT DEFAULT 1;
     DECLARE c INT DEFAULT 1;
@@ -63,9 +63,9 @@ BEGIN
             SET v_seat_code = CONCAT(v_row_letter, LPAD(c, 2, '0'));
             
             INSERT INTO `seats` 
-                (`screening_hall_id`, `seat_type_id`, `seat_row`, `seat_number`, `seat_code`, `grid_row_index`, `grid_col_index`, `is_active`, `is_deleted`, `created_at`)
+                (`screening_room_id`, `seat_type_id`, `seat_row`, `seat_number`, `seat_code`, `grid_row_index`, `grid_col_index`, `is_active`, `is_deleted`, `created_at`)
             VALUES 
-                (p_hall_id, v_type_id, v_row_letter, c, v_seat_code, r, c, 1, 0, NOW());
+                (p_room_id, v_type_id, v_row_letter, c, v_seat_code, r, c, 1, 0, NOW());
             
             SET c = c + 1;
         END WHILE;
@@ -75,11 +75,11 @@ BEGIN
 END$$
 DELIMITER ;
 
-CALL `sp_seed_hall_seats`(1);
-CALL `sp_seed_hall_seats`(2);
-CALL `sp_seed_hall_seats`(3);
-CALL `sp_seed_hall_seats`(4);
-DROP PROCEDURE IF EXISTS `sp_seed_hall_seats`;
+CALL `sp_seed_room_seats`(1);
+CALL `sp_seed_room_seats`(2);
+CALL `sp_seed_room_seats`(3);
+CALL `sp_seed_room_seats`(4);
+DROP PROCEDURE IF EXISTS `sp_seed_room_seats`;
 
 -- ----------------------------------------------------------------------------
 -- 4. SEED MOVIES (5 bộ phim bom tấn đa dạng thể loại & độ tuổi)
@@ -156,25 +156,25 @@ INSERT INTO `ticket_pricings` (`id`, `day_type`, `time_slot`, `experience_format
 -- 7. SEED SHOWTIMES (Suất chiếu hôm nay, ngày mai và ngày kia)
 -- ----------------------------------------------------------------------------
 TRUNCATE TABLE `showtimes`;
-INSERT INTO `showtimes` (`id`, `movie_id`, `screening_hall_id`, `start_time`, `end_time`, `experience_format`, `status`, `is_deleted`, `created_at`) VALUES
--- Rạp 1 - Hà Nội: Hall 1 (2D)
+INSERT INTO `showtimes` (`id`, `movie_id`, `screening_room_id`, `start_time`, `end_time`, `experience_format`, `status`, `is_deleted`, `created_at`) VALUES
+-- Rạp 1 - Hà Nội: Room 1 (2D)
 (1, 1, 1, CONCAT(CURDATE(), ' 09:30:00'), CONCAT(CURDATE(), ' 12:20:00'), '2D', 'SCHEDULED', 0, NOW()),
 (2, 3, 1, CONCAT(CURDATE(), ' 13:00:00'), CONCAT(CURDATE(), ' 14:40:00'), '2D', 'SCHEDULED', 0, NOW()),
 (3, 5, 1, CONCAT(CURDATE(), ' 15:30:00'), CONCAT(CURDATE(), ' 17:45:00'), '2D', 'SCHEDULED', 0, NOW()),
 (4, 1, 1, CONCAT(CURDATE(), ' 19:30:00'), CONCAT(CURDATE(), ' 22:20:00'), '2D', 'OPENING',   0, NOW()),
 
--- Rạp 1 - Hà Nội: Hall 2 (IMAX 3D)
+-- Rạp 1 - Hà Nội: Room 2 (IMAX 3D)
 (5, 1, 2, CONCAT(CURDATE(), ' 10:00:00'), CONCAT(CURDATE(), ' 12:50:00'), '3D', 'SCHEDULED', 0, NOW()),
 (6, 2, 2, CONCAT(CURDATE(), ' 14:00:00'), CONCAT(CURDATE(), ' 16:00:00'), '3D', 'SCHEDULED', 0, NOW()),
 (7, 2, 2, CONCAT(CURDATE(), ' 18:00:00'), CONCAT(CURDATE(), ' 20:00:00'), '3D', 'OPENING',   0, NOW()),
 (8, 1, 2, CONCAT(CURDATE(), ' 20:45:00'), CONCAT(CURDATE(), ' 23:35:00'), '3D', 'SCHEDULED', 0, NOW()),
 
--- Rạp 2 - Sài Gòn: Hall 3 (2D)
+-- Rạp 2 - Sài Gòn: Room 3 (2D)
 (9,  3, 3, CONCAT(CURDATE(), ' 10:30:00'), CONCAT(CURDATE(), ' 12:10:00'), '2D', 'SCHEDULED', 0, NOW()),
 (10, 5, 3, CONCAT(CURDATE(), ' 14:00:00'), CONCAT(CURDATE(), ' 16:15:00'), '2D', 'SCHEDULED', 0, NOW()),
 (11, 1, 3, CONCAT(CURDATE(), ' 19:00:00'), CONCAT(CURDATE(), ' 21:50:00'), '2D', 'OPENING',   0, NOW()),
 
--- Rạp 2 - Sài Gòn: Hall 4 (IMAX 3D)
+-- Rạp 2 - Sài Gòn: Room 4 (IMAX 3D)
 (12, 2, 4, CONCAT(CURDATE(), ' 11:00:00'), CONCAT(CURDATE(), ' 13:00:00'), '3D', 'SCHEDULED', 0, NOW()),
 (13, 1, 4, CONCAT(CURDATE(), ' 15:00:00'), CONCAT(CURDATE(), ' 17:50:00'), '3D', 'SCHEDULED', 0, NOW()),
 (14, 2, 4, CONCAT(CURDATE(), ' 19:30:00'), CONCAT(CURDATE(), ' 21:30:00'), '3D', 'OPENING',   0, NOW()),
@@ -200,10 +200,10 @@ INSERT INTO `fnb_items` (`id`, `category_id`, `item_code`, `name`, `price`, `ima
 (10,3, 'FNB-CB-03', 'Family Party (2 Bắp + 3 Nước + Snack)', 189000.00, '/assets/images/fnb/combo_family.png', 1, 1, 0, NOW());
 
 -- ----------------------------------------------------------------------------
--- 9. SEED BRANCH INVENTORIES (Kho hàng bắp nước cho từng cụm rạp)
+-- 9. SEED CINEMA INVENTORIES (Kho hàng bắp nước cho từng cụm rạp)
 -- ----------------------------------------------------------------------------
-TRUNCATE TABLE `branch_inventories`;
-INSERT INTO `branch_inventories` (`branch_id`, `fnb_item_id`, `stock_quantity`, `warning_threshold`, `updated_at`) VALUES
+TRUNCATE TABLE `cinema_inventories`;
+INSERT INTO `cinema_inventories` (`cinema_id`, `fnb_item_id`, `stock_quantity`, `warning_threshold`, `updated_at`) VALUES
 (1, 1, 150, 20, NOW()), (1, 2, 120, 20, NOW()), (1, 3, 110, 20, NOW()), (1, 4, 300, 50, NOW()), (1, 5, 280, 50, NOW()),
 (1, 6, 200, 30, NOW()), (1, 7,  80, 15, NOW()), (1, 8, 100, 20, NOW()), (1, 9,  90, 20, NOW()), (1, 10, 60, 10, NOW()),
 (2, 1, 180, 20, NOW()), (2, 2, 140, 20, NOW()), (2, 3, 130, 20, NOW()), (2, 4, 350, 50, NOW()), (2, 5, 320, 50, NOW()),
@@ -228,7 +228,7 @@ INSERT INTO `customer_vouchers` (`id`, `user_id`, `voucher_id`, `is_used`, `used
 -- 11. SEED CASH DRAWERS (Mở ca làm việc mẫu cho nhân viên quầy POS)
 -- ----------------------------------------------------------------------------
 TRUNCATE TABLE `cash_drawers`;
-INSERT INTO `cash_drawers` (`id`, `branch_id`, `staff_id`, `opening_time`, `closing_time`, `starting_cash`, `total_cash_sales`, `ending_cash`, `difference_amount`, `status`) VALUES
+INSERT INTO `cash_drawers` (`id`, `cinema_id`, `staff_id`, `opening_time`, `closing_time`, `starting_cash`, `total_cash_sales`, `ending_cash`, `difference_amount`, `status`) VALUES
 (1, 1, 3, CONCAT(CURDATE(), ' 08:00:00'), NULL, 1000000.00, 0.00, NULL, 0.00, 'OPEN'),
 (2, 2, 4, CONCAT(CURDATE(), ' 08:30:00'), NULL, 1000000.00, 0.00, NULL, 0.00, 'OPEN');
 
@@ -240,5 +240,31 @@ INSERT INTO `reviews` (`id`, `movie_id`, `user_id`, `rating_score`, `comment`, `
 (1, 1, 5, 5, 'Phần 2 thực sự là một kiệt tác điện ảnh! Hình ảnh và âm thanh IMAX quá sức choáng ngợp.', 'APPROVED', 0, NOW()),
 (2, 3, 5, 4, 'Phim hoạt hình vui nhộn, gấu Po vẫn giữ được sự hài hước đặc trưng, rất thích hợp xem cùng gia đình.', 'APPROVED', 0, NOW()),
 (3, 5, 5, 5, 'Diễn xuất của Phương Anh Đào và Tuấn Trần chạm đến cảm xúc. Rất đáng xem!', 'APPROVED', 0, NOW());
+
+-- ----------------------------------------------------------------------------
+-- 13. SEED FAVORITE MOVIES (Danh sách phim yêu thích của khách hàng - M-01.3)
+-- ----------------------------------------------------------------------------
+TRUNCATE TABLE `favorite_movies`;
+INSERT INTO `favorite_movies` (`user_id`, `movie_id`, `created_at`) VALUES
+(5, 1, NOW()), -- Khách hàng thích Dune 2
+(5, 2, NOW()), -- Khách hàng thích Godzilla x Kong
+(5, 4, NOW()); -- Khách hàng thích Deadpool & Wolverine
+
+-- ----------------------------------------------------------------------------
+-- 14. SEED SUPPORT TICKETS (Quản lý khiếu nại & Hỗ trợ khách hàng - M-10)
+-- ----------------------------------------------------------------------------
+TRUNCATE TABLE `support_tickets`;
+INSERT INTO `support_tickets` (`id`, `ticket_code`, `user_id`, `staff_id`, `category`, `subject`, `content`, `response`, `status`, `priority`, `created_at`, `updated_at`) VALUES
+(1, 'TK-2026-0001', 5, 3, 'BOOKING', 'Hỏi về chính sách đổi vé trước giờ chiếu', 'Tôi đã mua vé suất 19:30 tối nay nhưng bận đột xuất, có thể đổi sang suất ngày mai được không?', 'Chào bạn, theo chính sách rạp, vé đã thanh toán được hỗ trợ đổi suất chiếu trước giờ chiếu tối thiểu 120 phút tại quầy vé. Vui lòng mang CCCD và mã vé đến quầy nhân viên sẽ hỗ trợ bạn nhé!', 'RESOLVED', 'MEDIUM', DATE_SUB(NOW(), INTERVAL 2 HOUR), NOW()),
+(2, 'TK-2026-0002', 5, NULL, 'FNB', 'Góp ý thêm vị bắp phô mai cay', 'Mong rạp có thêm tùy chọn bắp rang lắc phô mai cay cho các bạn trẻ thích ăn cay.', NULL, 'OPEN', 'LOW', NOW(), NOW());
+
+-- ----------------------------------------------------------------------------
+-- 15. SEED NOTIFICATIONS (Thông báo In-app hệ thống - M-11)
+-- ----------------------------------------------------------------------------
+TRUNCATE TABLE `notifications`;
+INSERT INTO `notifications` (`id`, `user_id`, `title`, `message`, `type`, `reference_id`, `is_read`, `created_at`) VALUES
+(1, 5, 'Chào mừng thành viên mới', 'Chào mừng bạn gia nhập hệ thống rạp CineMax! Bạn nhận được 2 voucher chào mừng giảm đến 50.000đ trong ví voucher.', 'SYSTEM', NULL, 1, DATE_SUB(NOW(), INTERVAL 3 DAY)),
+(2, 5, 'Khuyến mãi đặc biệt cuối tuần', 'Nhập mã CINEMA10 để được giảm ngay 10% khi đặt vé xem phim bom tấn Dune 2 cuối tuần này!', 'PROMOTION', 'CINEMA10', 0, DATE_SUB(NOW(), INTERVAL 1 DAY)),
+(3, 5, 'Phản hồi yêu cầu hỗ trợ TK-2026-0001', 'Nhân viên chăm sóc khách hàng đã phản hồi thắc mắc của bạn về chính sách đổi vé. Vui lòng kiểm tra mục Khiếu nại & Hỗ trợ.', 'SYSTEM', 'TK-2026-0001', 0, NOW());
 
 SET FOREIGN_KEY_CHECKS = 1;

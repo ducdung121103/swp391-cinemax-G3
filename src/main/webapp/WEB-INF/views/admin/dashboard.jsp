@@ -86,7 +86,7 @@
                         Vai trò hiện tại: <strong style="color: #e50914;">${sessionScope.currentUser.role.roleName}</strong>
                     </p>
                     <div class="quick-actions">
-                        <a href="${pageContext.request.contextPath}/admin/infrastructure/branches" class="btn-action">
+                        <a href="${pageContext.request.contextPath}/admin/infrastructure/cinemas" class="btn-action">
                             🏢 Quản lý Cụm Rạp
                         </a>
                         <a href="${pageContext.request.contextPath}/admin/operation/pos" class="btn-action btn-secondary-action">
@@ -103,8 +103,8 @@
                     <div class="stat-card">
                         <div class="stat-icon">🏢</div>
                         <div class="stat-info">
-                            <h3>${totalBranches}</h3>
-                            <p>Cụm rạp chi nhánh</p>
+                            <h3>${totalCinemas}</h3>
+                            <p>Cụm rạp chiếu phim</p>
                         </div>
                     </div>
                     <div class="stat-card">
@@ -136,7 +136,7 @@
                     <table class="order-summary-table" style="margin-top: 15px;">
                         <thead>
                             <tr>
-                                <th>Mã Chi Nhánh</th>
+                                <th>Mã Rạp</th>
                                 <th>Tên Cụm Rạp</th>
                                 <th>Thành Phố</th>
                                 <th>Địa Chỉ</th>
@@ -146,14 +146,14 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <c:forEach items="${branches}" var="b">
+                            <c:forEach items="${cinemas}" var="c">
                                 <tr>
-                                    <td><strong>${b.branchCode}</strong></td>
-                                    <td>${b.name}</td>
-                                    <td>${b.city}</td>
-                                    <td>${b.address}</td>
-                                    <td>${b.phone}</td>
-                                    <td>${b.totalHalls} phòng</td>
+                                    <td><strong>${c.cinemaCode}</strong></td>
+                                    <td>${c.name}</td>
+                                    <td>${c.city}</td>
+                                    <td>${c.address}</td>
+                                    <td>${c.phone}</td>
+                                    <td>${c.totalRooms} phòng</td>
                                     <td><span style="color: #38a169;">● Đang vận hành</span></td>
                                 </tr>
                             </c:forEach>

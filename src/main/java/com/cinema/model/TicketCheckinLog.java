@@ -22,7 +22,8 @@ public class TicketCheckinLog extends BaseEntity {
     private Long ticketId;
     private Long staffId;
     private LocalDateTime checkinTime;
-    private String status; // SUCCESS, REJECTED_ALREADY_USED, WRONG_SHOWTIME
+    private String status; // SUCCESS, REJECTED_ALREADY_USED, WRONG_SHOWTIME, REJECTED_UNDERAGE
+    private String note;
 
     // Quan hệ điều hướng
     private Ticket ticket;
