@@ -27,3 +27,8 @@ src/main/resources/db.local.properties
 
 # Visual Studio
 .vs/
+
+# Office temporary & lock files
+.~lock.*
+~$*
+*.tmp
