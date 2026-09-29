@@ -24,3 +24,6 @@ Thumbs.db
 
 # Local database properties containing personal password
 src/main/resources/db.local.properties
+
+# Visual Studio
+.vs/
