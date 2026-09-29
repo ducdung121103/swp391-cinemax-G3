@@ -1,6 +1,6 @@
 # HỆ THỐNG QUẢN LÝ CỤM RẠP CHI NHÁNH TOÀN QUỐC (SWP391 - Nhóm 3)
 > **MULTI-BRANCH CINEMA CHAIN ENTERPRISE SYSTEM**  
-> **Lớp:** SE2056-JV | **Học kỳ:** Fall 2024 / Spring 2025  
+> **Lớp:** SE2056-JV |
 > **Kiến trúc:** Package-by-Feature kết hợp Layered Architecture (DDD-Lite)  
 > **Nền tảng công nghệ:** Java 17 LTS, Jakarta EE 10 (Servlet 5.0, JSP 3.0, JSTL 2.0), MySQL 8.0 (InnoDB), HikariCP 5.1.0, Apache Tomcat 10.1.x
 
