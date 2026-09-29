@@ -46,4 +46,9 @@ public class ScreeningRoomServiceImpl implements ScreeningRoomService {
     public List<Seat> getRoomSeatMatrix(Long roomId) {
         return screeningRoomDAO.findSeatsByRoom(roomId);
     }
+
+    @Override
+    public Seat getSeatById(Long seatId) {
+        return screeningRoomDAO.findSeatById(seatId);
+    }
 }

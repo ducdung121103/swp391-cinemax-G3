@@ -37,6 +37,7 @@ class PricingServiceTest {
     void testStandardSeatPricing() {
         LocalDateTime time = LocalDateTime.of(2024, 10, 25, 14, 0);
         when(pricingDAO.findBasePrice(any(), eq("2D"))).thenReturn(new BigDecimal("85000.00"));
+        when(pricingDAO.findSeatTypeSurcharge(1L)).thenReturn(BigDecimal.ZERO);
 
         BigDecimal price = pricingService.calculateTicketPrice(1L, 1L, time, "2D");
         assertEquals(new BigDecimal("85000.00"), price);
@@ -47,6 +48,7 @@ class PricingServiceTest {
     void testVipSeatPricing() {
         LocalDateTime time = LocalDateTime.of(2024, 10, 25, 19, 30);
         when(pricingDAO.findBasePrice(any(), eq("2D"))).thenReturn(new BigDecimal("95000.00"));
+        when(pricingDAO.findSeatTypeSurcharge(2L)).thenReturn(new BigDecimal("15000.00"));
 
         BigDecimal price = pricingService.calculateTicketPrice(1L, 2L, time, "2D");
         assertEquals(new BigDecimal("110000.00"), price);
@@ -57,6 +59,7 @@ class PricingServiceTest {
     void testCoupleSeatPricing() {
         LocalDateTime time = LocalDateTime.of(2024, 10, 26, 20, 0);
         when(pricingDAO.findBasePrice(any(), eq("2D"))).thenReturn(new BigDecimal("105000.00"));
+        when(pricingDAO.findSeatTypeSurcharge(3L)).thenReturn(new BigDecimal("40000.00"));
 
         BigDecimal price = pricingService.calculateTicketPrice(1L, 3L, time, "2D");
         assertEquals(new BigDecimal("145000.00"), price);
@@ -67,6 +70,7 @@ class PricingServiceTest {
     void testImax3DVipPricing() {
         LocalDateTime time = LocalDateTime.of(2024, 10, 26, 20, 0);
         when(pricingDAO.findBasePrice(any(), eq("3D"))).thenReturn(new BigDecimal("150000.00"));
+        when(pricingDAO.findSeatTypeSurcharge(2L)).thenReturn(new BigDecimal("15000.00"));
 
         BigDecimal price = pricingService.calculateTicketPrice(2L, 2L, time, "3D");
         assertEquals(new BigDecimal("165000.00"), price);

@@ -42,6 +42,29 @@ public class ShowtimeDAO {
         return list;
     }
 
+    public List<Showtime> findByCinemaAndDate(Long cinemaId, LocalDate date) {
+        List<Showtime> list = new ArrayList<>();
+        String sql = "SELECT st.*, m.title as movie_title, sr.name as room_name " +
+                     "FROM showtimes st " +
+                     "JOIN movies m ON st.movie_id = m.id " +
+                     "JOIN screening_rooms sr ON st.screening_room_id = sr.id " +
+                     "WHERE sr.cinema_id = ? AND CAST(st.start_time AS DATE) = ? AND st.is_deleted = 0 " +
+                     "ORDER BY st.start_time ASC";
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setLong(1, cinemaId);
+            ps.setString(2, date.toString());
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(mapShowtime(rs));
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
     public Showtime findById(Long id) {
         String sql = "SELECT st.*, m.title as movie_title, sr.name as room_name " +
                      "FROM showtimes st " +

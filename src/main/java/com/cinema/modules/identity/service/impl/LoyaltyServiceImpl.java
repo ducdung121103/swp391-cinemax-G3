@@ -1,6 +1,7 @@
 package com.cinema.modules.identity.service.impl;
 
 import com.cinema.common.context.DBContext;
+import com.cinema.common.transaction.TransactionManager;
 import com.cinema.model.MembershipTier;
 import com.cinema.modules.identity.service.LoyaltyService;
 
@@ -59,52 +60,98 @@ public class LoyaltyServiceImpl implements LoyaltyService {
 
     @Override
     public boolean addPoints(Long userId, Long bookingId, int points, String description) {
-        String updateSql = "UPDATE users SET loyalty_points = loyalty_points + ?, updated_at = GETDATE() WHERE id = ?";
-        String logSql = "INSERT INTO point_histories (user_id, booking_id, points, type, description) VALUES (?, ?, ?, 'EARNED', ?)";
-        try (Connection conn = DBContext.getConnection()) {
-            try (PreparedStatement ps1 = conn.prepareStatement(updateSql);
-                 PreparedStatement ps2 = conn.prepareStatement(logSql)) {
-                ps1.setInt(1, points);
-                ps1.setLong(2, userId);
-                ps1.executeUpdate();
+        try {
+            return TransactionManager.executeInTransaction(conn -> {
+                // 1. Khóa dòng và đọc điểm hiện tại của user để đảm bảo tính nguyên tử
+                String lockSql = "SELECT loyalty_points FROM users WITH (UPDLOCK, ROWLOCK) WHERE id = ?";
+                int currentPoints = 0;
+                try (PreparedStatement psLock = conn.prepareStatement(lockSql)) {
+                    psLock.setLong(1, userId);
+                    try (ResultSet rs = psLock.executeQuery()) {
+                        if (!rs.next()) {
+                            return false; // User không tồn tại
+                        }
+                        currentPoints = rs.getInt("loyalty_points");
+                    }
+                }
 
-                ps2.setLong(1, userId);
-                if (bookingId != null) ps2.setLong(2, bookingId); else ps2.setNull(2, java.sql.Types.BIGINT);
-                ps2.setInt(3, points);
-                ps2.setString(4, description);
-                ps2.executeUpdate();
+                int balanceAfter = currentPoints + points;
+
+                // 2. Cập nhật số dư điểm mới
+                String updateSql = "UPDATE users SET loyalty_points = ?, updated_at = GETDATE() WHERE id = ?";
+                try (PreparedStatement psUpdate = conn.prepareStatement(updateSql)) {
+                    psUpdate.setInt(1, balanceAfter);
+                    psUpdate.setLong(2, userId);
+                    psUpdate.executeUpdate();
+                }
+
+                // 3. Ghi log lịch sử biến động điểm theo đúng schema point_histories
+                String logSql = "INSERT INTO point_histories (user_id, booking_id, points_change, balance_after, transaction_type, reason) VALUES (?, ?, ?, ?, 'EARN', ?)";
+                try (PreparedStatement psLog = conn.prepareStatement(logSql)) {
+                    psLog.setLong(1, userId);
+                    if (bookingId != null) psLog.setLong(2, bookingId); else psLog.setNull(2, java.sql.Types.BIGINT);
+                    psLog.setInt(3, points);
+                    psLog.setInt(4, balanceAfter);
+                    psLog.setString(5, description);
+                    psLog.executeUpdate();
+                }
+
                 return true;
-            }
-        } catch (SQLException e) {
+            });
+        } catch (Exception e) {
             e.printStackTrace();
+            return false;
         }
-        return false;
     }
 
     @Override
     public boolean deductPoints(Long userId, Long bookingId, int points, String description) {
-        String updateSql = "UPDATE users SET loyalty_points = loyalty_points - ?, updated_at = GETDATE() WHERE id = ? AND loyalty_points >= ?";
-        String logSql = "INSERT INTO point_histories (user_id, booking_id, points, type, description) VALUES (?, ?, ?, 'REDEEMED', ?)";
-        try (Connection conn = DBContext.getConnection()) {
-            try (PreparedStatement ps1 = conn.prepareStatement(updateSql);
-                 PreparedStatement ps2 = conn.prepareStatement(logSql)) {
-                ps1.setInt(1, points);
-                ps1.setLong(2, userId);
-                ps1.setInt(3, points);
-                int rows = ps1.executeUpdate();
-                if (rows > 0) {
-                    ps2.setLong(1, userId);
-                    if (bookingId != null) ps2.setLong(2, bookingId); else ps2.setNull(2, java.sql.Types.BIGINT);
-                    ps2.setInt(3, -points);
-                    ps2.setString(4, description);
-                    ps2.executeUpdate();
-                    return true;
+        try {
+            return TransactionManager.executeInTransaction(conn -> {
+                // 1. Khóa dòng và đọc điểm hiện tại của user
+                String lockSql = "SELECT loyalty_points FROM users WITH (UPDLOCK, ROWLOCK) WHERE id = ?";
+                int currentPoints = 0;
+                try (PreparedStatement psLock = conn.prepareStatement(lockSql)) {
+                    psLock.setLong(1, userId);
+                    try (ResultSet rs = psLock.executeQuery()) {
+                        if (!rs.next()) {
+                            return false; // User không tồn tại
+                        }
+                        currentPoints = rs.getInt("loyalty_points");
+                    }
                 }
-            }
-        } catch (SQLException e) {
+
+                if (currentPoints < points) {
+                    return false; // Không đủ điểm để trừ
+                }
+
+                int balanceAfter = currentPoints - points;
+
+                // 2. Cập nhật số dư điểm mới
+                String updateSql = "UPDATE users SET loyalty_points = ?, updated_at = GETDATE() WHERE id = ?";
+                try (PreparedStatement psUpdate = conn.prepareStatement(updateSql)) {
+                    psUpdate.setInt(1, balanceAfter);
+                    psUpdate.setLong(2, userId);
+                    psUpdate.executeUpdate();
+                }
+
+                // 3. Ghi log lịch sử biến động điểm theo đúng schema point_histories
+                String logSql = "INSERT INTO point_histories (user_id, booking_id, points_change, balance_after, transaction_type, reason) VALUES (?, ?, ?, ?, 'REDEEM', ?)";
+                try (PreparedStatement psLog = conn.prepareStatement(logSql)) {
+                    psLog.setLong(1, userId);
+                    if (bookingId != null) psLog.setLong(2, bookingId); else psLog.setNull(2, java.sql.Types.BIGINT);
+                    psLog.setInt(3, -points);
+                    psLog.setInt(4, balanceAfter);
+                    psLog.setString(5, description);
+                    psLog.executeUpdate();
+                }
+
+                return true;
+            });
+        } catch (Exception e) {
             e.printStackTrace();
+            return false;
         }
-        return false;
     }
 
     @Override

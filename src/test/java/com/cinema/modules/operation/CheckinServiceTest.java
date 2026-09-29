@@ -37,7 +37,7 @@ class CheckinServiceTest {
     }
 
     @Test
-    @DisplayName("Should successfully check-in a valid ticket and update status to CHECKED_IN")
+    @DisplayName("Should successfully check-in a valid ticket and update status to USED")
     void testCheckinSuccess() {
         Ticket validTicket = Ticket.builder()
                 .bookingId(101L)
@@ -57,9 +57,9 @@ class CheckinServiceTest {
         assertEquals("SUCCESS", result.getStatus());
         assertEquals(10L, result.getTicketId());
         assertEquals(3L, result.getStaffId());
-        assertEquals("CHECKED_IN", validTicket.getStatus());
+        assertEquals("USED", validTicket.getStatus());
 
-        verify(bookingEngineService, times(1)).updateTicketStatus(10L, "CHECKED_IN");
+        verify(bookingEngineService, times(1)).updateTicketStatus(10L, "USED");
         verify(checkinLogDAO, times(1)).insertLog(any(TicketCheckinLog.class));
     }
 
@@ -68,7 +68,7 @@ class CheckinServiceTest {
     void testCheckinAlreadyUsed() {
         Ticket usedTicket = Ticket.builder()
                 .barcode("TK-USED-12345")
-                .status("CHECKED_IN")
+                .status("USED")
                 .build();
         usedTicket.setId(11L);
 

@@ -42,4 +42,22 @@ public class TicketPricingDAO {
         // Giá mặc định nếu chưa cấu hình
         return new BigDecimal("85000.00");
     }
+
+    public BigDecimal findSeatTypeSurcharge(Long seatTypeId) {
+        if (seatTypeId == null) return BigDecimal.ZERO;
+        String sql = "SELECT surcharge FROM seat_types WHERE id = ? AND is_deleted = 0";
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setLong(1, seatTypeId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    BigDecimal surcharge = rs.getBigDecimal("surcharge");
+                    return surcharge != null ? surcharge : BigDecimal.ZERO;
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return BigDecimal.ZERO;
+    }
 }

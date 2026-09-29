@@ -23,12 +23,10 @@ public class PricingServiceImpl implements PricingService {
     @Override
     public BigDecimal calculateTicketPrice(Long showtimeId, Long seatTypeId, LocalDateTime showTime, String format) {
         BigDecimal basePrice = pricingDAO.findBasePrice(showTime, format);
-        // Nếu là ghế VIP cộng thêm 15k, Ghế Đôi (Sweetbox) cộng thêm 40k
         if (seatTypeId != null) {
-            if (seatTypeId == 2L) {
-                basePrice = basePrice.add(new BigDecimal("15000.00")); // VIP
-            } else if (seatTypeId == 3L) {
-                basePrice = basePrice.add(new BigDecimal("40000.00")); // COUPLE
+            BigDecimal surcharge = pricingDAO.findSeatTypeSurcharge(seatTypeId);
+            if (surcharge != null && surcharge.compareTo(BigDecimal.ZERO) > 0) {
+                basePrice = basePrice.add(surcharge);
             }
         }
         return basePrice;

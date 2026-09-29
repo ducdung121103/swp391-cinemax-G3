@@ -18,4 +18,5 @@ public interface ScreeningRoomService {
     ScreeningRoom getRoomById(Long roomId);
     boolean isRoomAvailable(Long roomId, LocalDateTime startTime, LocalDateTime endTime);
     List<Seat> getRoomSeatMatrix(Long roomId);
+    Seat getSeatById(Long seatId);
 }

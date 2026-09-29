@@ -19,7 +19,15 @@ import lombok.ToString;
 public class PointHistory extends BaseEntity {
     private Long userId;
     private Long bookingId;
-    private Integer points;
-    private String type; // EARNED, REDEEMED
-    private String description;
+    private Integer pointsChange;
+    private Integer balanceAfter;
+    private String transactionType; // EARN, REDEEM
+    private String reason;
+
+    public Integer getPoints() { return pointsChange; }
+    public void setPoints(Integer points) { this.pointsChange = points; }
+    public String getType() { return transactionType; }
+    public void setType(String type) { this.transactionType = type; }
+    public String getDescription() { return reason; }
+    public void setDescription(String description) { this.reason = description; }
 }

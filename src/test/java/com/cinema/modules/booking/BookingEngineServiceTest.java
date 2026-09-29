@@ -93,6 +93,21 @@ class BookingEngineServiceTest {
     }
 
     @Test
+    @DisplayName("Should throw IllegalArgumentException when ticketPrices is null or empty")
+    void testCreateBookingWithoutTicketPricesThrowsException() {
+        CreateBookingDTO dto = CreateBookingDTO.builder()
+                .userId(5L)
+                .showtimeId(1L)
+                .seatIds(List.of(10L, 11L))
+                .ticketPrices(null)
+                .channel("ONLINE")
+                .paymentMethod("VNPAY")
+                .build();
+
+        assertThrows(IllegalArgumentException.class, () -> bookingEngineService.createBooking(dto));
+    }
+
+    @Test
     @DisplayName("Should successfully hold seats for 5 minutes")
     void testHoldSeats() throws SQLException {
         List<Long> seatIds = List.of(20L, 21L);
@@ -106,11 +121,11 @@ class BookingEngineServiceTest {
     @Test
     @DisplayName("Should update ticket status via TicketDAO")
     void testUpdateTicketStatus() {
-        when(ticketDAO.updateStatus(15L, "CHECKED_IN")).thenReturn(true);
+        when(ticketDAO.updateStatus(15L, "USED")).thenReturn(true);
 
-        boolean updated = bookingEngineService.updateTicketStatus(15L, "CHECKED_IN");
+        boolean updated = bookingEngineService.updateTicketStatus(15L, "USED");
         assertTrue(updated);
-        verify(ticketDAO, times(1)).updateStatus(15L, "CHECKED_IN");
+        verify(ticketDAO, times(1)).updateStatus(15L, "USED");
     }
 
     @Test

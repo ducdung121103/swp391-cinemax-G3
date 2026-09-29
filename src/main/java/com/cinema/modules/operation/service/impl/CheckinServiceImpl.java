@@ -42,7 +42,7 @@ public class CheckinServiceImpl implements CheckinService {
         log.setTicketId(ticket.getId());
         log.setTicket(ticket);
 
-        if ("CHECKED_IN".equalsIgnoreCase(ticket.getStatus())) {
+        if ("USED".equalsIgnoreCase(ticket.getStatus()) || "CHECKED_IN".equalsIgnoreCase(ticket.getStatus())) {
             log.setStatus("REJECTED_ALREADY_USED");
             return log;
         }
@@ -52,9 +52,9 @@ public class CheckinServiceImpl implements CheckinService {
             return log;
         }
 
-        // Hợp lệ -> Đánh dấu vé đã sử dụng và ghi log checkin thành công
-        bookingEngineService.updateTicketStatus(ticket.getId(), "CHECKED_IN");
-        ticket.setStatus("CHECKED_IN");
+        // Hợp lệ -> Đánh dấu vé đã sử dụng (USED) và ghi log checkin thành công
+        bookingEngineService.updateTicketStatus(ticket.getId(), "USED");
+        ticket.setStatus("USED");
         log.setStatus("SUCCESS");
         checkinLogDAO.insertLog(log);
         return log;

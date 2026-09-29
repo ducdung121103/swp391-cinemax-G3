@@ -26,7 +26,7 @@ public class Ticket extends BaseEntity {
     private String barcode;
     private String qrSignature; // HMAC-SHA256 signature for anti-counterfeit QR code
     private BigDecimal ticketPrice;
-    private String status; // VALID, CHECKED_IN, REFUNDED
+    private String status; // VALID, USED, REFUNDED, CANCELLED
 
     // Quan hệ điều hướng
     private Seat seat;

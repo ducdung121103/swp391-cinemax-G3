@@ -12,6 +12,9 @@ import java.util.UUID;
 public class PaymentDAO {
 
     public void insertPayment(Connection conn, Long bookingId, String method, BigDecimal amount) throws SQLException {
+        // GHI CHÚ BẢO VỆ ĐỒ ÁN (M-06.1 - M-06.3):
+        // Cổng thanh toán VNPay và Tiền mặt tại quầy (POS) hiện được giả lập tự động thành công (Status = SUCCESS)
+        // phục vụ mục đích kiểm thử học thuật và bảo vệ đồ án SWP391. Chưa tích hợp SHA-512 checksum, URL Redirect và IPN Webhook thật.
         String txnNo = "TXN-" + System.currentTimeMillis() + "-" + UUID.randomUUID().toString().substring(0, 6).toUpperCase();
         String sql = "INSERT INTO payments (booking_id, payment_method, amount, transaction_no, status) " +
                      "VALUES (?, ?, ?, ?, 'SUCCESS')";

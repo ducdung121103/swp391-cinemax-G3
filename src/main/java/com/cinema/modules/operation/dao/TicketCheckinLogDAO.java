@@ -16,7 +16,7 @@ public class TicketCheckinLogDAO {
 
     public Long insertLog(TicketCheckinLog log) {
         String sql = "INSERT INTO ticket_checkin_logs (ticket_id, staff_id, status) VALUES (?, ?, ?)";
-        String updateTicketSql = "UPDATE tickets SET status = 'CHECKED_IN' WHERE id = ?";
+        String updateTicketSql = "UPDATE tickets SET status = 'USED' WHERE id = ?";
 
         try (Connection conn = DBContext.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
