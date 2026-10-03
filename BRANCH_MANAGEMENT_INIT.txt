@@ -1,0 +1,4 @@
+Initialized branch management feature
+- Created ThinhHT feature branch
+- Base for Admin Cinema Branch Management
+- Start date: October 3, 2026
