@@ -8,3 +8,10 @@
 ### Migration Files
 - Created migration script for cinema_branches table
 - Updated database context configuration
+## Model Implementation
+
+### CinemaBranch Model
+- Created CinemaBranch.java with Lombok annotations
+- Properties: branchId, branchName, address, phone, email, managerId, isActive, timestamps
+- Added validation annotations
+- Implemented toString, equals, hashCode methods
