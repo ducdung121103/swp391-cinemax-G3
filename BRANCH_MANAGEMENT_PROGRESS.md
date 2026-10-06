@@ -247,3 +247,11 @@
 - Properties: branchId, branchName, address, phone, email, managerId, isActive, timestamps
 - Added validation annotations
 - Implemented toString, equals, hashCode methods
+## Repository Implementation
+
+### CinemaBranches DAO
+- CRUD operations: create, read, update, delete
+- Implemented findAll with pagination and filtering
+- Added search by branch_name
+- Filter by is_active status
+- Row mapping from ResultSet to CinemaBranch objects
