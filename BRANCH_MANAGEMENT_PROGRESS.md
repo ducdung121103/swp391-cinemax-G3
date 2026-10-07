@@ -23,3 +23,13 @@
 - Added search by branch_name
 - Filter by is_active status
 - Row mapping from ResultSet to CinemaBranch objects
+## Service Layer
+
+### BranchService
+- Implemented getAllBranches with pagination
+- Implemented getBranchById
+- Implemented createBranch with validation
+- Implemented updateBranch with version control
+- Implemented deleteBranch with cascade handling
+- Added validation for unique branch names and emails
+- Added phone number format validation
