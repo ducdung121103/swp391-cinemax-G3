@@ -114,73 +114,72 @@
             <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-4 mb-5">
                 <c:forEach var="movie" items="${movies}">
                     <div class="col">
-                        <div class="movie-card">
-                            <div class="movie-poster-wrap">
-                                <img src="${movie.posterUrl}" alt="${movie.title}" class="movie-poster" onerror="this.src='https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=500&auto=format&fit=crop&q=80'">
+                        <div class="movie-card-cinema">
+                            <!-- Poster Box -->
+                            <div class="movie-poster-box">
+                                <img src="${movie.posterUrl}" alt="${movie.title}" class="movie-poster-img" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=500&auto=format&fit=crop&q=80'">
                                 
                                 <!-- Age Rating Badge -->
-                                <span class="badge-tag ${movie.ageBadgeClass} badge-status-top-left">
+                                <span class="badge-age-top-left ${movie.ageBadgeClass}">
                                     ${movie.ageRating}
                                 </span>
 
                                 <!-- Status Badge -->
                                 <c:choose>
                                     <c:when test="${movie.nowShowing}">
-                                        <span class="badge-tag badge-now-showing badge-status-top-right">
-                                            <i class="fa-solid fa-circle me-1" style="font-size: 6px;"></i> Đang Chiếu
+                                        <span class="badge-status-top-right">
+                                            <i class="fa-solid fa-circle text-danger me-1" style="font-size: 6px;"></i> Đang Chiếu
                                         </span>
                                     </c:when>
                                     <c:otherwise>
-                                        <span class="badge-tag badge-coming-soon badge-status-top-right">
-                                            <i class="fa-solid fa-calendar-day me-1"></i> Sắp Chiếu
+                                        <span class="badge-status-top-right">
+                                            <i class="fa-solid fa-calendar-days text-info me-1"></i> Sắp Chiếu
                                         </span>
                                     </c:otherwise>
                                 </c:choose>
 
-                                <!-- Overlay Hover Buttons -->
-                                <div class="movie-overlay">
+                                <!-- Hover Overlay -->
+                                <div class="movie-hover-overlay">
+                                    <c:if test="${not empty movie.trailerUrl}">
+                                        <button type="button" class="btn-play-trailer" data-trailer-url="${movie.trailerUrl}" data-movie-title="${movie.title}" title="Xem Trailer">
+                                            <i class="fa-solid fa-play ms-1"></i>
+                                        </button>
+                                    </c:if>
                                     <c:choose>
                                         <c:when test="${movie.nowShowing}">
-                                            <a href="${pageContext.request.contextPath}/movie/detail?id=${movie.id}" class="btn btn-cinema-primary btn-sm mb-2 w-75">
+                                            <a href="${pageContext.request.contextPath}/movie/detail?id=${movie.id}" class="btn btn-cinema-primary btn-sm w-100 mt-2">
                                                 <i class="fa-solid fa-ticket"></i> Mua Vé Ngay
                                             </a>
                                         </c:when>
                                         <c:otherwise>
-                                            <a href="${pageContext.request.contextPath}/movie/detail?id=${movie.id}" class="btn btn-cinema-primary btn-sm mb-2 w-75">
+                                            <a href="${pageContext.request.contextPath}/movie/detail?id=${movie.id}" class="btn btn-cinema-outline btn-sm w-100 mt-2">
                                                 <i class="fa-solid fa-circle-info"></i> Chi Tiết Phim
                                             </a>
                                         </c:otherwise>
                                     </c:choose>
-                                    
-                                    <c:if test="${not empty movie.trailerUrl}">
-                                        <button type="button" class="btn btn-cinema-outline btn-sm w-75" data-trailer-url="${movie.trailerUrl}" data-movie-title="${movie.title}">
-                                            <i class="fa-solid fa-play"></i> Xem Trailer
-                                        </button>
-                                    </c:if>
                                 </div>
                             </div>
                             
-                            <div class="movie-body">
-                                <h5 class="movie-card-title" title="${movie.title}">
+                            <!-- Card Body -->
+                            <div class="movie-card-body">
+                                <h3 class="movie-card-title" title="${movie.title}">
                                     <a href="${pageContext.request.contextPath}/movie/detail?id=${movie.id}">${movie.title}</a>
-                                </h5>
-                                <div class="movie-meta-item">
-                                    <i class="fa-solid fa-film text-warning"></i> ${movie.genreString}
+                                </h3>
+                                <div class="movie-card-genres">
+                                    <i class="fa-solid fa-film me-1 text-warning"></i> ${movie.genreString}
                                 </div>
-                                <div class="d-flex justify-content-between align-items-center mt-2">
-                                    <div class="movie-meta-item mb-0">
-                                        <i class="fa-regular fa-clock"></i> ${movie.duration} phút
-                                    </div>
+                                <div class="movie-card-footer">
+                                    <span><i class="fa-regular fa-clock me-1"></i> ${movie.duration} phút</span>
                                     <c:choose>
                                         <c:when test="${movie.nowShowing}">
-                                            <div class="text-warning small fw-bold">
+                                            <span class="movie-card-rating">
                                                 <i class="fa-solid fa-star"></i> ${movie.rating}
-                                            </div>
+                                            </span>
                                         </c:when>
                                         <c:otherwise>
-                                            <div class="text-info small fw-semibold">
-                                                ${movie.formattedReleaseDate}
-                                            </div>
+                                            <span class="text-info small fw-bold">
+                                                <i class="fa-regular fa-calendar-check me-1"></i> ${movie.formattedReleaseDate}
+                                            </span>
                                         </c:otherwise>
                                     </c:choose>
                                 </div>
