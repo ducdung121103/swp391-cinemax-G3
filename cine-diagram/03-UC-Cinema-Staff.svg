@@ -1,0 +1,118 @@
+<svg width="880" height="630" viewBox="0 0 880 630" xmlns="http://www.w3.org/2000/svg" id="svg-staff">
+  <defs>
+    <style>
+    .actor-name { font-family: Arial, sans-serif; font-size: 13px; font-weight: bold; fill: #000000; text-anchor: middle; }
+    .uc-text { font-family: Arial, sans-serif; font-size: 11.5px; fill: #000000; text-anchor: middle; dominant-baseline: central; }
+    .rel-label { font-family: Arial, sans-serif; font-size: 10.5px; font-style: italic; fill: #000000; text-anchor: middle; paint-order: stroke fill; stroke: #ffffff; stroke-width: 4px; stroke-linejoin: round; }
+    .note-text { font-family: Arial, sans-serif; font-size: 10.5px; fill: #1e293b; font-weight: 500; }
+    .box-title { font-family: Arial, sans-serif; font-size: 12px; font-weight: bold; fill: #000000; text-anchor: middle; }
+    .box-sub { font-family: Arial, sans-serif; font-size: 10px; fill: #475569; text-anchor: middle; }
+    .sys-title { font-family: Arial, sans-serif; font-size: 13px; font-weight: bold; fill: #1e293b; }
+</style>
+    <marker id="open-arrow-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 1 1 L 9 5 L 1 9" fill="none" stroke="black" stroke-width="1.6"/>
+    </marker>
+  </defs>
+
+  <!-- System Boundary encompassing Staff UCs and Notes -->
+  <rect x="180" y="20" width="670" height="585" rx="10" ry="10" fill="#ffffff" stroke="#64748b" stroke-width="1.5" stroke-dasharray="5,5" />
+  <text x="200" y="44" class="sys-title">CineMax System — Cinema Staff</text>
+
+  <!-- ACTOR: Cinema Staff -->
+  <g id="actor-staff">
+    <circle cx="80" cy="310" r="14" fill="white" stroke="black" stroke-width="2"/>
+    <line x1="80" y1="324" x2="80" y2="364" stroke="black" stroke-width="2"/>
+    <line x1="56" y1="338" x2="104" y2="338" stroke="black" stroke-width="2"/>
+    <line x1="80" y1="364" x2="62" y2="398" stroke="black" stroke-width="2"/>
+    <line x1="80" y1="364" x2="98" y2="398" stroke="black" stroke-width="2"/>
+    <text x="80" y="420" class="actor-name">Cinema Staff</text>
+  </g>
+
+  <!-- COLUMN 1: Primary Staff Base Use Cases -->
+  <!-- UC-11: Sell Tickets at Counter -->
+  <g id="uc-s-11">
+    <ellipse cx="305" cy="135" rx="105" ry="24" fill="white" stroke="black" stroke-width="1.5"/>
+    <text x="305" y="135" class="uc-text" font-weight="bold">Sell Tickets at Counter</text>
+  </g>
+
+  <!-- UC-14: Manage Shift Cash Drawer -->
+  <g id="uc-s-14">
+    <ellipse cx="305" cy="270" rx="100" ry="24" fill="white" stroke="black" stroke-width="1.5"/>
+    <text x="305" y="270" class="uc-text">Manage Shift Cash Drawer</text>
+  </g>
+
+  <!-- UC-16: Validate QR Ticket -->
+  <g id="uc-s-16">
+    <ellipse cx="305" cy="395" rx="100" ry="24" fill="white" stroke="black" stroke-width="1.5"/>
+    <text x="305" y="395" class="uc-text">Validate QR Ticket</text>
+  </g>
+
+  <!-- View Personal Shift Report -->
+  <g id="uc-s-report">
+    <ellipse cx="305" cy="495" rx="105" ry="23" fill="white" stroke="black" stroke-width="1.5"/>
+    <text x="305" y="495" class="uc-text">View Personal Shift Report</text>
+  </g>
+
+  <!-- User Logout -->
+  <g id="uc-s-logout">
+    <ellipse cx="305" cy="565" rx="80" ry="20" fill="white" stroke="black" stroke-width="1.5"/>
+    <text x="305" y="565" class="uc-text">User Logout</text>
+  </g>
+
+  <!-- COLUMN 2: Secondary / Included / Extended Use Cases -->
+  <!-- Extends Sell Tickets: Order F&B at Counter -->
+  <g id="uc-s-fnb">
+    <ellipse cx="590" cy="70" rx="100" ry="24" fill="white" stroke="black" stroke-width="1.5"/>
+    <text x="590" y="70" class="uc-text">Order F&amp;B at Counter</text>
+  </g>
+
+  <!-- Includes Sell Tickets: Process Counter Payment -->
+  <g id="uc-s-pay">
+    <ellipse cx="590" cy="135" rx="105" ry="24" fill="white" stroke="black" stroke-width="1.5"/>
+    <text x="590" y="135" class="uc-text">Process Counter Payment</text>
+  </g>
+
+  <!-- Includes Sell Tickets: Print Ticket (renamed from Print Thermal Receipt) -->
+  <g id="uc-s-print">
+    <ellipse cx="590" cy="200" rx="95" ry="24" fill="white" stroke="black" stroke-width="1.5"/>
+    <text x="590" y="200" class="uc-text">Print Ticket</text>
+  </g>
+
+  <!-- Note for Cash Drawer -->
+  <g id="note-drawer">
+    <polygon points="445,253 715,253 725,263 725,287 445,287" fill="#fef9c3" stroke="#854d0e" stroke-width="1.2"/>
+    <polygon points="715,253 715,263 725,263" fill="#fef08a" stroke="#854d0e" stroke-width="1.2"/>
+    <text x="457" y="274" class="note-text">Open shift · Close shift · Balance reconciliation</text>
+    <line x1="405" y1="270" x2="445" y2="270" stroke="#854d0e" stroke-width="1" stroke-dasharray="3,3"/>
+  </g>
+
+  <!-- Extends Gate: Verify Age (T13/T16/T18) -->
+  <g id="uc-s-age">
+    <ellipse cx="590" cy="395" rx="100" ry="24" fill="white" stroke="black" stroke-width="1.5"/>
+    <text x="590" y="395" class="uc-text">Verify Age (T13/T16/T18)</text>
+  </g>
+
+  <!-- RELATIONSHIPS -->
+  <!-- Staff Actor to Primary UCs -->
+  <line x1="104" y1="320" x2="215" y2="150" stroke="black" stroke-width="1.2"/>
+  <line x1="104" y1="335" x2="210" y2="274" stroke="black" stroke-width="1.2"/>
+  <line x1="104" y1="350" x2="205" y2="395" stroke="black" stroke-width="1.2"/>
+  <line x1="104" y1="365" x2="204" y2="495" stroke="black" stroke-width="1.2"/>
+  <line x1="104" y1="375" x2="225" y2="565" stroke="black" stroke-width="1.2"/>
+
+  <!-- Extend: Order F&B -> Sell Tickets (Extending -> Base) -->
+  <path d="M 505 82 L 398 120" stroke="black" stroke-width="1.5" stroke-dasharray="5,4" marker-end="url(#open-arrow-s)"/>
+  <text x="445" y="94" class="rel-label">&lt;&lt;extend&gt;&gt;</text>
+
+  <!-- Include: Sell Tickets -> Process Payment (Base -> Included) -->
+  <path d="M 410 135 L 485 135" stroke="black" stroke-width="1.5" stroke-dasharray="5,4" marker-end="url(#open-arrow-s)"/>
+  <text x="445" y="127" class="rel-label">&lt;&lt;include&gt;&gt;</text>
+
+  <!-- Include: Sell Tickets -> Print Ticket (Base -> Included) -->
+  <path d="M 398 149 L 505 188" stroke="black" stroke-width="1.5" stroke-dasharray="5,4" marker-end="url(#open-arrow-s)"/>
+  <text x="445" y="177" class="rel-label">&lt;&lt;include&gt;&gt;</text>
+
+  <!-- Extend: Verify Age -> Validate QR Ticket (Extending -> Base) -->
+  <path d="M 490 395 L 405 395" stroke="black" stroke-width="1.5" stroke-dasharray="5,4" marker-end="url(#open-arrow-s)"/>
+  <text x="448" y="387" class="rel-label">&lt;&lt;extend&gt;&gt;</text>
+</svg>

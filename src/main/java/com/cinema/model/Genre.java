@@ -19,4 +19,13 @@ import lombok.ToString;
 public class Genre extends BaseEntity {
     private String name;
     private String description;
+
+    // Helper getters cho tương thích JSTL UI
+    public Long getGenreId() {
+        return getId();
+    }
+
+    public String getGenreName() {
+        return name;
+    }
 }
