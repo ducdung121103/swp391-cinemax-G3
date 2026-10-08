@@ -1,41 +1,39 @@
 # CineMax — Multi-Branch Cinema Management System
-## FEATURE TREE — v2.1 (Văn bản chính thức)
+## FEATURE TREE — v2.2 (Final Definition - Bản hoàn chỉnh)
 
 > ### 📌 Vai trò của tài liệu này
-> Đây là **nguồn chân lý duy nhất** về phạm vi và actor sở hữu cho toàn bộ dự án CineMax, thay thế hoàn toàn:
+> Đây là **nguồn chân lý duy nhất (Single Source of Truth)** về phạm vi nghiệp vụ và actor sở hữu cho toàn bộ dự án CineMax, thay thế hoàn toàn:
 > - Bản Feature Tree gốc (`0__SE2056-JV_-_Group_3__-_Feature_Tree.docx`) — chỉ giữ giá trị tham khảo lịch sử, không còn dùng để quyết định phạm vi.
 > - Cây 14 nhánh MBCMS (bản phác thảo phân việc) — chỉ dùng cho việc chia task trong nhóm (xem `Phan_Viec_MBCMS_Mapping_Code_That.md`), **không dùng để quyết định ai làm UC nào**.
 >
-> Mọi UC Diagram, Permission Matrix, và việc scaffold code (Bước 2–4 trong lộ trình 4 bước) đều phải đối chiếu và trỏ về đúng 1 dòng cụ thể trong văn bản này. Khi có mâu thuẫn giữa tài liệu khác và văn bản này — **văn bản này luôn thắng**.
+> Mọi UC Diagram, Sequence Diagram, Activity Diagram, Permission Matrix, và việc scaffold code/DB đều phải đối chiếu và trỏ về đúng 1 dòng cụ thể trong văn bản này. Khi có mâu thuẫn giữa tài liệu khác và văn bản này — **văn bản này luôn thắng**.
 
 ---
 
-## ✅ QUYẾT ĐỊNH ĐÃ CHỐT (v2.1) — 3 nhánh chính thức NGOÀI PHẠM VI dự án
+## ✅ CÁC QUYẾT ĐỊNH NGHIỆP VỤ ĐÃ CHỐT DỨT KHOÁT (v2.2)
 
-Môn học đề cao nghiệp vụ/luồng/logic hơn độ phủ tính năng — nhóm quyết định **cắt hẳn 3 nhánh sau** để tập trung làm sâu các luồng còn lại, không dàn trải:
+Dự án đề cao nghiệp vụ sâu, luồng dữ liệu chuẩn chỉ và tính toàn vẹn (ACID, Concurrency) hơn độ phủ tính năng dàn trải. Nhóm đã thống nhất chốt hạ toàn bộ các điểm phân vân sau:
 
-| # | Nhánh bị cắt | Quyết định | Ghi chú |
+| # | Hạng mục nghiệp vụ | Quyết định dứt khoát v2.2 | Rationale & Cơ chế chuẩn hóa |
 |---|---|---|---|
-| 1 | **Assign Staff Shifts** (phân ca làm việc) | ❌ Cắt hẳn khỏi UC Diagram Cinema Manager | Chưa từng có module M-xx hậu thuẫn — xác nhận đúng là ngoài phạm vi |
-| 2 | **Voucher / Promotion** | ❌ Cắt hẳn — gỡ cả code (`VoucherServiceImpl`/`VoucherDAO`) lẫn UC liên quan | Dù code đã chạy + test pass 100%, vẫn cắt theo đúng định hướng "ít mà sâu" |
-| 3 | **Loyalty & Membership** *(phát hiện thêm: chưa từng có mã M-xx chính thức trong toàn bộ Feature Tree, kể cả bản gốc)* | ❌ Cắt hẳn — gỡ cả code (`LoyaltyServiceImpl`, bảng `point_histories`/`membership_tiers` không cần UI) | Không cần bổ sung module mới vì đã quyết định cắt, không giữ |
-
-**Hệ quả cần xử lý đồng bộ ở các tài liệu khác (không chỉ Feature Tree này):**
-- UC Diagram **Customer** (chưa từng được sửa ở Bước 2) phải xoá 2 UC: `Apply Promo Voucher` *(extend của Book Tickets Online)* và `Manage Loyalty Points`.
-- `ProjectTracking_CineMax.xlsx`: xoá toàn bộ nhóm nghiệp vụ "Voucher & Loyalty" (4 dòng Functions, 2 dòng Use Case) — xem prompt riêng `Buoc2.5_Sua_Tracking_CineMax.md`.
-- Bước 3 (scaffold code) **không scaffold bất kỳ thứ gì** cho 3 nhánh này.
+| 1 | **Vận hành ca làm việc (Staff Shifts & Cash Drawer)** | ❌ **Cắt bỏ hoàn toàn** | Không triển khai phân ca (`Assign Staff Shifts`), mở/đóng két tiền (`Cash Drawer`) hay báo cáo ca riêng lẻ. Doanh số & giao dịch ghi nhận trực tiếp theo `staff_id` + `timestamp` của từng hóa đơn trong ngày. Cinema Staff còn đúng **9 Use Case sạch**. |
+| 2 | **Chỉnh sửa đơn vé sau thanh toán (`Modify booking`)** | ❌ **Loại bỏ hoàn toàn** | Chặn đứng rủi ro Race Condition, chênh lệch giá vé và hoàn tiền phức tạp. Thay thế bằng: **Chỉ được Hủy vé có điều kiện (`Cancel booking (conditional)`)** trước giờ chiếu tối thiểu X tiếng, tự động hoàn tiền và giải phóng ghế. |
+| 3 | **Chiết khấu tại quầy vé POS (`Discounts`)** | ⚖️ **Chuẩn hóa thành Giá ưu đãi theo đối tượng (`Concession Pricing`)** | Cắt bỏ Voucher/Promotion/Loyalty. Tại quầy, Staff chỉ áp dụng bảng giá định sẵn cấu hình tại M-03.2 (Vé HSSV, Người cao tuổi) khi khách xuất trình giấy tờ hợp lệ, không nhập mã giảm giá tự do. |
+| 4 | **Đồng bộ Tồn kho Bắp nước (F&B Real-time Stock)** | 🔒 **Khép kín Real-time & Auto Out of Stock** | Trừ kho tự động theo thời gian thực ngay khi thanh toán thành công (Online / POS). Khi tồn kho = 0, hệ thống tự động khóa/ẩn món trên cả Web và Counter để chống bán âm kho. |
+| 5 | **Voucher / Promotion** | ❌ **Cắt hẳn khỏi phạm vi** | Gỡ bỏ UI và các Use Case liên quan đến mã voucher/khuyến mãi. |
+| 6 | **Loyalty & Membership Tiers** | ❌ **Cắt hẳn khỏi phạm vi** | Không triển khai UI tích/tiêu điểm thưởng, không thăng hạng thành viên. |
 
 ---
 
-**Chú giải Actor:**
-| Ký hiệu | Actor |
-|---|---|
-| 🟣 Guest | Khách vãng lai, chưa đăng nhập |
-| 🟢 Customer | Khách hàng đã đăng ký/đăng nhập |
-| 🟡 Cinema Staff | Nhân viên quầy vé & soát vé tại rạp |
-| 🔵 Cinema Manager | Quản lý vận hành 1 chi nhánh |
-| 🔴 Administrator | Quản trị toàn chuỗi |
-| ⚙️ System | Hệ thống tự động thực hiện, không do người dùng thao tác trực tiếp |
+**Chú giải Ký hiệu Actor:**
+| Ký hiệu | Actor | Mô tả vai trò |
+|:---:|---|---|
+| 🟣 | **Guest** | Khách vãng lai, chưa đăng nhập hệ thống |
+| 🟢 | **Customer** | Khách hàng đã đăng ký/đăng nhập tài khoản |
+| 🟡 | **Cinema Staff** | Nhân viên quầy vé & soát vé tại rạp |
+| 🔵 | **Cinema Manager** | Quản lý vận hành tại 1 chi nhánh rạp cụ thể |
+| 🔴 | **Administrator** | Quản trị viên tối cao toàn chuỗi rạp |
+| ⚙️ | **System** | Hệ thống tự động thực thi ngầm (Background Job, Event Listener, Webhook) |
 
 ---
 
@@ -99,6 +97,7 @@ Môn học đề cao nghiệp vụ/luồng/logic hơn độ phủ tính năng �
 - Configure prices by seat type — 🔴 Administrator
 - Configure prices by hall/format (2D, 3D, IMAX) — 🔴 Administrator
 - Configure time-based pricing (weekday/weekend/holiday/sneak show) — 🔴 Administrator
+- Configure concession pricing templates (Standard, Student/U22, Senior) — 🔴 Administrator
 - Manage cinema-specific pricing — 🔵 Cinema Manager *(ghi đè giá mặc định cho riêng chi nhánh mình)*
 
 ### M-03.3 Showtime Monitoring — 🔵 Cinema Manager
@@ -133,62 +132,62 @@ Môn học đề cao nghiệp vụ/luồng/logic hơn độ phủ tính năng �
 ### M-05.1 Online Booking Flow — 🟢 Customer
 - Select cinema / movie / showtime / seats
 - Add tickets to booking
-- Select F&B combo during booking
+- Select F&B combo during booking (with real-time stock verification)
 - Confirm booking (ends here — ticket/QR issuance belongs to M-07, not this module)
 
 ### M-05.2 Counter Booking Flow — 🟡 Cinema Staff
 - Search showtimes at the counter
-- Select seats, select F&B
-- Create booking (channel: POS)
-- Apply applicable discounts
+- Select seats, select F&B items
+- Select concession ticket type (Standard / Student / Senior based on valid ID verification)
+- Create booking (channel: POS, recorded under operator `staff_id`)
 - Temporarily reserve seats (~5 minutes)
 
 ### M-05.3 Seat Reservation Lock — ⚙️ System
-- Temporarily lock selected seats (Pessimistic Lock, ~5 minutes, real-time countdown)
-- Release expired seat reservations (background job auto-releases seats)
+- Temporarily lock selected seats (Pessimistic Lock / Redis-DB lock, ~5 minutes, real-time countdown)
+- Release expired seat reservations (background job auto-releases seats to AVAILABLE)
 - Prevent double booking
-- Confirm seat availability before payment
+- Confirm seat availability before payment gateway transition
 
 ### M-05.4 Booking Management — 🟢 Customer
-- View booking details / history
-- Modify booking
-- Track booking status
+- View booking details & history
+- Track booking status (PENDING, PAID, CANCELLED, COMPLETED)
+- Cancel booking (conditional) — *chỉ cho phép hủy trực tuyến khi thời điểm hiện tại cách giờ chiếu tối thiểu X tiếng (cấu hình hệ thống, VD: ≥ 2 tiếng); kích hoạt luồng hoàn tiền và giải phóng ghế*
 
 ---
 
 ## M-06. Payment Management
 
 ### M-06.1 Online Payment — 🟢 Customer *(khởi tạo)* / ⚙️ System *(xử lý)*
-- Payment gateway (VNPay)
+- Payment gateway integration (VNPay)
 - Asynchronous payment webhook processing & IPN verification — ⚙️ System
-- Payment confirmation / failure handling — ⚙️ System
+- Payment confirmation / failure handling & transaction rollback — ⚙️ System
 
 ### M-06.2 Counter Payment — 🟡 Cinema Staff
-- Cash payment, VNPay
-- Confirm payment
-- Print receipt
+- Process counter payment (Cash, VNPay QR)
+- Confirm payment receipt (recorded with `staff_id` and timestamp)
+- Print physical receipt / ticket
 
 ### M-06.3 Payment Tracking — 🟢 Customer *(lịch sử của mình)* / 🔴 Administrator *(toàn chuỗi)*
-- View payment history, track status
-- Generate invoices/receipts
+- View payment history, track payment status
+- Generate electronic invoices/receipts
 
 ---
 
 ## M-07. Ticket & Entry Management
 
 ### M-07.1 Ticket Issuance
-- Generate ticket (QR code signed with HMAC-SHA256) — ⚙️ System *(tự động ngay sau khi M-06 xác nhận thanh toán)*
+- Generate ticket (QR code signed with HMAC-SHA256) — ⚙️ System *(tự động ngay sau khi M-06 xác nhận thanh toán thành công)*
 - View ticket details — 🟢 Customer
-- Reissue ticket / cancel ticket — 🟡 Cinema Staff
-- Look up & reprint ticket by booking code or phone number — 🟡 Cinema Staff
+- Reissue ticket / cancel ticket (authorized rollback) — 🟡 Cinema Staff
+- Look up & reprint ticket by booking code or customer phone number — 🟡 Cinema Staff
 - Export/download e-ticket (PDF / QR image) — 🟢 Customer
 
 ### M-07.2 Ticket Validation (Gate Check-in) — 🟡 Cinema Staff
 - Scan QR ticket (phone camera / barcode scanner)
-- Validate ticket (correct showtime, correct hall)
-- Prevent duplicate entry (flip ticket status to USED, block re-entry)
-- Record attendance
-- Verify customer age against ID for age-restricted movies (T13/T16/T18)
+- Validate ticket (correct showtime, correct screening hall, ticket status = PAID)
+- Prevent duplicate entry (flip ticket status to USED, block re-entry attempts)
+- Record attendance log (timestamp, gate validator `staff_id`)
+- Verify customer age against ID for age-restricted movies (T13/T16/T18) & student card for concession tickets
 
 ---
 
@@ -196,129 +195,138 @@ Môn học đề cao nghiệp vụ/luồng/logic hơn độ phủ tính năng �
 
 ### M-08.1 F&B Catalog & Stock
 - Add/edit/delete food & drink items — 🔴 Administrator
-- Manage categories, pricing — 🔴 Administrator
-- Manage stock per branch — 🔵 Cinema Manager
+- Manage categories, base pricing — 🔴 Administrator
+- Manage branch inventory stock (`stock_quantity`) — 🔵 Cinema Manager
+- Deduct stock in real-time upon successful payment (Online / POS) — ⚙️ System
+- Auto-flag Out of Stock (disable adding to cart when `stock_quantity <= 0`) — ⚙️ System
 
 ### M-08.2 F&B Ordering — 🟢 Customer *(online)* / 🟡 Cinema Staff *(tại quầy)*
-- Browse menu, select items/combos
-- Add F&B to booking (writes into order_items, item_type = 'FNB')
-- Track order status
+- Browse menu, select items/combos (real-time stock availability check)
+- Add F&B to booking (writes into `order_items`, `item_type = 'FNB'`)
+- Track order delivery / pick-up status at the counter
 
 ---
 
 ## M-09. Notification Management — ⚙️ System *(gửi tự động, người nhận là Customer)*
 
 ### M-09.1 Booking & Payment Notifications
-- Booking confirmation (with e-ticket QR code)
-- Payment confirmation
-- Cancellation / refund notification
+- Booking confirmation (with e-ticket QR code attachment)
+- Payment confirmation & transaction reference
+- Cancellation & refund status notification
 
 ### M-09.2 Showtime Notifications
-- Showtime reminder / change / cancellation notification
+- Showtime reminder (sent X hours prior to screening)
+- Showtime schedule change / cancellation alert
 
 ---
 
 ## M-10. Reporting & Analytics
 
 ### M-10.1 Sales Reports — 🔴 Administrator
-- Ticket sales, revenue, F&B sales, payment report
+- Ticket sales, box office revenue, F&B revenue, payment method breakdowns
 - Export reports to Excel (.xlsx) & PDF
 
 ### M-10.2 Branch Reports — 🔴 Administrator *(toàn chuỗi)* / 🔵 Cinema Manager *(chi nhánh mình)*
-- Branch revenue, ticket sales, occupancy, performance
-- Chain-wide revenue & performance comparison across branches — 🔴 Administrator *(chỉ Admin so sánh được liên chi nhánh)*
+- Branch revenue, ticket sales, hall occupancy, operational performance
+- Chain-wide revenue & performance comparison across branches — 🔴 Administrator *(chỉ Admin có thẩm quyền so sánh liên chi nhánh)*
 
 ### M-10.3 Operation Reports — 🔴 Administrator / 🔵 Cinema Manager *(chi nhánh mình)*
-- Hall occupancy, popular movies/showtimes, peak booking periods
-- Ticket attendance, demographic statistics & peak hours
+- Hall occupancy rate, popular movies/showtimes, peak booking periods
+- Ticket attendance rate, demographic statistics & peak hour traffic
 
 ---
 
 ## M-11. System Administration — 🔴 Administrator
-- View all branches, monitor branch status, system-wide overview
-- Configure global system parameters (seat hold duration, cleaning buffer minutes...)
+- View all branches, monitor branch operational status, system-wide overview
+- Configure global system parameters (seat hold timeout = 5 mins, cleaning buffer = 15 mins, cancellation deadline = 2 hours...)
 
 ---
 
-## BẢNG TỔNG HỢP — đối chiếu nhanh Feature Tree ↔ UC Diagram (theo kết quả Bước 2)
+## 📊 BẢNG TỔNG HỢP — ĐỐI CHIẾU NHANH FEATURE TREE ↔ USE CASE DIAGRAM
 
-Dùng bảng này để kiểm tra chéo: mỗi UC trên sơ đồ phải có đúng 1 dòng ở đây trỏ về đúng mã M-xx.x phía trên. Nếu một UC trên sơ đồ không xuất hiện trong bảng này — nó đang **không có căn cứ chính thức**, xử lý theo đúng tinh thần mục "Mục đang chờ quyết định" ở đầu file.
+Bảng này đóng vai trò **Single Source of Truth** để nghiệm thu các Use Case Diagram của từng Actor. Mọi Use Case trên sơ đồ thiết kế UML bắt buộc phải tương ứng đúng 1 dòng trong bảng này.
 
-### 🔴 Administrator (11 UC)
-| UC trên sơ đồ | Mã Feature Tree |
-|---|---|
-| Manage User, Staff & Manager Accounts | M-01.4 |
-| Manage Master Movie Catalog | M-02.1 |
-| Manage Cinema Branches & Halls | M-04.1 + M-04.2 |
-| Configure Seat Grid Designer | M-04.3 |
-| Configure Default (Global) Pricing Template | M-03.2 |
-| Manage Global F&B Catalog (Items, Categories & Pricing) | M-08.1 |
-| Moderate User Reviews | M-02.2 |
-| Generate Enterprise BI Reports | M-10.1, M-10.2 |
-| System Dashboard & Global Parameters | M-11 |
-| Toggle Seat Maintenance Status | M-04.3 |
-| User Logout | M-01.2 |
-
-### 🔵 Cinema Manager (7 UC — đã chốt, sạch)
-| UC trên sơ đồ | Mã Feature Tree |
-|---|---|
-| Schedule Branch Showtimes | M-03.1 |
-| Configure Branch Pricing & Rates | M-03.2 |
-| Monitor Hall Occupancy | M-03.3 |
-| Manage Branch F&B Stock | M-08.1 |
-| Toggle Seat Maintenance Status | M-04.3 |
-| View Branch Revenue & Sales Reports | M-10.2, M-10.3 |
-| User Logout | M-01.2 |
-
-*(Đã xoá "Assign Staff Shifts" khỏi sơ đồ — xem mục "Quyết định đã chốt" ở đầu file.)*
-
-### 🟡 Cinema Staff (11 UC)
-| UC trên sơ đồ | Mã Feature Tree |
-|---|---|
-| Sell Tickets at Counter | M-05.2 |
-| Order F&B at Counter | M-08.2 |
-| Process Counter Payment | M-06.2 |
-| Print Ticket | M-06.2 |
-| Manage Shift Cash Drawer | *(ngoài phạm vi M-01→M-11, thuộc vận hành ca — xem thêm mục chờ quyết định #1)* |
-| Validate QR Ticket | M-07.2 |
-| Verify Age (T13/T16/T18) | M-07.2 |
-| Reissue / Cancel Ticket | M-07.1 |
-| Look Up & Reprint Ticket | M-07.1 |
-| View Personal Shift Report | *(tương tự — liên quan vận hành ca)* |
-| User Logout | M-01.2 |
-
-### 🟢 Customer — 2 UC bị xoá theo quyết định v2.1
-| UC trên sơ đồ cũ | Trạng thái |
-|---|---|
-| ~~Apply Promo Voucher~~ | ❌ Xoá — xem "Quyết định đã chốt" |
-| ~~Manage Loyalty Points~~ | ❌ Xoá — xem "Quyết định đã chốt" |
+### 🔴 Administrator (11 Use Cases — Chuẩn hóa)
+| # | Use Case trên sơ đồ UML | Mã Feature Tree | Ghi chú phạm vi |
+|:---:|---|---|---|
+| 1 | Manage User, Staff & Manager Accounts | M-01.4 | Toàn quyền CRUD tài khoản & phân quyền |
+| 2 | Manage Master Movie Catalog | M-02.1 | Kho phim dùng chung toàn hệ thống |
+| 3 | Manage Cinema Branches & Halls | M-04.1, M-04.2 | Quản lý cụm rạp và phòng chiếu |
+| 4 | Configure Seat Grid Designer | M-04.3 | Ma trận sơ đồ ghế (A-Z x 1-N) |
+| 5 | Configure Default Pricing Template | M-03.2 | Bảng giá gốc (tiêu chuẩn, đối tượng, định dạng) |
+| 6 | Manage Global F&B Catalog | M-08.1 | Danh mục món & giá bắp nước toàn hệ thống |
+| 7 | Moderate User Reviews | M-02.2 | Kiểm duyệt bình luận/đánh giá người dùng |
+| 8 | Generate Enterprise BI Reports | M-10.1, M-10.2 | Báo cáo doanh thu & so sánh liên rạp |
+| 9 | System Dashboard & Global Parameters | M-11 | Cấu hình tham số hệ thống toàn cục |
+| 10 | Toggle Seat Maintenance Status | M-04.3 | Đóng/mở bảo trì ghế toàn hệ thống |
+| 11 | User Logout | M-01.2 | Đăng xuất tài khoản an toàn |
 
 ---
 
-## NHẬT KÝ PHIÊN BẢN
+### 🔵 Cinema Manager (7 Use Cases — Đã chốt, sạch)
+| # | Use Case trên sơ đồ UML | Mã Feature Tree | Ghi chú phạm vi |
+|:---:|---|---|---|
+| 1 | Schedule Branch Showtimes | M-03.1 | Lập lịch chiếu tại chi nhánh mình quản lý |
+| 2 | Configure Branch Pricing & Rates | M-03.2 | Tùy biến giá riêng cho chi nhánh |
+| 3 | Monitor Hall Occupancy | M-03.3 | Theo dõi tỷ lệ lấp đầy phòng chiếu |
+| 4 | Manage Branch F&B Stock | M-08.1 | Kiểm kê và cập nhật kho bắp nước chi nhánh |
+| 5 | Toggle Seat Maintenance Status | M-04.3 | Khóa ghế hỏng trong phạm vi rạp mình |
+| 6 | View Branch Revenue & Sales Reports | M-10.2, M-10.3 | Báo cáo doanh số & vận hành chi nhánh |
+| 7 | User Logout | M-01.2 | Đăng xuất tài khoản an toàn |
+
+*(Đã cắt hoàn toàn "Assign Staff Shifts" — không quản lý ca làm việc phức tạp).*
+
+---
+
+### 🟡 Cinema Staff (Đúng 9 Use Cases — Đã chốt, sạch)
+| # | Use Case trên sơ đồ UML | Mã Feature Tree | Ghi chú phạm vi & Chuẩn hóa v2.2 |
+|:---:|---|---|---|
+| 1 | Sell Tickets at Counter | M-05.2 | Tìm suất chiếu, giữ ghế, áp dụng giá ưu đãi đối tượng |
+| 2 | Order F&B at Counter | M-08.2 | Chọn bắp nước, kiểm tra tồn kho tại quầy |
+| 3 | Process Counter Payment | M-06.2 | Thu tiền mặt / quét QR VNPay (ghi nhận theo `staff_id`) |
+| 4 | Print Ticket | M-06.2 | In vé cứng / hóa đơn cho khách |
+| 5 | Validate QR Ticket | M-07.2 | Quét mã QR soát vé tại cửa phòng chiếu |
+| 6 | Verify Age & Concession Eligibility | M-07.2 | Kiểm tra CCCD (T13/16/18) và thẻ HSSV |
+| 7 | Reissue / Cancel Ticket | M-07.1 | Hủy vé sự cố hoặc cấp lại vé hợp lệ |
+| 8 | Look Up & Reprint Ticket | M-07.1 | Tra cứu đơn hàng theo SĐT / mã đặt vé và in lại |
+| 9 | User Logout | M-01.2 | Đăng xuất tài khoản an toàn |
+
+*(Đã loại bỏ hoàn toàn 2 Use Case lơ lửng: `Manage Shift Cash Drawer` và `View Personal Shift Report`. Mọi giao dịch được gán trực tiếp với `staff_id` và timestamp của nhân viên thực hiện).*
+
+---
+
+### 🟢 Customer (Các Use Case bị loại bỏ & Chuẩn hóa)
+| Use Case liên quan | Trạng thái v2.2 | Giải thích nghiệp vụ |
+|---|:---:|---|
+| ~~Apply Promo Voucher~~ | ❌ **Đã xoá** | Cắt bỏ hoàn toàn module khuyến mãi/voucher. |
+| ~~Manage Loyalty Points~~ | ❌ **Đã xoá** | Cắt bỏ hoàn toàn module tích/tiêu điểm thưởng. |
+| ~~Modify Booking~~ | ❌ **Đã xoá** | Không cho phép sửa đổi ghế/suất chiếu sau khi đã thanh toán (chặn Race Condition & lệch giá). |
+| Cancel Booking (Conditional) | ✅ **Giữ lại có điều kiện** | Cho phép hủy vé trước giờ chiếu tối thiểu X tiếng, tự động kích hoạt hoàn tiền và giải phóng ghế. |
+
+---
+
+## 📜 NHẬT KÝ PHIÊN BẢN (VERSION HISTORY)
 
 ### v1.0 — Hiệu đính lần đầu
-| # | Thay đổi | Lý do |
-|---|---|---|
-| 1 | Thêm nhãn **Actor** cho toàn bộ gạch đầu dòng | Bản gốc không ghi actor sở hữu ở bất kỳ đâu, khiến UC diagram phải tự suy luận ngược. |
-| 2 | Bỏ bullet **"Apply promotion/voucher ?"** (M-05.1) | Bullet có dấu "?" của chính tác giả gốc — chưa chắc chắn, nay loại khỏi phạm vi. |
-| 3 | Gộp "Assign staff/manager to branch" (M-01.4) + "Assign/transfer cinema managers" (M-04.1 cũ) thành 1 dòng ở M-01.4 | Trùng lặp cùng 1 hành động, rải ở 2 module khác nhau. |
-| 4 | Gộp M-02.2 "Movie-Cinema Assignment" cũ vào bullet "Create showtime" của M-03.1 | Theo đúng nghiệp vụ thật — không cần bước duyệt riêng. |
-| 5 | Đánh số lại liên tục M-09 → M-10 → M-11 | Bản gốc lỗi: tiêu đề "M-10" nhưng nội dung đánh M-12.x, M-11 lại nằm sau cùng. |
-| 6 | Thống nhất RBAC chỉ còn 1 role **Cinema Staff** (bỏ Cashier/Usher tách riêng) | Mâu thuẫn nội bộ tài liệu — sửa lỗi, không phải thêm role mới. |
-| 7 | Không thêm bullet/module nào ngoài 6 thay đổi trên | Giữ nguyên 100% nội dung còn lại so với bản gốc. |
+- Thêm nhãn Actor cho toàn bộ tính năng.
+- Bỏ bullet "Apply promotion/voucher ?" có dấu chấm hỏi.
+- Gộp các thao tác phân bổ nhân sự vào M-01.4.
+- Đánh số lại liên tục M-09 → M-10 → M-11.
+- Thống nhất RBAC chỉ còn 1 role duy nhất tại rạp là **Cinema Staff**.
 
-### v2.0 — Nâng thành văn bản chính thức (bản hiện tại)
-| # | Thay đổi | Lý do |
-|---|---|---|
-| 8 | Thêm mục **"Vai trò của tài liệu"** ở đầu file | Chính thức hoá vị trí "nguồn chân lý duy nhất", thay thế bản gốc và cây 14 nhánh MBCMS cho mục đích quyết định phạm vi. |
-| 9 | Thêm mục **"MỤC ĐANG CHỜ QUYẾT ĐỊNH"** | Gom 2 điểm hở phát hiện được trong lúc làm Bước 2 (Assign Staff Shifts không có căn cứ; Voucher lệch giữa tài liệu và code) vào 1 chỗ dễ thấy, thay vì để rải rác/chìm ở cuối file như bản v1.0. |
-| 10 | Thêm **"Bảng tổng hợp — đối chiếu nhanh Feature Tree ↔ UC Diagram"** | Chốt lại kết quả đã thống nhất ở Bước 2 (11 UC Admin / 7+1 UC Manager / 11 UC Staff), biến tài liệu thành nơi tra cứu 2 chiều — không chỉ "Feature Tree nói gì" mà còn "UC nào đang map vào đâu". |
-| 11 | Không sửa nội dung bất kỳ module M-01 → M-11 nào so với v1.0 | Toàn bộ nội dung nghiệp vụ giữ nguyên, lần này chỉ nâng cấp vai trò + khả năng tra cứu của văn bản. |
+### v2.0 — Nâng cấp cấu trúc chính thức
+- Xác lập vai trò "Single Source of Truth".
+- Thêm bảng tổng hợp đối chiếu nhanh Feature Tree ↔ UC Diagram.
+- Đưa các điểm phân vân vào khu vực chờ quyết định.
 
 ### v2.1 — Chốt cắt 3 nhánh ngoài phạm vi
-| # | Thay đổi | Lý do |
-|---|---|---|
-| 12 | Đóng cả 2 mục "đang chờ quyết định" — chốt **cắt hẳn** Assign Staff Shifts và Voucher, thay vì giữ lại như tín hiệu từ `ProjectTracking_CineMax.xlsx` gợi ý | Người dùng quyết định ưu tiên chiều sâu nghiệp vụ hơn độ phủ tính năng, đúng trọng tâm chấm điểm môn học |
-| 13 | Phát hiện thêm và cắt luôn **Loyalty & Membership** — chưa từng có mã M-xx chính thức dù code đã triển khai khá đầy đủ | Cùng tinh thần "ít mà sâu" — không giữ lại 1 nhánh chưa từng được chính thức hoá trong tài liệu gốc |
-| 14 | Cập nhật bảng tổng hợp UC Diagram: Manager còn đúng 7 UC sạch (hết dòng chờ); bổ sung bảng Customer ghi nhận 2 UC bị xoá (`Apply Promo Voucher`, `Manage Loyalty Points`) — đây là sơ đồ đầu tiên trong dự án có thay đổi do hệ quả của v2.1 | Đảm bảo UC Diagram Customer không bị bỏ sót dù nằm ngoài phạm vi Bước 2 ban đầu |
+- Cắt hẳn `Assign Staff Shifts` khỏi Actor Cinema Manager.
+- Cắt hẳn `Voucher / Promotion` (loại bỏ cả code lẫn giao diện).
+- Cắt hẳn `Loyalty & Membership` (loại bỏ tích điểm, hạng thẻ).
+- Manager chốt sạch còn đúng 7 UC.
+
+### v2.2 — Final Definition (Bản hoàn chỉnh - Single Source of Truth)
+- **Chuẩn hóa Cinema Staff (11 UC → 9 UC sạch):** Xóa bỏ triệt để 2 Use Case `Manage Shift Cash Drawer` và `View Personal Shift Report`. Nhân viên không quản lý ca phức tạp, doanh số gắn liền với `staff_id` và timestamp giao dịch.
+- **Chặn Race Condition & Lệch giá (M-05.4):** Xóa bỏ hoàn toàn tính năng `Modify booking`. Thay thế bằng quy tắc `Cancel booking (conditional)` (chỉ hủy trước giờ chiếu tối thiểu X tiếng, giải phóng ghế và hoàn tiền tự động).
+- **Làm rõ ranh giới giá vé tại quầy (M-05.2):** Đổi hành động từ `Apply applicable discounts` thành `Select concession ticket type (Standard / Student / Senior)` căn cứ theo bảng giá định sẵn tại M-03.2 khi khách xuất trình giấy tờ hợp lệ, không nhập mã voucher.
+- **Khép kín logic Tồn kho F&B (M-08.1 & M-08.2):** Bổ sung quy tắc trừ kho thời gian thực khi đơn hàng thanh toán thành công (Online / POS); tự động kích hoạt trạng thái `Out of Stock` (vô hiệu hóa nút thêm vào giỏ khi tồn kho = 0).
