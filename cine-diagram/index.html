@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CineMax System — UML Use Case Diagrams (5 Actors)</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: #f1f5f9;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      color: #0f172a;
+      padding: 30px 20px;
+    }
+    .header {
+      max-width: 1040px;
+      margin: 0 auto 30px auto;
+      text-align: center;
+    }
+    .header h1 {
+      font-size: 24px;
+      font-weight: 700;
+      color: #0f172a;
+      margin-bottom: 6px;
+    }
+    .header p {
+      font-size: 13.5px;
+      color: #64748b;
+    }
+    .diagram-card {
+      max-width: 1040px;
+      margin: 0 auto 40px auto;
+      background: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+      border: 1px solid #e2e8f0;
+      overflow: hidden;
+    }
+    .card-header {
+      padding: 16px 24px;
+      background-color: #f8fafc;
+      border-bottom: 1px solid #e2e8f0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .card-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: #1e293b;
+    }
+    .card-badge {
+      font-size: 11.5px;
+      padding: 3px 10px;
+      background: #e0f2fe;
+      color: #0369a1;
+      border-radius: 9999px;
+      font-weight: 600;
+    }
+    .diagram-body {
+      padding: 24px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #ffffff;
+      overflow-x: auto;
+    }
+    svg {
+      display: block;
+      max-width: 100%;
+      height: auto;
+    }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Hệ Thống CineMax — UML Use Case Diagrams</h1>
+  <p>Chuẩn hóa 5 Actor (Guest, Customer, Cinema Staff, Cinema Manager, Administrator) &amp; Các hệ thống ngoại vi</p>
+</div>
+
+<!-- 1. GUEST -->
+<div class="diagram-card" id="card-guest">
+  <div class="card-header">
+    <div class="card-title">1. Use Case Diagram — Guest (Khách vãng lai)</div>
+    <div class="card-badge">Actor 1 / 5</div>
+  </div>
+  <div class="diagram-body">
+    <svg width="980" height="440" viewBox="0 0 980 440" xmlns="http://www.w3.org/2000/svg" id="svg-guest">
+  <defs>
+    <style>
+    .actor-name { font-family: Arial, sans-serif; font-size: 13px; font-weight: bold; fill: #000000; text-anchor: middle; }
+    .uc-text { font-family: Arial, sans-serif; font-size: 11.5px; fill: #000000; text-anchor: middle; dominant-baseline: central; }
+    .rel-label { font-family: Arial, sans-serif; font-size: 10.5px; font-style: italic; fill: #000000; text-anchor: middle; paint-order: stroke fill; stroke: #ffffff; stroke-width: 4px; stroke-linejoin: round; }
+    .note-text { font-family: Arial, sans-serif; font-size: 10.5px; fill: #1e293b; font-weight: 500; }
+    .box-title { font-family: Arial, sans-serif; font-size: 12px; font-weight: bold; fill: #000000; text-anchor: middle; }
+    .box-sub { font-family: Arial, sans-serif; font-size: 10px; fill: #475569; text-anchor: middle; }
+    .sys-title { font-family: Arial, sans-serif; font-size: 13px; font-weight: bold; fill: #1e293b; }
+</style>
+    <marker id="open-arrow-g" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 1 1 L 9 5 L 1 9" fill="none" stroke="black" stroke-width="1.6"/>
+    </marker>
+  </defs>
+
+  <!-- System Boundary -->
+  <rect x="180" y="20" width="540" height="400" rx="10" ry="10" fill="#ffffff" stroke="#64748b" stroke-width="1.5" stroke-dasharray="5,5" />
+  <text x="200" y="46" class="sys-title">CineMax System — Guest Portal</text>
+
+  <!-- ACTOR: Guest -->
+  <g id="actor-guest">
+    <circle cx="80" cy="195" r="14" fill="white" stroke="black" stroke-width="2"/>
+    <line x1="80" y1="209" x2="80" y2="249" stroke="black" stroke-width="2"/>
+    <line x1="58" y1="223" x2="102" y2="223" stroke="black" stroke-width="2"/>
+    <line x1="80" y1="249" x2="62" y2="281" stroke="black" stroke-width="2"/>
+    <line x1="80" y1="249" x2="98" y2="281" stroke="black" stroke-width="2"/>
+    <text x="80" y="303" class="actor-name">Guest</text>
+  </g>
+
+  <!-- USE CASES COLUMN 1 -->
+  <!-- UC-01 -->
+  <g id="uc-g-01">
+    <ellipse cx="325" cy="85" rx="105" ry="22" fill="white" stroke="black" stroke-width="1.5"/>
+    <text x="325" y="85" class="uc-text">View Home Page &amp; Movies</text>
+  </g>
+
+  <!-- UC-02 -->
+  <g id="uc-g-02">
+    <ellipse cx="325" cy="155" rx="105" ry="22" fill="white" stroke="black" stroke-width="1.5"/>
+    <text x="325" y="155" class="uc-text">View Movie Details &amp; Trailer</text>
+  </g>
+
+  <!-- UC-03 -->
+  <g id="uc-g-03">
+    <ellipse cx="325" cy="225" rx="95" ry="22" fill="white" stroke="black" stroke-width="1.5"/>
+    <text x="325" y="225" class="uc-text">View Cinema Branches</text>
+  </g>
+
+  <!-- UC-04 -->
+  <g id="uc-g-04">
+    <ellipse cx="325" cy="295" rx="110" ry="22" fill="white" stroke="black" stroke-width="1.5"/>
+    <text x="325" y="295" class="uc-text">View Showtimes &amp; Seat Map</text>
+  </g>
+
+  <!-- UC-05: Register Customer Account -->
+  <g id="uc-g-05">
+    <ellipse cx="325" cy="365" rx="105" ry="22" fill="white" stroke="black" stroke-width="1.5"/>
+    <text x="325" y="365" class="uc-text">Register Customer Account</text>
+  </g>
+
+  <!-- Included: Verify Email OTP -->
+  <g id="uc-g-otp">
+    <ellipse cx="590" cy="365" rx="85" ry="22" fill="white" stroke="black" stroke-width="1.5"/>
+    <text x="590" y="365" class="uc-text">Verify Email OTP</text>
+  </g>
+
+  <!-- SECONDARY ACTOR (External System) -->
+  <g id="ext-smtp-g">
+    <rect x="760" y="340" width="185" height="50" rx="6" ry="6" fill="#f8fafc" stroke="black" stroke-width="1.5"/>
+    <text x="852" y="360" class="box-sub">&lt;&lt;System&gt;&gt;</text>
+    <text x="852" y="378" class="box-title">Email Service (SMTP)</text>
+  </g>
+
+  <!-- RELATIONSHIPS -->
+  <!-- Guest to Base UCs -->
+  <line x1="102" y1="210" x2="223" y2="92" stroke="black" stroke-width="1.2"/>
+  <line x1="102" y1="216" x2="223" y2="155" stroke="black" stroke-width="1.2"/>
+  <line x1="102" y1="223" x2="230" y2="225" stroke="black" stroke-width="1.2"/>
+  <line x1="102" y1="228" x2="218" y2="292" stroke="black" stroke-width="1.2"/>
+  <line x1="102" y1="234" x2="223" y2="358" stroke="black" stroke-width="1.2"/>
+
+  <!-- Include: Register -> Verify Email OTP (Base -> Included) -->
+  <path d="M 430 365 L 505 365" stroke="black" stroke-width="1.5" stroke-dasharray="5,4" marker-end="url(#open-arrow-g)"/>
+  <text x="468" y="357" class="rel-label">&lt;&lt;include&gt;&gt;</text>
+
+  <!-- External System Line: Verify Email OTP -> Email Service (SMTP) -->
+  <line x1="675" y1="365" x2="760" y2="365" stroke="black" stroke-width="1.2"/>
+</svg>
+  </div>
+</div>
+
+<!-- 2. CUSTOMER -->
+<div class="diagram-card" id="card-customer">
+  <div class="card-header">
+    <div class="card-title">2. Use Case Diagram — Customer (Thành viên / Khách hàng trực tuyến)</div>
+    <div class="card-badge">Actor 2 / 5</div>
+  </div>
+  <div class="diagram-body">
+    <svg width="1000" height="960" viewBox="0 0 1000 960" xmlns="http://www.w3.org/2000/svg" id="svg-customer">
+  <defs>
+    <style>
+    .actor-name { font-family: Arial, sans-serif; font-size: 13px; font-weight: bold; fill: #000000; text-anchor: middle; }
+    .uc-text { font-family: Arial, sans-serif; font-size: 11.5px; fill: #000000; text-anchor: middle; dominant-baseline: central; }
+    .rel-label { font-family: Arial, sans-serif; font-size: 10.5px; font-style: italic; fill: #000000; text-anchor: middle; paint-order: stroke fill; stroke: #ffffff; stroke-width: 4px; stroke-linejoin: round; }
+    .note-text { font-family: Arial, sans-serif; font-size: 10.5px; fill: #1e293b; font-weight: 500; }
+    .box-title { font-family: Arial, sans-serif; font-size: 12px; font-weight: bold; fill: #000000; text-anchor: middle; }
+    .box-sub { font-family: Arial, sans-serif; font-size: 10px; fill: #475569; text-anchor: middle; }
+    .sys-title { font-family: Arial, sans-serif; font-size: 13px; font-weight: bold; fill: #1e293b; }
+</style>
+    <marker id="open-arrow-c" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 1 1 L 9 5 L 1 9" fill="none" stroke="black" stroke-width="1.6"/>
+    </marker>
+    <marker id="generalize-arrow" viewBox="0 0 12 12" refX="11" refY="6" markerWidth="10" markerHeight="10" orient="auto">
+      <polygon points="1 1, 11 6, 1 11" fill="white" stroke="black" stroke-width="1.5"/>
+    </marker>
+  </defs>
+
+  <!-- System Boundary -->
+  <rect x="175" y="20" width="565" height="920" rx="10" ry="10" fill="#ffffff" stroke="#64748b" stroke-width="1.5" stroke-dasharray="5,5" />
+  <text x="195" y="44" class="sys-title">CineMax System — Member Portal &amp; Online Booking</text>
+
+  <!-- ACTORS: Guest (parent) & Customer (child) -->
+  <g id="actor-guest-parent">
+    <circle cx="75" cy="80" r="13" fill="white" stroke="black" stroke-width="1.8"/>
+    <line x1="75" y1="93" x2="75" y2="127" stroke="black" stroke-width="1.8"/>
+    <line x1="55" y1="104" x2="95" y2="104" stroke="black" stroke-width="1.8"/>
+    <line x1="75" y1="127" x2="59" y2="155" stroke="black" stroke-width="1.8"/>
+    <line x1="75" y1="127" x2="91" y2="155" stroke="black" stroke-width="1.8"/>
+    <text x="75" y="173" class="actor-name" font-size="12">Guest</text>
+  </g>
+
+  <!-- Generalization Arrow from Customer to Guest -->
+  <line x1="75" y1="465" x2="75" y2="187" stroke="black" stroke-width="1.5" marker-end="url(#generalize-arrow)"/>
+
+  <!-- Customer Actor -->
+  <g id="actor-customer">
+    <circle cx="75" cy="485" r="14" fill="white" stroke="black" stroke-width="2"/>
+    <line x1="75" y1="499" x2="75" y2="539" stroke="black" stroke-width="2"/>
+    <line x1="51" y1="513" x2="99" y2="513" stroke="black" stroke-width="2"/>
+    <line x1="75" y1="539" x2="57" y2="573" stroke="black" stroke-width="2"/>
+    <line x1="75" y1="539" x2="93" y2="573" stroke="black" stroke-width="2"/>
+    <text x="75" y="595" class="actor-name">Customer</text>
+  </g>
+
+  <!-- COLUMN 1: Base Use Cases (Center cx=325) -->
+  <!-- UC-06: Login System -->
+  <g id="uc-c-login">
+    <ellipse cx="325" cy="95" rx="85" ry="22" fill="white" stroke="black" stroke-width="1.5"/>
+    <text x="325" y="95" class="uc-text">Login System</text>
+  </g>
+
+  <!-- UC-09: Manage User Profile -->
+  <g id="uc-c-07">
+    <ellipse cx="325" cy="190" rx="95" ry="22" fill="white" stroke="black" stroke-width="1.5"/>
+    <text x="325" y="190" class="uc-text">Manage User Profile</text>
+  </g>
+
+  <!-- UC-23: Book Tickets Online -->
+  <g id="uc-c-09">
+    <ellipse cx="315" cy="385" rx="100" ry="25" fill="white" stroke="black" stroke-width="1.5"/>
+    <text x="315" y="385" class="uc-text" font-weight="bold">Book Tickets Online</text>
+  </g>
+
+  <!-- UC-25: View Booking History -->
+  <g id="uc-c-15">
+    <ellipse cx="325" cy="585" rx="100" ry="22" fill="white" stroke="black" stroke-width="1.5"/>
+    <text x="325" y="585" class="uc-text">View Booking History</text>
+  </g>
+
+  <!-- UC-39: Rate & Review Movies -->
+  <g id="uc-c-18">
+    <ellipse cx="325" cy="675" rx="100" ry="22" fill="white" stroke="black" stroke-width="1.5"/>
+    <text x="325" y="675" class="uc-text">Rate &amp; Review Movies</text>
+  </g>
+
+  <!-- UC-38: Manage Loyalty Points -->
+  <g id="uc-c-19">
+    <ellipse cx="325" cy="735" rx="105" ry="22" fill="white" stroke="black" stroke-width="1.5"/>
+    <text x="325" y="735" class="uc-text">Manage Loyalty Points</text>
+  </g>
+
+  <!-- UC-41: Submit Support Ticket -->
+  <g id="uc-c-support">
+    <ellipse cx="325" cy="795" rx="105" ry="22" fill="white" stroke="black" stroke-width="1.5"/>
+    <text x="325" y="795" class="uc-text">Submit Support Ticket</text>
+  </g>
+
+  <!-- UC-43: View Notifications -->
+  <g id="uc-c-noti">
+    <ellipse cx="325" cy="855" rx="95" ry="22" fill="white" stroke="black" stroke-width="1.5"/>
+    <text x="325" y="855" class="uc-text">View Notifications</text>
+  </g>
+
+  <!-- UC-07: User Logout -->
+  <g id="uc-c-logout">
+    <ellipse cx="325" cy="910" rx="80" ry="20" fill="white" stroke="black" stroke-width="1.5"/>
+    <text x="325" y="910" class="uc-text">User Logout</text>
+  </g>
+
+  <!-- COLUMN 2: Included & Extending Use Cases (Center cx=615) -->
+  <!-- Extended: Google SSO Login -->
+  <g id="uc-c-sso">
+    <ellipse cx="615" cy="65" rx="90" ry="22" fill="white" stroke="black" stroke-width="1.5"/>
+    <text x="615" y="65" class="uc-text">Google SSO Login</text>
+  </g>
+
+  <!-- Extended: Reset Forgotten Password -->
+  <g id="uc-c-reset">
+    <ellipse cx="615" cy="125" rx="100" ry="22" fill="white" stroke="black" stroke-width="1.5"/>
+    <text x="615" y="125" class="uc-text">Reset Forgotten Password</text>
+  </g>
+
+  <!-- Extended: Change Password -->
+  <g id="uc-c-pwd">
+    <ellipse cx="615" cy="190" rx="85" ry="22" fill="white" stroke="black" stroke-width="1.5"/>
+    <text x="615" y="190" class="uc-text">Change Password</text>
+  </g>
+
+  <!-- Included: Hold Seats -->
+  <g id="uc-c-hold">
+    <ellipse cx="615" cy="265" rx="105" ry="22" fill="white" stroke="black" stroke-width="1.5"/>
+    <text x="615" y="265" class="uc-text">Hold Seats (300s Lock)</text>
+  </g>
+
+  <!-- Extended: Order F&B Concessions -->
+  <g id="uc-c-fnb">
+    <ellipse cx="615" cy="330" rx="105" ry="22" fill="white" stroke="black" stroke-width="1.5"/>
+    <text x="615" y="330" class="uc-text">Order F&amp;B Concessions</text>
+  </g>
+
+  <!-- Extended: Apply Promo Voucher -->
+  <g id="uc-c-promo">
+    <ellipse cx="615" cy="395" rx="100" ry="22" fill="white" stroke="black" stroke-width="1.5"/>
+    <text x="615" y="395" class="uc-text">Apply Promo Voucher</text>
+  </g>
+
+  <!-- Included: Pay Ticket Online -->
+  <g id="uc-c-pay">
+    <ellipse cx="615" cy="460" rx="95" ry="22" fill="white" stroke="black" stroke-width="1.5"/>
+    <text x="615" y="460" class="uc-text">Pay Ticket Online</text>
+  </g>
+
+  <!-- Extended: Cancel Booking & Refund -->
+  <g id="uc-c-cancel">
+    <ellipse cx="615" cy="550" rx="110" ry="22" fill="white" stroke="black" stroke-width="1.5"/>
+    <text x="615" y="550" class="uc-text">Cancel Booking &amp; Refund</text>
+  </g>
+
+  <!-- Extended: Download E-Ticket & QR -->
+  <g id="uc-c-qr">
+    <ellipse cx="615" cy="615" rx="105" ry="22" fill="white" stroke="black" stroke-width="1.5"/>
+    <text x="615" y="615" class="uc-text">Download E-Ticket &amp; QR</text>
+  </g>
+
+  <!-- SECONDARY ACTORS (External Systems) -->
+  <!-- External: Google OAuth 2.0 -->
+  <g id="ext-google-c">
+    <rect x="765" y="40" width="185" height="50" rx="6" ry="6" fill="#f8fafc" stroke="black" stroke-width="1.5"/>
+    <text x="857" y="60" class="box-sub">&lt;&lt;System&gt;&gt;</text>
+    <text x="857" y="78" class="box-title">Google OAuth 2.0</text>
+  </g>
+
+  <!-- External: VNPay / MoMo Gateway -->
+  <g id="ext-vnpay">
+    <rect x="765" y="435" width="185" height="50" rx="6" ry="6" fill="#f8fafc" stroke="black" stroke-width="1.5"/>
+    <text x="857" y="455" class="box-sub">&lt;&lt;System&gt;&gt;</text>
+    <text x="857" y="473" class="box-title">VNPay / MoMo Gateway</text>
+  </g>
+
+  <!-- External: Email Service (SMTP) -->
+  <g id="ext-smtp-c">
+    <rect x="765" y="590" width="185" height="50" rx="6" ry="6" fill="#f8fafc" stroke="black" stroke-width="1.5"/>
+    <text x="857" y="610" class="box-sub">&lt;&lt;System&gt;&gt;</text>
+    <text x="857" y="628" class="box-title">Email Service (SMTP)</text>
+  </g>
+
+  <!-- RELATIONSHIPS -->
+  <!-- Customer Actor to Column 1 Base UCs (x1=99, clear of Manage Profile) -->
+  <line x1="99" y1="480" x2="242" y2="102" stroke="black" stroke-width="1.2"/>
+  <line x1="99" y1="490" x2="232" y2="192" stroke="black" stroke-width="1.2"/>
+  <line x1="99" y1="505" x2="216" y2="385" stroke="black" stroke-width="1.2"/>
+  <line x1="99" y1="520" x2="226" y2="585" stroke="black" stroke-width="1.2"/>
+  <line x1="99" y1="530" x2="226" y2="675" stroke="black" stroke-width="1.2"/>
+  <line x1="99" y1="540" x2="221" y2="735" stroke="black" stroke-width="1.2"/>
+  <line x1="99" y1="550" x2="221" y2="795" stroke="black" stroke-width="1.2"/>
+  <line x1="99" y1="560" x2="231" y2="855" stroke="black" stroke-width="1.2"/>
+  <line x1="99" y1="570" x2="246" y2="910" stroke="black" stroke-width="1.2"/>
+
+  <!-- Extend: Google SSO Login -> Login System -->
+  <path d="M 525 70 L 410 90" stroke="black" stroke-width="1.5" stroke-dasharray="5,4" marker-end="url(#open-arrow-c)"/>
+  <text x="468" y="72" class="rel-label">&lt;&lt;extend&gt;&gt;</text>
+
+  <!-- Extend: Reset Forgotten Password -> Login System -->
+  <path d="M 515 120 L 410 100" stroke="black" stroke-width="1.5" stroke-dasharray="5,4" marker-end="url(#open-arrow-c)"/>
+  <text x="463" y="118" class="rel-label">&lt;&lt;extend&gt;&gt;</text>
+
+  <!-- Extend: Change Password -> Manage Profile -->
+  <path d="M 530 190 L 420 190" stroke="black" stroke-width="1.5" stroke-dasharray="5,4" marker-end="url(#open-arrow-c)"/>
+  <text x="475" y="181" class="rel-label">&lt;&lt;extend&gt;&gt;</text>
+
+  <!-- RADIATING RELATIONS FROM BOOK TICKETS ONLINE -->
+  <path d="M 403 368 L 515 282" stroke="black" stroke-width="1.5" stroke-dasharray="5,4" marker-end="url(#open-arrow-c)"/>
+  <text x="460" y="318" class="rel-label">&lt;&lt;include&gt;&gt;</text>
+
+  <path d="M 510 338 L 413 375" stroke="black" stroke-width="1.5" stroke-dasharray="5,4" marker-end="url(#open-arrow-c)"/>
+  <text x="462" y="348" class="rel-label">&lt;&lt;extend&gt;&gt;</text>
+
+  <path d="M 515 395 L 415 388" stroke="black" stroke-width="1.5" stroke-dasharray="5,4" marker-end="url(#open-arrow-c)"/>
+  <text x="465" y="390" class="rel-label">&lt;&lt;extend&gt;&gt;</text>
+
+  <path d="M 403 402 L 522 450" stroke="black" stroke-width="1.5" stroke-dasharray="5,4" marker-end="url(#open-arrow-c)"/>
+  <text x="460" y="435" class="rel-label">&lt;&lt;include&gt;&gt;</text>
+
+  <!-- RELATIONS FROM BOOKING HISTORY -->
+  <path d="M 505 558 L 423 578" stroke="black" stroke-width="1.5" stroke-dasharray="5,4" marker-end="url(#open-arrow-c)"/>
+  <text x="464" y="560" class="rel-label">&lt;&lt;extend&gt;&gt;</text>
+
+  <path d="M 510 610 L 423 592" stroke="black" stroke-width="1.5" stroke-dasharray="5,4" marker-end="url(#open-arrow-c)"/>
+  <text x="464" y="608" class="rel-label">&lt;&lt;extend&gt;&gt;</text>
+
+  <!-- External Systems Lines -->
+  <line x1="705" y1="65" x2="765" y2="65" stroke="black" stroke-width="1.2"/>
+  <line x1="710" y1="460" x2="765" y2="460" stroke="black" stroke-width="1.2"/>
+  <line x1="720" y1="615" x2="765" y2="615" stroke="black" stroke-width="1.2"/>
+</svg>
+  </div>
+</div>
+
+<!-- 3. CINEMA STAFF -->
+<div class="diagram-card" id="card-staff">
+  <div class="card-header">
+    <div class="card-title">3. Use Case Diagram — Cinema Staff (Nhân viên quầy &amp; Soát vé)</div>
+    <div class="card-badge">Actor 3 / 5</div>
+  </div>
+  <div class="diagram-body">
+    <svg width="880" height="630" viewBox="0 0 880 630" xmlns="http://www.w3.org/2000/svg" id="svg-staff">
+  <defs>
+    <style>
+    .actor-name { font-family: Arial, sans-serif; font-size: 13px; font-weight: bold; fill: #000000; text-anchor: middle; }
+    .uc-text { font-family: Arial, sans-serif; font-size: 11.5px; fill: #000000; text-anchor: middle; dominant-baseline: central; }
+    .rel-label { font-family: Arial, sans-serif; font-size: 10.5px; font-style: italic; fill: #000000; text-anchor: middle; paint-order: stroke fill; stroke: #ffffff; stroke-width: 4px; stroke-linejoin: round; }
+    .note-text { font-family: Arial, sans-serif; font-size: 10.5px; fill: #1e293b; font-weight: 500; }
+    .box-title { font-family: Arial, sans-serif; font-size: 12px; font-weight: bold; fill: #000000; text-anchor: middle; }
+    .box-sub { font-family: Arial, sans-serif; font-size: 10px; fill: #475569; text-anchor: middle; }
+    .sys-title { font-family: Arial, sans-serif; font-size: 13px; font-weight: bold; fill: #1e293b; }
+</style>
+    <marker id="open-arrow-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 1 1 L 9 5 L 1 9" fill="none" stroke="black" stroke-width="1.6"/>
+    </marker>
+  </defs>
+
+  <!-- System Boundary encompassing Staff UCs and Notes -->
+  <rect x="180" y="20" width="670" height="585" rx="10" ry="10" fill="#ffffff" stroke="#64748b" stroke-width="1.5" stroke-dasharray="5,5" />
+  <text x="200" y="44" class="sys-title">CineMax System — Cinema Staff</text>
+
+  <!-- ACTOR: Cinema Staff -->
+  <g id="actor-staff">
+    <circle cx="80" cy="310" r="14" fill="white" stroke="black" stroke-width="2"/>
+    <line x1="80" y1="324" x2="80" y2="364" stroke="black" stroke-width="2"/>
+    <line x1="56" y1="338" x2="104" y2="338" stroke="black" stroke-width="2"/>
+    <line x1="80" y1="364" x2="62" y2="398" stroke="black" stroke-width="2"/>
+    <line x1="80" y1="364" x2="98" y2="398" stroke="black" stroke-width="2"/>
+    <text x="80" y="420" class="actor-name">Cinema Staff</text>
+  </g>
+
+  <!-- COLUMN 1: Primary Staff Base Use Cases -->
+  <!-- UC-11: Sell Tickets at Counter -->
+  <g id="uc-s-11">
+    <ellipse cx="305" cy="135" rx="105" ry="24" fill="white" stroke="black" stroke-width="1.5"/>
+    <text x="305" y="135" class="uc-text" font-weight="bold">Sell Tickets at Counter</text>
+  </g>
+
+  <!-- UC-14: Manage Shift Cash Drawer -->
+  <g id="uc-s-14">
+    <ellipse cx="305" cy="270" rx="100" ry="24" fill="white" stroke="black" stroke-width="1.5"/>
+    <text x="305" y="270" class="uc-text">Manage Shift Cash Drawer</text>
+  </g>
+
+  <!-- UC-16: Validate QR Ticket -->
+  <g id="uc-s-16">
+    <ellipse cx="305" cy="395" rx="100" ry="24" fill="white" stroke="black" stroke-width="1.5"/>
+    <text x="305" y="395" class="uc-text">Validate QR Ticket</text>
+  </g>
+
+  <!-- View Personal Shift Report -->
+  <g id="uc-s-report">
+    <ellipse cx="305" cy="495" rx="105" ry="23" fill="white" stroke="black" stroke-width="1.5"/>
+    <text x="305" y="495" class="uc-text">View Personal Shift Report</text>
+  </g>
+
+  <!-- User Logout -->
+  <g id="uc-s-logout">
+    <ellipse cx="305" cy="565" rx="80" ry="20" fill="white" stroke="black" stroke-width="1.5"/>
+    <text x="305" y="565" class="uc-text">User Logout</text>
+  </g>
+
+  <!-- COLUMN 2: Secondary / Included / Extended Use Cases -->
+  <!-- Extends Sell Tickets: Order F&B at Counter -->
+  <g id="uc-s-fnb">
+    <ellipse cx="590" cy="70" rx="100" ry="24" fill="white" stroke="black" stroke-width="1.5"/>
+    <text x="590" y="70" class="uc-text">Order F&amp;B at Counter</text>
+  </g>
+
+  <!-- Includes Sell Tickets: Process Counter Payment -->
+  <g id="uc-s-pay">
+    <ellipse cx="590" cy="135" rx="105" ry="24" fill="white" stroke="black" stroke-width="1.5"/>
+    <text x="590" y="135" class="uc-text">Process Counter Payment</text>
+  </g>
+
+  <!-- Includes Sell Tickets: Print Ticket (renamed from Print Thermal Receipt) -->
+  <g id="uc-s-print">
+    <ellipse cx="590" cy="200" rx="95" ry="24" fill="white" stroke="black" stroke-width="1.5"/>
+    <text x="590" y="200" class="uc-text">Print Ticket</text>
+  </g>
+
+  <!-- Note for Cash Drawer -->
+  <g id="note-drawer">
+    <polygon points="445,253 715,253 725,263 725,287 445,287" fill="#fef9c3" stroke="#854d0e" stroke-width="1.2"/>
+    <polygon points="715,253 715,263 725,263" fill="#fef08a" stroke="#854d0e" stroke-width="1.2"/>
+    <text x="457" y="274" class="note-text">Open shift · Close shift · Balance reconciliation</text>
+    <line x1="405" y1="270" x2="445" y2="270" stroke="#854d0e" stroke-width="1" stroke-dasharray="3,3"/>
+  </g>
+
+  <!-- Extends Gate: Verify Age (T13/T16/T18) -->
+  <g id="uc-s-age">
+    <ellipse cx="590" cy="395" rx="100" ry="24" fill="white" stroke="black" stroke-width="1.5"/>
+    <text x="590" y="395" class="uc-text">Verify Age (T13/T16/T18)</text>
+  </g>
+
+  <!-- RELATIONSHIPS -->
+  <!-- Staff Actor to Primary UCs -->
+  <line x1="104" y1="320" x2="215" y2="150" stroke="black" stroke-width="1.2"/>
+  <line x1="104" y1="335" x2="210" y2="274" stroke="black" stroke-width="1.2"/>
+  <line x1="104" y1="350" x2="205" y2="395" stroke="black" stroke-width="1.2"/>
+  <line x1="104" y1="365" x2="204" y2="495" stroke="black" stroke-width="1.2"/>
+  <line x1="104" y1="375" x2="225" y2="565" stroke="black" stroke-width="1.2"/>
+
+  <!-- Extend: Order F&B -> Sell Tickets (Extending -> Base) -->
+  <path d="M 505 82 L 398 120" stroke="black" stroke-width="1.5" stroke-dasharray="5,4" marker-end="url(#open-arrow-s)"/>
+  <text x="445" y="94" class="rel-label">&lt;&lt;extend&gt;&gt;</text>
+
+  <!-- Include: Sell Tickets -> Process Payment (Base -> Included) -->
+  <path d="M 410 135 L 485 135" stroke="black" stroke-width="1.5" stroke-dasharray="5,4" marker-end="url(#open-arrow-s)"/>
+  <text x="445" y="127" class="rel-label">&lt;&lt;include&gt;&gt;</text>
+
+  <!-- Include: Sell Tickets -> Print Ticket (Base -> Included) -->
+  <path d="M 398 149 L 505 188" stroke="black" stroke-width="1.5" stroke-dasharray="5,4" marker-end="url(#open-arrow-s)"/>
+  <text x="445" y="177" class="rel-label">&lt;&lt;include&gt;&gt;</text>
+
+  <!-- Extend: Verify Age -> Validate QR Ticket (Extending -> Base) -->
+  <path d="M 490 395 L 405 395" stroke="black" stroke-width="1.5" stroke-dasharray="5,4" marker-end="url(#open-arrow-s)"/>
+  <text x="448" y="387" class="rel-label">&lt;&lt;extend&gt;&gt;</text>
+</svg>
+  </div>
+</div>
+
+<!-- 4. CINEMA MANAGER -->
+<div class="diagram-card" id="card-manager">
+  <div class="card-header">
+    <div class="card-title">4. Use Case Diagram — Cinema Manager (Quản lý cụm rạp chi nhánh)</div>
+    <div class="card-badge">Actor 4 / 5</div>
+  </div>
+  <div class="diagram-body">
+    <svg width="900" height="670" viewBox="0 0 900 670" xmlns="http://www.w3.org/2000/svg" id="svg-manager">
+  <defs>
+    <style>
+    .actor-name { font-family: Arial, sans-serif; font-size: 13px; font-weight: bold; fill: #000000; text-anchor: middle; }
+    .uc-text { font-family: Arial, sans-serif; font-size: 11.5px; fill: #000000; text-anchor: middle; dominant-baseline: central; }
+    .rel-label { font-family: Arial, sans-serif; font-size: 10.5px; font-style: italic; fill: #000000; text-anchor: middle; paint-order: stroke fill; stroke: #ffffff; stroke-width: 4px; stroke-linejoin: round; }
+    .note-text { font-family: Arial, sans-serif; font-size: 10px; fill: #1e293b; font-weight: 500; }
+    .box-title { font-family: Arial, sans-serif; font-size: 12px; font-weight: bold; fill: #000000; text-anchor: middle; }
+    .box-sub { font-family: Arial, sans-serif; font-size: 10px; fill: #475569; text-anchor: middle; }
+    .sys-title { font-family: Arial, sans-serif; font-size: 13px; font-weight: bold; fill: #1e293b; }
+</style>
+  </defs>
+
+  <!-- System Boundary encompassing Manager UCs and Notes -->
+  <rect x="180" y="20" width="700" height="625" rx="10" ry="10" fill="#ffffff" stroke="#64748b" stroke-width="1.5" stroke-dasharray="5,5" />
+  <text x="200" y="44" class="sys-title">CineMax System — Cinema Manager (Branch Operations)</text>
+
+  <!-- ACTOR: Cinema Manager -->
+  <g id="actor-manager">
+    <circle cx="85" cy="335" r="14" fill="white" stroke="black" stroke-width="2"/>
+    <line x1="85" y1="349" x2="85" y2="389" stroke="black" stroke-width="2"/>
+    <line x1="61" y1="363" x2="109" y2="363" stroke="black" stroke-width="2"/>
+    <line x1="85" y1="389" x2="67" y2="423" stroke="black" stroke-width="2"/>
+    <line x1="85" y1="389" x2="103" y2="423" stroke="black" stroke-width="2"/>
+    <text x="85" y="445" class="actor-name">Cinema Manager</text>
+  </g>
+
+  <!-- MANAGER USE CASES (8 UCs) -->
+  <!-- UC-M-01: Schedule Branch Showtimes -->
+  <g id="uc-m-01">
+    <ellipse cx="325" cy="72" rx="110" ry="22" fill="white" stroke="black" stroke-width="1.5"/>
+    <text x="325" y="72" class="uc-text">Schedule Branch Showtimes</text>
+  </g>
+
+  <!-- UC-M-02: Configure Branch Pricing & Rates -->
+  <g id="uc-m-02">
+    <ellipse cx="325" cy="147" rx="125" ry="22" fill="white" stroke="black" stroke-width="1.5"/>
+    <text x="325" y="147" class="uc-text">Configure Branch Pricing &amp; Rates</text>
+  </g>
+
+  <!-- UC-M-03: Monitor Hall Occupancy -->
+  <g id="uc-m-03">
+    <ellipse cx="325" cy="222" rx="105" ry="22" fill="white" stroke="black" stroke-width="1.5"/>
+    <text x="325" y="222" class="uc-text">Monitor Hall Occupancy</text>
+  </g>
+
+  <!-- UC-M-04: Manage Branch F&B Stock -->
+  <g id="uc-m-04">
+    <ellipse cx="325" cy="297" rx="110" ry="22" fill="white" stroke="black" stroke-width="1.5"/>
+    <text x="325" y="297" class="uc-text">Manage Branch F&amp;B Stock</text>
+  </g>
+
+  <!-- UC-M-05: Manage Branch Staff Accounts (NEW from Admin) -->
+  <g id="uc-m-05">
+    <ellipse cx="325" cy="372" rx="125" ry="22" fill="white" stroke="black" stroke-width="1.5"/>
+    <text x="325" y="372" class="uc-text" font-weight="bold">Manage Branch Staff Accounts</text>
+  </g>
+
+  <!-- UC-M-06: Assign Staff Shifts -->
+  <g id="uc-m-06">
+    <ellipse cx="325" cy="447" rx="100" ry="22" fill="white" stroke="black" stroke-width="1.5"/>
+    <text x="325" y="447" class="uc-text">Assign Staff Shifts</text>
+  </g>
+
+  <!-- UC-M-07: View Branch Revenue & Sales Reports -->
+  <g id="uc-m-07">
+    <ellipse cx="325" cy="522" rx="135" ry="22" fill="white" stroke="black" stroke-width="1.5"/>
+    <text x="325" y="522" class="uc-text">View Branch Revenue &amp; Sales Reports</text>
+  </g>
+
+  <!-- UC-M-08: User Logout -->
+  <g id="uc-m-08">
+    <ellipse cx="325" cy="595" rx="80" ry="20" fill="white" stroke="black" stroke-width="1.5"/>
+    <text x="325" y="595" class="uc-text">User Logout</text>
+  </g>
+
+  <!-- NOTES -->
+  <!-- Note 1: Showtime Buffer -->
+  <g id="note-m-01">
+    <polygon points="505,57 785,57 795,67 795,87 505,87" fill="#fef9c3" stroke="#854d0e" stroke-width="1.2"/>
+    <polygon points="785,57 785,67 795,67" fill="#fef08a" stroke="#854d0e" stroke-width="1.2"/>
+    <text x="517" y="75" class="note-text">Buffer 15m · Conflict check · Assign hall</text>
+    <line x1="435" y1="72" x2="505" y2="72" stroke="#854d0e" stroke-width="1.2" stroke-dasharray="3,3"/>
+  </g>
+
+  <!-- Note 2: Branch Pricing Override -->
+  <g id="note-m-02">
+    <polygon points="505,132 865,132 875,142 875,162 505,162" fill="#fef9c3" stroke="#854d0e" stroke-width="1.2"/>
+    <polygon points="865,132 865,142 875,142" fill="#fef08a" stroke="#854d0e" stroke-width="1.2"/>
+    <text x="517" y="150" class="note-text">Ghi đè giá riêng rạp này (cinema_id) · Mặc định dùng giá Admin</text>
+    <line x1="450" y1="147" x2="505" y2="147" stroke="#854d0e" stroke-width="1.2" stroke-dasharray="3,3"/>
+  </g>
+
+  <!-- Note 3: Staff Accounts Scope -->
+  <g id="note-m-03">
+    <polygon points="505,357 865,357 875,367 875,387 505,387" fill="#fef9c3" stroke="#854d0e" stroke-width="1.2"/>
+    <polygon points="865,357 865,367 875,367" fill="#fef08a" stroke="#854d0e" stroke-width="1.2"/>
+    <text x="517" y="375" class="note-text">Tạo/khoá Staff thuộc rạp mình quản lý — Không ảnh hưởng rạp khác</text>
+    <line x1="450" y1="372" x2="505" y2="372" stroke="#854d0e" stroke-width="1.2" stroke-dasharray="3,3"/>
+  </g>
+
+  <!-- Actor to UC Lines -->
+  <line x1="109" y1="320" x2="225" y2="78" stroke="black" stroke-width="1.2"/>
+  <line x1="109" y1="325" x2="210" y2="147" stroke="black" stroke-width="1.2"/>
+  <line x1="109" y1="330" x2="228" y2="222" stroke="black" stroke-width="1.2"/>
+  <line x1="109" y1="335" x2="224" y2="297" stroke="black" stroke-width="1.2"/>
+  <line x1="109" y1="340" x2="210" y2="372" stroke="black" stroke-width="1.2"/>
+  <line x1="109" y1="345" x2="228" y2="447" stroke="black" stroke-width="1.2"/>
+  <line x1="109" y1="350" x2="200" y2="522" stroke="black" stroke-width="1.2"/>
+  <line x1="109" y1="355" x2="252" y2="595" stroke="black" stroke-width="1.2"/>
+</svg>
+  </div>
+</div>
+
+<!-- 5. ADMINISTRATOR -->
+<div class="diagram-card" id="card-admin">
+  <div class="card-header">
+    <div class="card-title">5. Use Case Diagram — Administrator (Quản trị viên toàn hệ thống)</div>
+    <div class="card-badge">Actor 5 / 5</div>
+  </div>
+  <div class="diagram-body">
+    <svg width="940" height="800" viewBox="0 0 940 800" xmlns="http://www.w3.org/2000/svg" id="svg-admin">
+  <defs>
+    <style>
+    .actor-name { font-family: Arial, sans-serif; font-size: 13px; font-weight: bold; fill: #000000; text-anchor: middle; }
+    .uc-text { font-family: Arial, sans-serif; font-size: 11px; fill: #000000; text-anchor: middle; dominant-baseline: central; }
+    .rel-label { font-family: Arial, sans-serif; font-size: 10.5px; font-style: italic; fill: #000000; text-anchor: middle; paint-order: stroke fill; stroke: #ffffff; stroke-width: 4px; stroke-linejoin: round; }
+    .note-text { font-family: Arial, sans-serif; font-size: 9.5px; fill: #1e293b; font-weight: 500; }
+    .note-warn { font-family: Arial, sans-serif; font-size: 9.5px; fill: #991b1b; font-weight: 600; font-style: italic; }
+    .box-title { font-family: Arial, sans-serif; font-size: 12px; font-weight: bold; fill: #000000; text-anchor: middle; }
+    .box-sub { font-family: Arial, sans-serif; font-size: 10px; fill: #475569; text-anchor: middle; }
+    .sys-title { font-family: Arial, sans-serif; font-size: 13px; font-weight: bold; fill: #1e293b; }
+</style>
+  </defs>
+
+  <!-- System Boundary -->
+  <rect x="180" y="20" width="740" height="755" rx="10" ry="10" fill="#ffffff" stroke="#64748b" stroke-width="1.5" stroke-dasharray="5,5" />
+  <text x="200" y="44" class="sys-title">CineMax System — System Administration</text>
+
+  <!-- ACTOR: Administrator -->
+  <g id="actor-admin">
+    <circle cx="85" cy="390" r="14" fill="white" stroke="black" stroke-width="2"/>
+    <line x1="85" y1="404" x2="85" y2="444" stroke="black" stroke-width="2"/>
+    <line x1="61" y1="418" x2="109" y2="418" stroke="black" stroke-width="2"/>
+    <line x1="85" y1="444" x2="67" y2="478" stroke="black" stroke-width="2"/>
+    <line x1="85" y1="444" x2="103" y2="478" stroke="black" stroke-width="2"/>
+    <text x="85" y="500" class="actor-name">Administrator</text>
+  </g>
+
+  <!-- ADMIN USE CASES (12 UCs) -->
+  <!-- UC-A-01: Manage Manager Accounts -->
+  <g id="uc-a-01">
+    <ellipse cx="330" cy="70" rx="115" ry="21" fill="white" stroke="black" stroke-width="1.5"/>
+    <text x="330" y="70" class="uc-text">Manage Manager Accounts</text>
+  </g>
+
+  <!-- UC-A-02: Assign Manager to Branches -->
+  <g id="uc-a-02">
+    <ellipse cx="330" cy="128" rx="115" ry="21" fill="white" stroke="black" stroke-width="1.5"/>
+    <text x="330" y="128" class="uc-text">Assign Manager to Branches</text>
+  </g>
+
+  <!-- UC-A-03: Manage Master Movie Catalog -->
+  <g id="uc-a-03">
+    <ellipse cx="330" cy="186" rx="115" ry="21" fill="white" stroke="black" stroke-width="1.5"/>
+    <text x="330" y="186" class="uc-text">Manage Master Movie Catalog</text>
+  </g>
+
+  <!-- UC-A-04: Assign Movies to Branches -->
+  <g id="uc-a-04">
+    <ellipse cx="330" cy="244" rx="110" ry="21" fill="white" stroke="black" stroke-width="1.5"/>
+    <text x="330" y="244" class="uc-text">Assign Movies to Branches</text>
+  </g>
+
+  <!-- UC-A-05: Manage Cinema Branches & Halls -->
+  <g id="uc-a-05">
+    <ellipse cx="330" cy="302" rx="120" ry="21" fill="white" stroke="black" stroke-width="1.5"/>
+    <text x="330" y="302" class="uc-text">Manage Cinema Branches &amp; Halls</text>
+  </g>
+
+  <!-- UC-A-06: Configure Seat Grid Designer -->
+  <g id="uc-a-06">
+    <ellipse cx="330" cy="360" rx="115" ry="21" fill="white" stroke="black" stroke-width="1.5"/>
+    <text x="330" y="360" class="uc-text">Configure Seat Grid Designer</text>
+  </g>
+
+  <!-- UC-A-07: Configure Default (Global) Pricing Template -->
+  <g id="uc-a-07">
+    <ellipse cx="330" cy="418" rx="145" ry="21" fill="white" stroke="black" stroke-width="1.5"/>
+    <text x="330" y="418" class="uc-text">Configure Default (Global) Pricing Template</text>
+  </g>
+
+  <!-- UC-A-08: Manage Global F&B Catalog (Items & Prices) -->
+  <g id="uc-a-08">
+    <ellipse cx="330" cy="480" rx="145" ry="21" fill="white" stroke="black" stroke-width="1.5"/>
+    <text x="330" y="480" class="uc-text">Manage Global F&amp;B Catalog (Items &amp; Prices)</text>
+  </g>
+
+  <!-- UC-A-09: Manage System Promotions & Vouchers -->
+  <g id="uc-a-09">
+    <ellipse cx="330" cy="542" rx="130" ry="21" fill="white" stroke="black" stroke-width="1.5"/>
+    <text x="330" y="542" class="uc-text">Manage System Promotions &amp; Vouchers</text>
+  </g>
+
+  <!-- UC-A-10: Moderate User Reviews -->
+  <g id="uc-a-10">
+    <ellipse cx="330" cy="600" rx="105" ry="21" fill="white" stroke="black" stroke-width="1.5"/>
+    <text x="330" y="600" class="uc-text">Moderate User Reviews</text>
+  </g>
+
+  <!-- UC-A-11: Generate Enterprise BI Reports -->
+  <g id="uc-a-11">
+    <ellipse cx="330" cy="660" rx="120" ry="21" fill="white" stroke="black" stroke-width="1.5"/>
+    <text x="330" y="660" class="uc-text">Generate Enterprise BI Reports</text>
+  </g>
+
+  <!-- UC-A-12: User Logout -->
+  <g id="uc-a-12">
+    <ellipse cx="330" cy="725" rx="80" ry="19" fill="white" stroke="black" stroke-width="1.5"/>
+    <text x="330" y="725" class="uc-text">User Logout</text>
+  </g>
+
+  <!-- NOTES -->
+  <!-- Note 1: Manager Accounts -->
+  <g id="note-a-01">
+    <polygon points="495,57 775,57 785,67 785,83 495,83" fill="#fef9c3" stroke="#854d0e" stroke-width="1.2"/>
+    <polygon points="775,57 775,67 785,67" fill="#fef08a" stroke="#854d0e" stroke-width="1.2"/>
+    <text x="507" y="73" class="note-text">Tạo &amp; khoá tài khoản cấp Manager chi nhánh</text>
+    <line x1="445" y1="70" x2="495" y2="70" stroke="#854d0e" stroke-width="1.2" stroke-dasharray="3,3"/>
+  </g>
+
+  <!-- Note 2: Movies -->
+  <g id="note-a-02">
+    <polygon points="495,173 775,173 785,183 785,199 495,199" fill="#fef9c3" stroke="#854d0e" stroke-width="1.2"/>
+    <polygon points="775,173 775,183 785,183" fill="#fef08a" stroke="#854d0e" stroke-width="1.2"/>
+    <text x="507" y="189" class="note-text">Add, Edit, Archive, Genre, Age Rating</text>
+    <line x1="445" y1="186" x2="495" y2="186" stroke="#854d0e" stroke-width="1.2" stroke-dasharray="3,3"/>
+  </g>
+
+  <!-- Note 3: Default Pricing Template -->
+  <g id="note-a-03">
+    <polygon points="495,405 895,405 905,415 905,431 495,431" fill="#fef9c3" stroke="#854d0e" stroke-width="1.2"/>
+    <polygon points="895,405 895,415 905,415" fill="#fef08a" stroke="#854d0e" stroke-width="1.2"/>
+    <text x="507" y="421" class="note-text">Áp dụng mặc định toàn chuỗi khi rạp không tự cấu hình riêng (cinema_id = NULL)</text>
+    <line x1="475" y1="418" x2="495" y2="418" stroke="#854d0e" stroke-width="1.2" stroke-dasharray="3,3"/>
+  </g>
+
+  <!-- Note 4: Global F&B Catalog -->
+  <g id="note-a-04">
+    <polygon points="495,467 895,467 905,477 905,493 495,493" fill="#fef9c3" stroke="#854d0e" stroke-width="1.2"/>
+    <polygon points="895,467 895,477 905,477" fill="#fef08a" stroke="#854d0e" stroke-width="1.2"/>
+    <text x="507" y="483" class="note-text">Danh mục &amp; giá gốc toàn chuỗi — tồn kho theo từng rạp do Manager quản lý</text>
+    <line x1="475" y1="480" x2="495" y2="480" stroke="#854d0e" stroke-width="1.2" stroke-dasharray="3,3"/>
+  </g>
+
+  <!-- Note 5: Low Priority BI Report (Question/Pending Confirmation) -->
+  <g id="note-a-05">
+    <polygon points="480,647 905,647 915,657 915,673 480,673" fill="#fee2e2" stroke="#b91c1c" stroke-width="1.2"/>
+    <polygon points="905,647 905,657 915,657" fill="#fecaca" stroke="#b91c1c" stroke-width="1.2"/>
+    <text x="492" y="663" class="note-warn">⚠️ Ưu tiên thấp — cần xác nhận lại với nhóm trước khi phân công code</text>
+    <line x1="450" y1="660" x2="480" y2="660" stroke="#b91c1c" stroke-width="1.2" stroke-dasharray="3,3"/>
+  </g>
+
+  <!-- Actor to UC lines -->
+  <line x1="109" y1="365" x2="218" y2="75" stroke="black" stroke-width="1.2"/>
+  <line x1="109" y1="370" x2="218" y2="130" stroke="black" stroke-width="1.2"/>
+  <line x1="109" y1="375" x2="218" y2="188" stroke="black" stroke-width="1.2"/>
+  <line x1="109" y1="380" x2="222" y2="246" stroke="black" stroke-width="1.2"/>
+  <line x1="109" y1="385" x2="212" y2="304" stroke="black" stroke-width="1.2"/>
+  <line x1="109" y1="390" x2="218" y2="360" stroke="black" stroke-width="1.2"/>
+  <line x1="109" y1="395" x2="190" y2="418" stroke="black" stroke-width="1.2"/>
+  <line x1="109" y1="400" x2="190" y2="480" stroke="black" stroke-width="1.2"/>
+  <line x1="109" y1="405" x2="205" y2="542" stroke="black" stroke-width="1.2"/>
+  <line x1="109" y1="410" x2="228" y2="600" stroke="black" stroke-width="1.2"/>
+  <line x1="109" y1="415" x2="215" y2="660" stroke="black" stroke-width="1.2"/>
+  <line x1="109" y1="420" x2="252" y2="725" stroke="black" stroke-width="1.2"/>
+</svg>
+  </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,146 @@
+<!DOCTYPE html><html><head><meta charset="UTF-8"><style>body{margin:0;padding:20px;background:#ffffff;font-family:Arial,sans-serif;}
+    .actor-name { font-family: Arial, sans-serif; font-size: 13px; font-weight: bold; fill: #000000; text-anchor: middle; }
+    .uc-text { font-family: Arial, sans-serif; font-size: 11.5px; fill: #000000; text-anchor: middle; dominant-baseline: central; }
+    .rel-label { font-family: Arial, sans-serif; font-size: 10.5px; font-style: italic; fill: #000000; text-anchor: middle; paint-order: stroke fill; stroke: #ffffff; stroke-width: 4px; stroke-linejoin: round; }
+    .note-text { font-family: Arial, sans-serif; font-size: 10.5px; fill: #1e293b; font-weight: 500; }
+    .box-title { font-family: Arial, sans-serif; font-size: 12px; font-weight: bold; fill: #000000; text-anchor: middle; }
+    .box-sub { font-family: Arial, sans-serif; font-size: 10px; fill: #475569; text-anchor: middle; }
+    .sys-title { font-family: Arial, sans-serif; font-size: 13px; font-weight: bold; fill: #1e293b; }
+</style></head><body><svg width="880" height="860" viewBox="0 0 880 860" xmlns="http://www.w3.org/2000/svg" id="svg-admin">
+  <defs>
+    <style>
+    .actor-name { font-family: Arial, sans-serif; font-size: 13px; font-weight: bold; fill: #000000; text-anchor: middle; }
+    .uc-text { font-family: Arial, sans-serif; font-size: 11.5px; fill: #000000; text-anchor: middle; dominant-baseline: central; }
+    .rel-label { font-family: Arial, sans-serif; font-size: 10.5px; font-style: italic; fill: #000000; text-anchor: middle; paint-order: stroke fill; stroke: #ffffff; stroke-width: 4px; stroke-linejoin: round; }
+    .note-text { font-family: Arial, sans-serif; font-size: 10.5px; fill: #1e293b; font-weight: 500; }
+    .box-title { font-family: Arial, sans-serif; font-size: 12px; font-weight: bold; fill: #000000; text-anchor: middle; }
+    .box-sub { font-family: Arial, sans-serif; font-size: 10px; fill: #475569; text-anchor: middle; }
+    .sys-title { font-family: Arial, sans-serif; font-size: 13px; font-weight: bold; fill: #1e293b; }
+</style>
+  </defs>
+
+  <!-- System Boundary -->
+  <rect x="180" y="20" width="670" height="820" rx="10" ry="10" fill="#ffffff" stroke="#64748b" stroke-width="1.5" stroke-dasharray="5,5" />
+  <text x="200" y="44" class="sys-title">CineMax System — System Administration</text>
+
+  <!-- ACTOR: Administrator -->
+  <g id="actor-admin">
+    <circle cx="85" cy="420" r="14" fill="white" stroke="black" stroke-width="2"/>
+    <line x1="85" y1="434" x2="85" y2="474" stroke="black" stroke-width="2"/>
+    <line x1="61" y1="448" x2="109" y2="448" stroke="black" stroke-width="2"/>
+    <line x1="85" y1="474" x2="67" y2="508" stroke="black" stroke-width="2"/>
+    <line x1="85" y1="474" x2="103" y2="508" stroke="black" stroke-width="2"/>
+    <text x="85" y="530" class="actor-name">Administrator</text>
+  </g>
+
+  <!-- ADMIN USE CASES (All 13 UCs) -->
+  <!-- UC-A-01: Manage Accounts -->
+  <g id="uc-a-01">
+    <ellipse cx="330" cy="80" rx="130" ry="21" fill="white" stroke="black" stroke-width="1.5"/>
+    <text x="330" y="80" class="uc-text">Manage User, Staff &amp; Manager Accounts</text>
+  </g>
+
+  <!-- UC-A-02: Assign Staff & Manager to Branch -->
+  <g id="uc-a-02">
+    <ellipse cx="330" cy="138" rx="125" ry="21" fill="white" stroke="black" stroke-width="1.5"/>
+    <text x="330" y="138" class="uc-text">Assign Staff &amp; Manager to Branches</text>
+  </g>
+
+  <!-- UC-A-03: Manage Master Movie Catalog -->
+  <g id="uc-a-03">
+    <ellipse cx="330" cy="196" rx="115" ry="21" fill="white" stroke="black" stroke-width="1.5"/>
+    <text x="330" y="196" class="uc-text">Manage Master Movie Catalog</text>
+  </g>
+
+  <!-- UC-A-04: Assign Movies to Branches -->
+  <g id="uc-a-04">
+    <ellipse cx="330" cy="254" rx="110" ry="21" fill="white" stroke="black" stroke-width="1.5"/>
+    <text x="330" y="254" class="uc-text">Assign Movies to Branches</text>
+  </g>
+
+  <!-- UC-A-05: Manage Cinema Branches & Halls -->
+  <g id="uc-a-05">
+    <ellipse cx="330" cy="312" rx="120" ry="21" fill="white" stroke="black" stroke-width="1.5"/>
+    <text x="330" y="312" class="uc-text">Manage Cinema Branches &amp; Halls</text>
+  </g>
+
+  <!-- UC-A-06: Configure Seat Grid Designer -->
+  <g id="uc-a-06">
+    <ellipse cx="330" cy="370" rx="115" ry="21" fill="white" stroke="black" stroke-width="1.5"/>
+    <text x="330" y="370" class="uc-text">Configure Seat Grid Designer</text>
+  </g>
+
+  <!-- UC-A-07: Configure Master Pricing Matrix -->
+  <g id="uc-a-07">
+    <ellipse cx="330" cy="428" rx="115" ry="21" fill="white" stroke="black" stroke-width="1.5"/>
+    <text x="330" y="428" class="uc-text">Configure Master Pricing Matrix</text>
+  </g>
+
+  <!-- UC-A-08: Manage Master F&B Catalog -->
+  <g id="uc-a-08">
+    <ellipse cx="330" cy="486" rx="110" ry="21" fill="white" stroke="black" stroke-width="1.5"/>
+    <text x="330" y="486" class="uc-text">Manage Master F&amp;B Catalog</text>
+  </g>
+
+  <!-- UC-A-09: Manage Promotions & Vouchers -->
+  <g id="uc-a-09">
+    <ellipse cx="330" cy="544" rx="115" ry="21" fill="white" stroke="black" stroke-width="1.5"/>
+    <text x="330" y="544" class="uc-text">Manage System Promotions &amp; Vouchers</text>
+  </g>
+
+  <!-- UC-A-10: Moderate User Reviews -->
+  <g id="uc-a-10">
+    <ellipse cx="330" cy="602" rx="105" ry="21" fill="white" stroke="black" stroke-width="1.5"/>
+    <text x="330" y="602" class="uc-text">Moderate User Reviews</text>
+  </g>
+
+  <!-- UC-A-11: Generate Enterprise BI Reports -->
+  <g id="uc-a-11">
+    <ellipse cx="330" cy="660" rx="115" ry="21" fill="white" stroke="black" stroke-width="1.5"/>
+    <text x="330" y="660" class="uc-text">Generate Enterprise BI Reports</text>
+  </g>
+
+  <!-- UC-A-12: Manage System Settings & Audit Logs -->
+  <g id="uc-a-12">
+    <ellipse cx="330" cy="718" rx="130" ry="21" fill="white" stroke="black" stroke-width="1.5"/>
+    <text x="330" y="718" class="uc-text">Manage System Settings &amp; Audit Logs</text>
+  </g>
+
+  <!-- UC-A-13: User Logout -->
+  <g id="uc-a-13">
+    <ellipse cx="330" cy="776" rx="80" ry="19" fill="white" stroke="black" stroke-width="1.5"/>
+    <text x="330" y="776" class="uc-text">User Logout</text>
+  </g>
+
+  <!-- NOTES with ample width (285px) -->
+  <!-- Note 1: Accounts -->
+  <g id="note-a-01">
+    <polygon points="530,65 805,65 815,75 815,95 530,95" fill="#fef9c3" stroke="#854d0e" stroke-width="1.2"/>
+    <polygon points="805,65 805,75 815,75" fill="#fef08a" stroke="#854d0e" stroke-width="1.2"/>
+    <text x="542" y="84" class="note-text">Create, Edit, Lock, Unlock, Deactivate</text>
+    <line x1="460" y1="80" x2="530" y2="80" stroke="#854d0e" stroke-width="1.2" stroke-dasharray="3,3"/>
+  </g>
+
+  <!-- Note 2: Movies -->
+  <g id="note-a-02">
+    <polygon points="530,181 805,181 815,191 815,211 530,211" fill="#fef9c3" stroke="#854d0e" stroke-width="1.2"/>
+    <polygon points="805,181 805,191 815,191" fill="#fef08a" stroke="#854d0e" stroke-width="1.2"/>
+    <text x="542" y="200" class="note-text">Add, Edit, Archive, Genre, Age Rating</text>
+    <line x1="445" y1="196" x2="530" y2="196" stroke="#854d0e" stroke-width="1.2" stroke-dasharray="3,3"/>
+  </g>
+
+  <!-- Actor to UC lines -->
+  <line x1="109" y1="400" x2="205" y2="88" stroke="black" stroke-width="1.2"/>
+  <line x1="109" y1="405" x2="210" y2="143" stroke="black" stroke-width="1.2"/>
+  <line x1="109" y1="410" x2="218" y2="200" stroke="black" stroke-width="1.2"/>
+  <line x1="109" y1="415" x2="222" y2="256" stroke="black" stroke-width="1.2"/>
+  <line x1="109" y1="420" x2="212" y2="313" stroke="black" stroke-width="1.2"/>
+  <line x1="109" y1="425" x2="218" y2="370" stroke="black" stroke-width="1.2"/>
+  <line x1="109" y1="430" x2="218" y2="428" stroke="black" stroke-width="1.2"/>
+  <line x1="109" y1="435" x2="222" y2="486" stroke="black" stroke-width="1.2"/>
+  <line x1="109" y1="440" x2="218" y2="544" stroke="black" stroke-width="1.2"/>
+  <line x1="109" y1="445" x2="228" y2="602" stroke="black" stroke-width="1.2"/>
+  <line x1="109" y1="450" x2="218" y2="660" stroke="black" stroke-width="1.2"/>
+  <line x1="109" y1="455" x2="205" y2="718" stroke="black" stroke-width="1.2"/>
+  <line x1="109" y1="460" x2="252" y2="776" stroke="black" stroke-width="1.2"/>
+</svg></body></html>
