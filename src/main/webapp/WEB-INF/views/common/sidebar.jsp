@@ -33,6 +33,7 @@
         <li><a href="${pageContext.request.contextPath}/admin/operation/pos"><i class="icon">🖥️</i> Quầy Bán vé & F&B (POS)</a></li>
         <li><a href="${pageContext.request.contextPath}/admin/operation/scanner"><i class="icon">📱</i> Soát vé qua Camera QR</a></li>
         <li><a href="${pageContext.request.contextPath}/admin/operation/fnb"><i class="icon">🍿</i> Tồn kho Bắp Nước</a></li>
+        <li><a href="${pageContext.request.contextPath}/admin/operation/fnb-catalog"><i class="icon">📋</i> Quản lý danh mục F&B</a></li>
         <li><a href="${pageContext.request.contextPath}/admin/operation/drawers"><i class="icon">💰</i> Ca làm & Két tiền</a></li>
     </ul>
 </aside>
