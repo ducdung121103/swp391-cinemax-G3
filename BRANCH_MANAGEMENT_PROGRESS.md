@@ -171,3 +171,17 @@
 - Search and filter functionality
 - Action buttons (Create, Edit, Delete, View)
 - Confirmation dialogs for delete operations
+## Validation & Error Handling
+
+### Validation Rules
+- Branch name: Required, max 100 chars, must be unique
+- Address: Optional, max 255 chars
+- Phone: Required, must match Vietnam phone format (10 digits)
+- Email: Optional, must be valid email format
+- Manager ID: Optional, must exist in users table
+
+### Error Handling
+- Custom exception classes for branch operations
+- Validation error messages in multiple languages
+- Database constraint violation handling
+- Transaction rollback on errors
