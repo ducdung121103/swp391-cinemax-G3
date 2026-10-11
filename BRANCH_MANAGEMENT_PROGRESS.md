@@ -301,3 +301,15 @@
 - Validation error messages in multiple languages
 - Database constraint violation handling
 - Transaction rollback on errors
+## Testing
+
+### Unit Tests
+- BranchServiceTest: Test all service methods
+- CinemaBranchesDAOTest: Test database operations
+- Branch validation tests
+- Pagination and filtering tests
+
+### Test Data
+- Created sample_branches.sql with 10 test branches
+- Different branch statuses (active/inactive)
+- Various address and phone formats
