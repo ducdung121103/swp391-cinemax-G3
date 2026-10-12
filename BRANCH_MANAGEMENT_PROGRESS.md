@@ -313,3 +313,17 @@
 - Created sample_branches.sql with 10 test branches
 - Different branch statuses (active/inactive)
 - Various address and phone formats
+## Documentation
+
+### API Documentation
+- Servlet endpoints and parameters
+- Request/response formats
+- Error codes and messages
+- Example requests and responses
+
+### User Guide
+- How to create a new branch
+- How to edit branch information
+- How to delete a branch
+- How to search and filter branches
+- Troubleshooting guide
