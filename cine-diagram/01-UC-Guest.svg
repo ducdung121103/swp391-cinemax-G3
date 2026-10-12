@@ -1,0 +1,89 @@
+<svg width="980" height="440" viewBox="0 0 980 440" xmlns="http://www.w3.org/2000/svg" id="svg-guest">
+  <defs>
+    <style>
+    .actor-name { font-family: Arial, sans-serif; font-size: 13px; font-weight: bold; fill: #000000; text-anchor: middle; }
+    .uc-text { font-family: Arial, sans-serif; font-size: 11.5px; fill: #000000; text-anchor: middle; dominant-baseline: central; }
+    .rel-label { font-family: Arial, sans-serif; font-size: 10.5px; font-style: italic; fill: #000000; text-anchor: middle; paint-order: stroke fill; stroke: #ffffff; stroke-width: 4px; stroke-linejoin: round; }
+    .note-text { font-family: Arial, sans-serif; font-size: 10.5px; fill: #1e293b; font-weight: 500; }
+    .box-title { font-family: Arial, sans-serif; font-size: 12px; font-weight: bold; fill: #000000; text-anchor: middle; }
+    .box-sub { font-family: Arial, sans-serif; font-size: 10px; fill: #475569; text-anchor: middle; }
+    .sys-title { font-family: Arial, sans-serif; font-size: 13px; font-weight: bold; fill: #1e293b; }
+</style>
+    <marker id="open-arrow-g" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 1 1 L 9 5 L 1 9" fill="none" stroke="black" stroke-width="1.6"/>
+    </marker>
+  </defs>
+
+  <!-- System Boundary -->
+  <rect x="180" y="20" width="540" height="400" rx="10" ry="10" fill="#ffffff" stroke="#64748b" stroke-width="1.5" stroke-dasharray="5,5" />
+  <text x="200" y="46" class="sys-title">CineMax System — Guest Portal</text>
+
+  <!-- ACTOR: Guest -->
+  <g id="actor-guest">
+    <circle cx="80" cy="195" r="14" fill="white" stroke="black" stroke-width="2"/>
+    <line x1="80" y1="209" x2="80" y2="249" stroke="black" stroke-width="2"/>
+    <line x1="58" y1="223" x2="102" y2="223" stroke="black" stroke-width="2"/>
+    <line x1="80" y1="249" x2="62" y2="281" stroke="black" stroke-width="2"/>
+    <line x1="80" y1="249" x2="98" y2="281" stroke="black" stroke-width="2"/>
+    <text x="80" y="303" class="actor-name">Guest</text>
+  </g>
+
+  <!-- USE CASES COLUMN 1 -->
+  <!-- UC-01 -->
+  <g id="uc-g-01">
+    <ellipse cx="325" cy="85" rx="105" ry="22" fill="white" stroke="black" stroke-width="1.5"/>
+    <text x="325" y="85" class="uc-text">View Home Page &amp; Movies</text>
+  </g>
+
+  <!-- UC-02 -->
+  <g id="uc-g-02">
+    <ellipse cx="325" cy="155" rx="105" ry="22" fill="white" stroke="black" stroke-width="1.5"/>
+    <text x="325" y="155" class="uc-text">View Movie Details &amp; Trailer</text>
+  </g>
+
+  <!-- UC-03 -->
+  <g id="uc-g-03">
+    <ellipse cx="325" cy="225" rx="95" ry="22" fill="white" stroke="black" stroke-width="1.5"/>
+    <text x="325" y="225" class="uc-text">View Cinema Branches</text>
+  </g>
+
+  <!-- UC-04 -->
+  <g id="uc-g-04">
+    <ellipse cx="325" cy="295" rx="110" ry="22" fill="white" stroke="black" stroke-width="1.5"/>
+    <text x="325" y="295" class="uc-text">View Showtimes &amp; Seat Map</text>
+  </g>
+
+  <!-- UC-05: Register Customer Account -->
+  <g id="uc-g-05">
+    <ellipse cx="325" cy="365" rx="105" ry="22" fill="white" stroke="black" stroke-width="1.5"/>
+    <text x="325" y="365" class="uc-text">Register Customer Account</text>
+  </g>
+
+  <!-- Included: Verify Email OTP -->
+  <g id="uc-g-otp">
+    <ellipse cx="590" cy="365" rx="85" ry="22" fill="white" stroke="black" stroke-width="1.5"/>
+    <text x="590" y="365" class="uc-text">Verify Email OTP</text>
+  </g>
+
+  <!-- SECONDARY ACTOR (External System) -->
+  <g id="ext-smtp-g">
+    <rect x="760" y="340" width="185" height="50" rx="6" ry="6" fill="#f8fafc" stroke="black" stroke-width="1.5"/>
+    <text x="852" y="360" class="box-sub">&lt;&lt;System&gt;&gt;</text>
+    <text x="852" y="378" class="box-title">Email Service (SMTP)</text>
+  </g>
+
+  <!-- RELATIONSHIPS -->
+  <!-- Guest to Base UCs -->
+  <line x1="102" y1="210" x2="223" y2="92" stroke="black" stroke-width="1.2"/>
+  <line x1="102" y1="216" x2="223" y2="155" stroke="black" stroke-width="1.2"/>
+  <line x1="102" y1="223" x2="230" y2="225" stroke="black" stroke-width="1.2"/>
+  <line x1="102" y1="228" x2="218" y2="292" stroke="black" stroke-width="1.2"/>
+  <line x1="102" y1="234" x2="223" y2="358" stroke="black" stroke-width="1.2"/>
+
+  <!-- Include: Register -> Verify Email OTP (Base -> Included) -->
+  <path d="M 430 365 L 505 365" stroke="black" stroke-width="1.5" stroke-dasharray="5,4" marker-end="url(#open-arrow-g)"/>
+  <text x="468" y="357" class="rel-label">&lt;&lt;include&gt;&gt;</text>
+
+  <!-- External System Line: Verify Email OTP -> Email Service (SMTP) -->
+  <line x1="675" y1="365" x2="760" y2="365" stroke="black" stroke-width="1.2"/>
+</svg>

@@ -1,44 +1,45 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <title>Đăng Ký Thành Viên - Cinema Chain</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/base.css">
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/modules/identity.css">
-</head>
-<body>
-    <jsp:include page="../../common/header.jsp" />
+<c:set var="pageTitle" value="Đăng Ký Thành Viên - CineMax" />
+<jsp:include page="../../common/header.jsp" />
 
-    <div class="auth-box">
-        <h2>ĐĂNG KÝ THÀNH VIÊN</h2>
+<div class="container py-5 d-flex justify-content-center align-items-center" style="min-height: 75vh;">
+    <div class="card bg-dark border-secondary p-4 p-md-5 text-white shadow-lg" style="max-width: 480px; width: 100%;">
+        <div class="text-center mb-4">
+            <i class="fa-solid fa-clapperboard text-warning fs-1 mb-2"></i>
+            <h3 class="fw-bold">ĐĂNG KÝ THÀNH VIÊN</h3>
+            <p class="text-secondary small">Trở thành thành viên CineMax để nhận ưu đãi</p>
+        </div>
+
         <c:if test="${not empty errorMessage}">
-            <div style="color: red; margin-bottom: 15px; font-weight: bold;">${errorMessage}</div>
+            <div class="alert alert-danger py-2 small fw-bold">${errorMessage}</div>
         </c:if>
 
         <form action="${pageContext.request.contextPath}/register" method="post">
-            <div style="margin-bottom: 15px;">
-                <label>Họ và Tên:</label>
-                <input type="text" name="fullName" required style="width: 100%; padding: 10px; margin-top: 5px;">
+            <div class="mb-3">
+                <label class="form-label text-secondary small fw-semibold">Họ và Tên:</label>
+                <input type="text" name="fullName" required class="form-control form-input-cinema" placeholder="Nguyễn Văn A">
             </div>
-            <div style="margin-bottom: 15px;">
-                <label>Số điện thoại:</label>
-                <input type="tel" name="phone" style="width: 100%; padding: 10px; margin-top: 5px;">
+            <div class="mb-3">
+                <label class="form-label text-secondary small fw-semibold">Số điện thoại:</label>
+                <input type="tel" name="phone" class="form-control form-input-cinema" placeholder="0901234567">
             </div>
-            <div style="margin-bottom: 15px;">
-                <label>Email đăng nhập:</label>
-                <input type="email" name="email" required style="width: 100%; padding: 10px; margin-top: 5px;">
+            <div class="mb-3">
+                <label class="form-label text-secondary small fw-semibold">Email đăng nhập:</label>
+                <input type="email" name="email" required class="form-control form-input-cinema" placeholder="example@gmail.com">
             </div>
-            <div style="margin-bottom: 20px;">
-                <label>Mật khẩu:</label>
-                <input type="password" name="password" required style="width: 100%; padding: 10px; margin-top: 5px;">
+            <div class="mb-4">
+                <label class="form-label text-secondary small fw-semibold">Mật khẩu:</label>
+                <input type="password" name="password" required class="form-control form-input-cinema" placeholder="Tối thiểu 6 ký tự">
             </div>
-            <button type="submit" class="btn-register" style="width: 100%; padding: 12px; font-size: 16px; cursor: pointer; border: none;">Tạo Tài Khoản</button>
+            <button type="submit" class="btn btn-cinema-primary w-100 py-2 fw-bold">
+                <i class="fa-solid fa-user-plus me-1"></i> Tạo Tài Khoản
+            </button>
         </form>
-        <p style="margin-top: 20px; text-align: center;">Đã có tài khoản? <a href="${pageContext.request.contextPath}/login">Đăng nhập</a></p>
+        <p class="mt-4 mb-0 text-center text-secondary small">
+            Đã có tài khoản? <a href="${pageContext.request.contextPath}/login" class="text-warning text-decoration-none fw-bold">Đăng nhập</a>
+        </p>
     </div>
+</div>
 
-    <jsp:include page="../../common/footer.jsp" />
-</body>
-</html>
+<jsp:include page="../../common/footer.jsp" />

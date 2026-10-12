@@ -1,122 +1,187 @@
-<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <title>${movie.title} - Chi Tiết Phim</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/base.css">
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/modules/catalog.css">
-    <style>
-        .detail-container {
-            max-width: 1100px;
-            margin: 40px auto;
-            padding: 0 20px;
-            display: grid;
-            grid-template-columns: 320px 1fr;
-            gap: 40px;
-        }
-        @media (max-width: 768px) {
-            .detail-container {
-                grid-template-columns: 1fr;
-            }
-        }
-        .detail-poster {
-            width: 100%;
-            border-radius: 12px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-        }
-        .detail-badge {
-            display: inline-block;
-            padding: 4px 10px;
-            border-radius: 4px;
-            font-weight: bold;
-            font-size: 0.85rem;
-            margin-bottom: 12px;
-        }
-        .badge-c18 { background: #e50914; color: white; }
-        .badge-c16 { background: #e65100; color: white; }
-        .badge-c13 { background: #f57f17; color: white; }
-        .badge-p   { background: #2e7d32; color: white; }
-        .meta-item {
-            margin-bottom: 10px;
-            color: #4a5568;
-            font-size: 0.95rem;
-        }
-        .meta-item strong {
-            color: #1a202c;
-        }
-        .synopsis-box {
-            margin-top: 20px;
-            line-height: 1.7;
-            color: #2d3748;
-            background: #f8fafc;
-            padding: 20px;
-            border-radius: 8px;
-            border-left: 4px solid #e50914;
-        }
-        .btn-book-now {
-            display: inline-block;
-            margin-top: 25px;
-            padding: 12px 30px;
-            background: #e50914;
-            color: white;
-            font-weight: 600;
-            text-decoration: none;
-            border-radius: 6px;
-            transition: background 0.2s;
-        }
-        .btn-book-now:hover {
-            background: #b20710;
-        }
-    </style>
-</head>
-<body>
-    <jsp:include page="../../common/header.jsp" />
+<c:set var="pageTitle" value="${movie.title} - Chi Tiết Phim | CineMax" />
+<jsp:include page="../../common/header.jsp" />
 
-    <div class="detail-container">
-        <div>
-            <img src="${movie.posterUrl}" alt="${movie.title}" class="detail-poster">
-        </div>
+<!-- Breadcrumb -->
+<div class="bg-dark py-2 border-bottom border-secondary">
+    <div class="container">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0 small">
+                <li class="breadcrumb-item"><a href="${pageContext.request.contextPath}/home" class="text-secondary text-decoration-none">Trang chủ</a></li>
+                <li class="breadcrumb-item">
+                    <c:choose>
+                        <c:when test="${movie.nowShowing}">
+                            <a href="${pageContext.request.contextPath}/movies?type=now_showing" class="text-secondary text-decoration-none">Phim đang chiếu</a>
+                        </c:when>
+                        <c:otherwise>
+                            <a href="${pageContext.request.contextPath}/movies?type=coming_soon" class="text-secondary text-decoration-none">Phim sắp chiếu</a>
+                        </c:otherwise>
+                    </c:choose>
+                </li>
+                <li class="breadcrumb-item active text-warning" aria-current="page">${movie.title}</li>
+            </ol>
+        </nav>
+    </div>
+</div>
 
-        <div class="detail-info">
-            <span class="detail-badge badge-${movie.ageRating.toLowerCase()}">${movie.ageRating}</span>
-            <h1 style="margin: 0 0 15px 0; font-size: 2rem; color: #1a202c;">${movie.title}</h1>
-            
-            <div class="meta-item"><strong>Thời lượng:</strong> ${movie.durationMinutes} phút</div>
-            <div class="meta-item"><strong>Khởi chiếu:</strong> ${movie.releaseDate}</div>
-            <div class="meta-item"><strong>Ngôn ngữ:</strong> ${movie.language}</div>
-            <c:if test="${not empty movie.director}">
-                <div class="meta-item"><strong>Đạo diễn:</strong> ${movie.director}</div>
-            </c:if>
-            <c:if test="${not empty movie.actors}">
-                <div class="meta-item"><strong>Diễn viên:</strong> ${movie.actors}</div>
-            </c:if>
-
-            <div class="synopsis-box">
-                <h4 style="margin: 0 0 10px 0; color: #1a202c;">Nội Dung Phim</h4>
-                <p style="margin: 0;">${movie.synopsis}</p>
+<!-- Movie Detail Hero -->
+<div class="detail-hero">
+    <div class="container">
+        <div class="row g-5 align-items-center">
+            <!-- Left: Poster -->
+            <div class="col-lg-4 col-md-5">
+                <div class="position-relative">
+                    <img src="${movie.posterUrl}" alt="${movie.title}" class="detail-poster-img" onerror="this.src='https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=800&auto=format&fit=crop&q=80'">
+                    
+                    <!-- Badges -->
+                    <c:choose>
+                        <c:when test="${movie.nowShowing}">
+                            <span class="badge-status-top-left badge-tag badge-now-showing fs-6">
+                                <i class="fa-solid fa-circle-play me-1"></i> Đang Chiếu
+                            </span>
+                        </c:when>
+                        <c:otherwise>
+                            <span class="badge-status-top-left badge-tag badge-coming-soon fs-6">
+                                <i class="fa-solid fa-calendar-day me-1"></i> Sắp Chiếu
+                            </span>
+                        </c:otherwise>
+                    </c:choose>
+                </div>
             </div>
 
-            <c:if test="${not empty movie.trailerUrl}">
-                <div style="margin-top: 20px;">
-                    <a href="${movie.trailerUrl}" target="_blank" style="color: #e50914; font-weight: 500; text-decoration: none;">
-                        ▶ Xem Trailer chính thức trên YouTube
+            <!-- Right: Details -->
+            <div class="col-lg-8 col-md-7">
+                <div class="d-flex align-items-center gap-3 mb-3">
+                    <span class="badge-tag ${movie.ageBadgeClass} fs-6">${movie.ageRating}</span>
+                    <div class="text-warning fw-bold fs-5">
+                        <i class="fa-solid fa-star me-1"></i> ${movie.rating} <span class="text-secondary fs-6">/ 5.0</span>
+                    </div>
+                </div>
+
+                <h1 class="display-6 fw-bold text-white mb-2">${movie.title}</h1>
+                <c:if test="${not empty movie.originalTitle}">
+                    <p class="text-secondary fs-6 mb-3 fst-italic">${movie.originalTitle}</p>
+                </c:if>
+
+                <!-- Metadata List -->
+                <div class="row g-3 my-3">
+                    <div class="col-sm-6">
+                        <div class="detail-meta-group">
+                            <span class="detail-meta-label"><i class="fa-solid fa-film text-warning me-1"></i> Thể Loại</span>
+                            <span class="detail-meta-val">${movie.genreString}</span>
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="detail-meta-group">
+                            <span class="detail-meta-label"><i class="fa-regular fa-clock text-warning me-1"></i> Thời Lượng</span>
+                            <span class="detail-meta-val">${movie.duration} phút</span>
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="detail-meta-group">
+                            <span class="detail-meta-label"><i class="fa-regular fa-calendar-check text-warning me-1"></i> Khởi Chiếu</span>
+                            <span class="detail-meta-val">${movie.formattedReleaseDate}</span>
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="detail-meta-group">
+                            <span class="detail-meta-label"><i class="fa-solid fa-language text-warning me-1"></i> Ngôn Ngữ</span>
+                            <span class="detail-meta-val">${not empty movie.language ? movie.language : 'Phụ đề Tiếng Việt'}</span>
+                        </div>
+                    </div>
+                    <c:if test="${not empty movie.director}">
+                        <div class="col-sm-6">
+                            <div class="detail-meta-group">
+                                <span class="detail-meta-label"><i class="fa-solid fa-user-tie text-warning me-1"></i> Đạo Diễn</span>
+                                <span class="detail-meta-val">${movie.director}</span>
+                            </div>
+                        </div>
+                    </c:if>
+                    <c:if test="${not empty movie.cast}">
+                        <div class="col-sm-12">
+                            <div class="detail-meta-group">
+                                <span class="detail-meta-label"><i class="fa-solid fa-users text-warning me-1"></i> Diễn Viên</span>
+                                <span class="detail-meta-val">${movie.cast}</span>
+                            </div>
+                        </div>
+                    </c:if>
+                </div>
+
+                <!-- Synopsis -->
+                <div class="my-4">
+                    <h5 class="text-white fw-bold mb-2">Nội Dung Phim</h5>
+                    <p class="text-secondary leading-relaxed">${movie.description}</p>
+                </div>
+
+                <!-- Action CTA Buttons -->
+                <div class="d-flex flex-wrap gap-3 mt-4">
+                    <c:choose>
+                        <c:when test="${movie.nowShowing}">
+                            <a href="${pageContext.request.contextPath}/booking/checkout?showtimeId=1" class="btn btn-cinema-primary btn-lg">
+                                <i class="fa-solid fa-ticket me-2"></i> Mua Vé Ngay
+                            </a>
+                        </c:when>
+                        <c:otherwise>
+                            <button class="btn btn-secondary btn-lg disabled" disabled>
+                                <i class="fa-regular fa-calendar me-2"></i> Sắp Khởi Chiếu
+                            </button>
+                        </c:otherwise>
+                    </c:choose>
+
+                    <c:if test="${not empty movie.trailerUrl}">
+                        <button type="button" class="btn btn-cinema-outline btn-lg" data-trailer-url="${movie.trailerUrl}" data-movie-title="${movie.title}">
+                            <i class="fa-solid fa-play me-2"></i> Xem Trailer
+                        </button>
+                    </c:if>
+                    
+                    <a href="${pageContext.request.contextPath}/movies" class="btn btn-outline-secondary btn-lg">
+                        <i class="fa-solid fa-arrow-left me-1"></i> Quay Lại
                     </a>
                 </div>
-            </c:if>
-
-            <div style="margin-top: 25px;">
-                <a href="${pageContext.request.contextPath}/booking/checkout?showtimeId=1" class="btn-book-now">
-                    🎟️ Mua Vé Ngay (Suất Chiếu Hôm Nay)
-                </a>
-                <a href="${pageContext.request.contextPath}/movies" style="margin-left: 15px; color: #718096; text-decoration: none;">
-                    ← Quay lại danh sách phim
-                </a>
             </div>
         </div>
     </div>
+</div>
 
-    <jsp:include page="../../common/footer.jsp" />
-</body>
-</html>
+<!-- Related Movies Section -->
+<c:if test="${not empty relatedMovies}">
+    <div class="container py-5 border-top border-secondary">
+        <h3 class="fw-bold text-white mb-4">
+            <i class="fa-solid fa-clapperboard text-warning me-2"></i> Phim Cùng Thể Loại
+        </h3>
+        <div class="row row-cols-2 row-cols-md-4 g-4">
+            <c:forEach var="relMovie" items="${relatedMovies}">
+                <div class="col">
+                    <div class="movie-card">
+                        <div class="movie-poster-wrap">
+                            <img src="${relMovie.posterUrl}" alt="${relMovie.title}" class="movie-poster" onerror="this.src='https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=500&auto=format&fit=crop&q=80'">
+                            <span class="badge-tag ${relMovie.ageBadgeClass} badge-status-top-left">
+                                ${relMovie.ageRating}
+                            </span>
+                            <div class="movie-overlay">
+                                <a href="${pageContext.request.contextPath}/movie/detail?id=${relMovie.id}" class="btn btn-cinema-primary btn-sm mb-2 w-75">
+                                    <i class="fa-solid fa-circle-info"></i> Xem Chi Tiết
+                                </a>
+                            </div>
+                        </div>
+                        <div class="movie-body">
+                            <h6 class="movie-card-title" title="${relMovie.title}">
+                                <a href="${pageContext.request.contextPath}/movie/detail?id=${relMovie.id}">${relMovie.title}</a>
+                            </h6>
+                            <div class="movie-meta-item">
+                                <i class="fa-solid fa-film text-warning"></i> ${relMovie.genreString}
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mt-2 small text-secondary">
+                                <span>${relMovie.duration} phút</span>
+                                <span class="text-warning fw-bold"><i class="fa-solid fa-star"></i> ${relMovie.rating}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </c:forEach>
+        </div>
+    </div>
+</c:if>
+
+<jsp:include page="../../common/footer.jsp" />

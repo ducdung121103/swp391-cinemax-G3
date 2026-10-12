@@ -1,0 +1,111 @@
+<svg width="900" height="670" viewBox="0 0 900 670" xmlns="http://www.w3.org/2000/svg" id="svg-manager">
+  <defs>
+    <style>
+    .actor-name { font-family: Arial, sans-serif; font-size: 13px; font-weight: bold; fill: #000000; text-anchor: middle; }
+    .uc-text { font-family: Arial, sans-serif; font-size: 11.5px; fill: #000000; text-anchor: middle; dominant-baseline: central; }
+    .rel-label { font-family: Arial, sans-serif; font-size: 10.5px; font-style: italic; fill: #000000; text-anchor: middle; paint-order: stroke fill; stroke: #ffffff; stroke-width: 4px; stroke-linejoin: round; }
+    .note-text { font-family: Arial, sans-serif; font-size: 10px; fill: #1e293b; font-weight: 500; }
+    .box-title { font-family: Arial, sans-serif; font-size: 12px; font-weight: bold; fill: #000000; text-anchor: middle; }
+    .box-sub { font-family: Arial, sans-serif; font-size: 10px; fill: #475569; text-anchor: middle; }
+    .sys-title { font-family: Arial, sans-serif; font-size: 13px; font-weight: bold; fill: #1e293b; }
+</style>
+  </defs>
+
+  <!-- System Boundary encompassing Manager UCs and Notes -->
+  <rect x="180" y="20" width="700" height="625" rx="10" ry="10" fill="#ffffff" stroke="#64748b" stroke-width="1.5" stroke-dasharray="5,5" />
+  <text x="200" y="44" class="sys-title">CineMax System — Cinema Manager (Branch Operations)</text>
+
+  <!-- ACTOR: Cinema Manager -->
+  <g id="actor-manager">
+    <circle cx="85" cy="335" r="14" fill="white" stroke="black" stroke-width="2"/>
+    <line x1="85" y1="349" x2="85" y2="389" stroke="black" stroke-width="2"/>
+    <line x1="61" y1="363" x2="109" y2="363" stroke="black" stroke-width="2"/>
+    <line x1="85" y1="389" x2="67" y2="423" stroke="black" stroke-width="2"/>
+    <line x1="85" y1="389" x2="103" y2="423" stroke="black" stroke-width="2"/>
+    <text x="85" y="445" class="actor-name">Cinema Manager</text>
+  </g>
+
+  <!-- MANAGER USE CASES (8 UCs) -->
+  <!-- UC-M-01: Schedule Branch Showtimes -->
+  <g id="uc-m-01">
+    <ellipse cx="325" cy="72" rx="110" ry="22" fill="white" stroke="black" stroke-width="1.5"/>
+    <text x="325" y="72" class="uc-text">Schedule Branch Showtimes</text>
+  </g>
+
+  <!-- UC-M-02: Configure Branch Pricing & Rates -->
+  <g id="uc-m-02">
+    <ellipse cx="325" cy="147" rx="125" ry="22" fill="white" stroke="black" stroke-width="1.5"/>
+    <text x="325" y="147" class="uc-text">Configure Branch Pricing &amp; Rates</text>
+  </g>
+
+  <!-- UC-M-03: Monitor Hall Occupancy -->
+  <g id="uc-m-03">
+    <ellipse cx="325" cy="222" rx="105" ry="22" fill="white" stroke="black" stroke-width="1.5"/>
+    <text x="325" y="222" class="uc-text">Monitor Hall Occupancy</text>
+  </g>
+
+  <!-- UC-M-04: Manage Branch F&B Stock -->
+  <g id="uc-m-04">
+    <ellipse cx="325" cy="297" rx="110" ry="22" fill="white" stroke="black" stroke-width="1.5"/>
+    <text x="325" y="297" class="uc-text">Manage Branch F&amp;B Stock</text>
+  </g>
+
+  <!-- UC-M-05: Manage Branch Staff Accounts (NEW from Admin) -->
+  <g id="uc-m-05">
+    <ellipse cx="325" cy="372" rx="125" ry="22" fill="white" stroke="black" stroke-width="1.5"/>
+    <text x="325" y="372" class="uc-text" font-weight="bold">Manage Branch Staff Accounts</text>
+  </g>
+
+  <!-- UC-M-06: Assign Staff Shifts -->
+  <g id="uc-m-06">
+    <ellipse cx="325" cy="447" rx="100" ry="22" fill="white" stroke="black" stroke-width="1.5"/>
+    <text x="325" y="447" class="uc-text">Assign Staff Shifts</text>
+  </g>
+
+  <!-- UC-M-07: View Branch Revenue & Sales Reports -->
+  <g id="uc-m-07">
+    <ellipse cx="325" cy="522" rx="135" ry="22" fill="white" stroke="black" stroke-width="1.5"/>
+    <text x="325" y="522" class="uc-text">View Branch Revenue &amp; Sales Reports</text>
+  </g>
+
+  <!-- UC-M-08: User Logout -->
+  <g id="uc-m-08">
+    <ellipse cx="325" cy="595" rx="80" ry="20" fill="white" stroke="black" stroke-width="1.5"/>
+    <text x="325" y="595" class="uc-text">User Logout</text>
+  </g>
+
+  <!-- NOTES -->
+  <!-- Note 1: Showtime Buffer -->
+  <g id="note-m-01">
+    <polygon points="505,57 785,57 795,67 795,87 505,87" fill="#fef9c3" stroke="#854d0e" stroke-width="1.2"/>
+    <polygon points="785,57 785,67 795,67" fill="#fef08a" stroke="#854d0e" stroke-width="1.2"/>
+    <text x="517" y="75" class="note-text">Buffer 15m · Conflict check · Assign hall</text>
+    <line x1="435" y1="72" x2="505" y2="72" stroke="#854d0e" stroke-width="1.2" stroke-dasharray="3,3"/>
+  </g>
+
+  <!-- Note 2: Branch Pricing Override -->
+  <g id="note-m-02">
+    <polygon points="505,132 865,132 875,142 875,162 505,162" fill="#fef9c3" stroke="#854d0e" stroke-width="1.2"/>
+    <polygon points="865,132 865,142 875,142" fill="#fef08a" stroke="#854d0e" stroke-width="1.2"/>
+    <text x="517" y="150" class="note-text">Ghi đè giá riêng rạp này (cinema_id) · Mặc định dùng giá Admin</text>
+    <line x1="450" y1="147" x2="505" y2="147" stroke="#854d0e" stroke-width="1.2" stroke-dasharray="3,3"/>
+  </g>
+
+  <!-- Note 3: Staff Accounts Scope -->
+  <g id="note-m-03">
+    <polygon points="505,357 865,357 875,367 875,387 505,387" fill="#fef9c3" stroke="#854d0e" stroke-width="1.2"/>
+    <polygon points="865,357 865,367 875,367" fill="#fef08a" stroke="#854d0e" stroke-width="1.2"/>
+    <text x="517" y="375" class="note-text">Tạo/khoá Staff thuộc rạp mình quản lý — Không ảnh hưởng rạp khác</text>
+    <line x1="450" y1="372" x2="505" y2="372" stroke="#854d0e" stroke-width="1.2" stroke-dasharray="3,3"/>
+  </g>
+
+  <!-- Actor to UC Lines -->
+  <line x1="109" y1="320" x2="225" y2="78" stroke="black" stroke-width="1.2"/>
+  <line x1="109" y1="325" x2="210" y2="147" stroke="black" stroke-width="1.2"/>
+  <line x1="109" y1="330" x2="228" y2="222" stroke="black" stroke-width="1.2"/>
+  <line x1="109" y1="335" x2="224" y2="297" stroke="black" stroke-width="1.2"/>
+  <line x1="109" y1="340" x2="210" y2="372" stroke="black" stroke-width="1.2"/>
+  <line x1="109" y1="345" x2="228" y2="447" stroke="black" stroke-width="1.2"/>
+  <line x1="109" y1="350" x2="200" y2="522" stroke="black" stroke-width="1.2"/>
+  <line x1="109" y1="355" x2="252" y2="595" stroke="black" stroke-width="1.2"/>
+</svg>
