@@ -7,10 +7,12 @@
     <ul class="sidebar-menu">
         <li><a href="${pageContext.request.contextPath}/admin/dashboard"><i class="icon">📊</i> Tổng quan Dashboard</a></li>
 
-        <!-- TV 1: Infrastructure -->
+        <!-- TV 1: Infrastructure (Dũng) -->
         <li class="menu-header">HẠ TẦNG & RẠP (TV 1)</li>
-        <li><a href="${pageContext.request.contextPath}/admin/infrastructure/cinemas"><i class="icon">🏢</i> Cụm rạp chiếu phim</a></li>
-        <li><a href="${pageContext.request.contextPath}/admin/infrastructure/rooms"><i class="icon">🎥</i> Phòng chiếu & Sơ đồ ghế</a></li>
+        <li><a href="${pageContext.request.contextPath}/admin/infrastructure/cinemas"><i class="icon">🏢</i> Quản lý Cụm rạp</a></li>
+        <li><a href="${pageContext.request.contextPath}/admin/infrastructure/rooms"><i class="icon">🎥</i> Quản lý Phòng chiếu</a></li>
+        <li><a href="${pageContext.request.contextPath}/admin/infrastructure/seats"><i class="icon">💺</i> Thiết kế Sơ đồ ghế</a></li>
+        <li><a href="${pageContext.request.contextPath}/admin/infrastructure/settings"><i class="icon">⚙️</i> Cấu hình Hệ thống</a></li>
 
         <!-- TV 2: Identity -->
         <li class="menu-header">NGƯỜI DÙNG & HỘI VIÊN (TV 2)</li>

@@ -24,6 +24,8 @@ public class Seat extends BaseEntity {
     private String seatCode; // A01, F08...
     private Integer gridRowIndex;
     private Integer gridColIndex;
+    @Builder.Default
+    private String status = "ACTIVE"; // ACTIVE, MAINTENANCE, BLOCKED
 
     // Quan hệ điều hướng
     private SeatType seatType;
