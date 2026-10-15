@@ -217,16 +217,16 @@ DELETE FROM fnb_items;
 GO
 SET IDENTITY_INSERT fnb_items ON;
 INSERT INTO fnb_items (id, category_id, item_code, name, price, image_url, is_combo, is_active, is_deleted, created_at) VALUES
-(1, 1, N'FNB-PC-01', N'Bắp Rang Bơ Truyền Thống 60oz',    55000.00, N'/assets/images/fnb/popcorn_butter.png',   0, 1, 0, GETDATE()),
-(2, 1, N'FNB-PC-02', N'Bắp Rang Vị Phô Mai 60oz',         65000.00, N'/assets/images/fnb/popcorn_cheese.png',   0, 1, 0, GETDATE()),
-(3, 1, N'FNB-PC-03', N'Bắp Rang Vị Caramel 60oz',         65000.00, N'/assets/images/fnb/popcorn_caramel.png',  0, 1, 0, GETDATE()),
-(4, 2, N'FNB-DK-01', N'Pepsi Vị Chanh Không Calo 22oz',    35000.00, N'/assets/images/fnb/pepsi.png',            0, 1, 0, GETDATE()),
-(5, 2, N'FNB-DK-02', N'Coca-Cola Mát Lạnh 22oz',           35000.00, N'/assets/images/fnb/cocacola.png',         0, 1, 0, GETDATE()),
-(6, 2, N'FNB-DK-03', N'Nước Khoáng Dasani 500ml',         20000.00, N'/assets/images/fnb/water.png',            0, 1, 0, GETDATE()),
-(7, 2, N'FNB-DK-04', N'Trà Sữa Trân Châu Hoàng Gia 500ml', 45000.00, N'/assets/images/fnb/milktea.png',          0, 1, 0, GETDATE()),
-(8, 3, N'FNB-CB-01', N'Solo Combo (1 Bắp Ngọt + 1 Nước)',  79000.00, N'/assets/images/fnb/combo_solo.png',       1, 1, 0, GETDATE()),
-(9, 3, N'FNB-CB-02', N'Couple Combo (1 Bắp Lớn + 2 Nước)', 119000.00, N'/assets/images/fnb/combo_couple.png',     1, 1, 0, GETDATE()),
-(10,3, N'FNB-CB-03', N'Family Party (2 Bắp + 3 Nước + Snack)', 189000.00, N'/assets/images/fnb/combo_family.png', 1, 1, 0, GETDATE());
+(1, 1, N'FNB-PC-01', N'Bắp Rang Bơ Truyền Thống 60oz',    55000.00, N'/assets/images/fnb/popcorn_butter.svg',   0, 1, 0, GETDATE()),
+(2, 1, N'FNB-PC-02', N'Bắp Rang Vị Phô Mai 60oz',         65000.00, N'/assets/images/fnb/popcorn_cheese.svg',   0, 1, 0, GETDATE()),
+(3, 1, N'FNB-PC-03', N'Bắp Rang Vị Caramel 60oz',         65000.00, N'/assets/images/fnb/popcorn_caramel.svg',  0, 1, 0, GETDATE()),
+(4, 2, N'FNB-DK-01', N'Pepsi Vị Chanh Không Calo 22oz',    35000.00, N'/assets/images/fnb/pepsi.svg',            0, 1, 0, GETDATE()),
+(5, 2, N'FNB-DK-02', N'Coca-Cola Mát Lạnh 22oz',           35000.00, N'/assets/images/fnb/cocacola.svg',         0, 1, 0, GETDATE()),
+(6, 2, N'FNB-DK-03', N'Nước Khoáng Dasani 500ml',         20000.00, N'/assets/images/fnb/water.svg',            0, 1, 0, GETDATE()),
+(7, 2, N'FNB-DK-04', N'Trà Sữa Trân Châu Hoàng Gia 500ml', 45000.00, N'/assets/images/fnb/milktea.svg',          0, 1, 0, GETDATE()),
+(8, 3, N'FNB-CB-01', N'Solo Combo (1 Bắp Ngọt + 1 Nước)',  79000.00, N'/assets/images/fnb/combo_solo.svg',       1, 1, 0, GETDATE()),
+(9, 3, N'FNB-CB-02', N'Couple Combo (1 Bắp Lớn + 2 Nước)', 119000.00, N'/assets/images/fnb/combo_couple.svg',     1, 1, 0, GETDATE()),
+(10,3, N'FNB-CB-03', N'Family Party (2 Bắp + 3 Nước + Snack)', 189000.00, N'/assets/images/fnb/combo_family.svg', 1, 1, 0, GETDATE());
 SET IDENTITY_INSERT fnb_items OFF;
 GO
 

@@ -1,10 +1,15 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<fmt:setLocale value="en_US" />
 <!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Quản lý danh mục F&B</title>
 <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/base.css">
 <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/admin-layout.css">
 <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/modules/fnb-catalog.css">
+<link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/modules/fnb-catalog-images.css">
 </head><body>
+<c:url var="fnbFallbackUrl" value="/assets/images/fnb/default.svg" />
 <div class="admin-wrapper">
     <jsp:include page="../../common/sidebar.jsp"/>
     <div class="admin-main">
@@ -34,7 +39,7 @@
                     <option value="${cat.id}"><c:out value="${cat.name}"/></option>
                 </c:if></c:forEach></select></label><label>Giá (₫)<input type="number" name="price" min="0" step="0.01"
                                                                          required></label><label class="wide">URL hình
-                    ảnh<input name="imageUrl" maxlength="255" placeholder="https://..."></label><label
+                    ảnh<input name="imageUrl" maxlength="255" placeholder="/assets/images/fnb/... or https://..."></label><label
                         class="check-label"><input type="checkbox" name="isCombo" value="true"> Đây là combo</label>
                     <button class="primary-button" type="submit">Thêm sản phẩm</button>
                 </form>
@@ -52,10 +57,21 @@
                         </thead>
                         <tbody><c:forEach items="${items}" var="item">
                             <tr>
-                                <td><strong><c:out value="${item.name}"/></strong><small><c:out
-                                        value="${item.itemCode}"/></small></td>
+                                <td>
+                                    <div class="fnb-product-cell">
+                                        <c:choose>
+                                            <c:when test="${empty item.imageUrl}"><c:set var="itemImageUrl" value="${fnbFallbackUrl}" /></c:when>
+                                            <c:when test="${fn:startsWith(fn:toLowerCase(fn:trim(item.imageUrl)), 'http://') or fn:startsWith(fn:toLowerCase(fn:trim(item.imageUrl)), 'https://')}"><c:set var="itemImageUrl" value="${fn:trim(item.imageUrl)}" /></c:when>
+                                            <c:when test="${fn:startsWith(fn:toLowerCase(fn:trim(item.imageUrl)), '/assets/images/fnb/') and fn:endsWith(fn:toLowerCase(fn:trim(item.imageUrl)), '.png')}"><c:url var="itemImageUrl" value="${fn:replace(fn:trim(item.imageUrl), '.png', '.svg')}" /></c:when>
+                                            <c:when test="${fn:startsWith(fn:trim(item.imageUrl), '/')}"><c:url var="itemImageUrl" value="${fn:trim(item.imageUrl)}" /></c:when>
+                                            <c:otherwise><c:set var="relativeItemImageUrl">/${fn:trim(item.imageUrl)}</c:set><c:url var="itemImageUrl" value="${relativeItemImageUrl}" /></c:otherwise>
+                                        </c:choose>
+                                        <img class="fnb-product-thumb" src="<c:out value='${itemImageUrl}'/>" data-fallback="<c:out value='${fnbFallbackUrl}'/>" onerror="this.onerror=null;this.src=this.dataset.fallback" alt="" loading="lazy">
+                                        <span><strong><c:out value="${item.name}"/></strong><small><c:out value="${item.itemCode}"/></small></span>
+                                    </div>
+                                </td>
                                 <td><c:out value="${item.category.name}"/></td>
-                                <td><c:out value="${item.price}"/> ₫</td>
+                                <td><fmt:formatNumber value="${item.price}" pattern="#,##0" groupingUsed="true" />đ</td>
                                 <td><c:choose><c:when
                                         test="${item.isCombo}">Combo</c:when><c:otherwise>Món lẻ</c:otherwise></c:choose></td>
                                 <td><span class="status ${item.isActive ? 'on' : 'off'}"><c:choose><c:when

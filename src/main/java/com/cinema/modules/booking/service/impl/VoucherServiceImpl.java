@@ -6,8 +6,10 @@ import com.cinema.modules.booking.service.VoucherService;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.text.NumberFormat;
 import java.sql.Connection;
 import java.time.LocalDateTime;
+import java.util.Locale;
 
 /**
  * Cài đặt nghiệp vụ Voucher (TV 4).
@@ -62,7 +64,8 @@ public class VoucherServiceImpl implements VoucherService {
         }
 
         if (voucher.getMinOrderAmount() != null && orderTotal.compareTo(voucher.getMinOrderAmount()) < 0) {
-            throw new IllegalStateException("Đơn hàng chưa đạt giá trị tối thiểu " + voucher.getMinOrderAmount() + " để áp dụng voucher!");
+            String minimumAmount = NumberFormat.getIntegerInstance(Locale.US).format(voucher.getMinOrderAmount());
+            throw new IllegalStateException("Đơn hàng chưa đạt giá trị tối thiểu " + minimumAmount + "đ để áp dụng voucher!");
         }
 
         BigDecimal discount = BigDecimal.ZERO;
