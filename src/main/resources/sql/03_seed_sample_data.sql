@@ -205,7 +205,7 @@ INSERT INTO movies (id, title, poster_url, trailer_url, duration_minutes, releas
     N'https://www.youtube.com/watch?v=d9MyW72ELq0', 
     190, DATEADD(DAY, 60, CAST(GETDATE() AS DATE)), N'T13', N'Tiếng Anh - Phụ đề Tiếng Việt', 
     N'James Cameron', N'Sam Worthington, Zoe Saldana, Sigourney Weaver, Stephen Lang', 
-    N'Gia tộc Sully khám phá một tộc người Na\'vi mới đầy bí ẩn và thù địch gắn liền với yếu tố lửa trên hành tinh Pandora kỳ vĩ.', 
+    N'Gia tộc Sully khám phá một tộc người Na''vi mới đầy bí ẩn và thù địch gắn liền với yếu tố lửa trên hành tinh Pandora kỳ vĩ.', 
     N'COMING_SOON', 0, GETDATE()),
 
 -- 12. Joker: Folie à Deux (COMING SOON: Tương lai 25 ngày)
