@@ -6,6 +6,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Cấu Hình Tham Số Hệ Thống - Cinema Admin</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/base.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/admin-layout.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/modules/infrastructure.css">
@@ -184,19 +185,23 @@
                 <c:if test="${not empty msg}">
                     <div class="alert-toast alert-success">
                         <span>
+                            <i class="fa-solid fa-circle-check" style="margin-right: 6px;"></i>
                             <c:choose>
-                                <c:when test="${msg == 'all_saved'}">✅ Đã lưu toàn bộ tham số cấu hình hệ thống thành công!</c:when>
-                                <c:when test="${msg == 'single_saved'}">✅ Đã thêm mới/cập nhật tham số thành công!</c:when>
-                                <c:otherwise>✅ Thao tác thành công!</c:otherwise>
+                                <c:when test="${msg == 'all_saved'}">Đã lưu toàn bộ tham số cấu hình hệ thống thành công!</c:when>
+                                <c:when test="${msg == 'single_saved'}">Đã thêm mới/cập nhật tham số thành công!</c:when>
+                                <c:otherwise>Thao tác thành công!</c:otherwise>
                             </c:choose>
                         </span>
-                        <button onclick="this.parentElement.style.display='none'" style="background:none; border:none; cursor:pointer;">&times;</button>
+                        <button onclick="this.parentElement.style.display='none'" style="background:none; border:none; cursor:pointer; font-size: 1.2rem;">&times;</button>
                     </div>
                 </c:if>
                 <c:if test="${not empty error}">
                     <div class="alert-toast alert-error">
-                        <span>⚠️ ${error}</span>
-                        <button onclick="this.parentElement.style.display='none'" style="background:none; border:none; cursor:pointer;">&times;</button>
+                        <span>
+                            <i class="fa-solid fa-triangle-exclamation" style="margin-right: 6px;"></i>
+                            ${error}
+                        </span>
+                        <button onclick="this.parentElement.style.display='none'" style="background:none; border:none; cursor:pointer; font-size: 1.2rem;">&times;</button>
                     </div>
                 </c:if>
 
@@ -210,10 +215,10 @@
                     </div>
                     <div style="display: flex; gap: 10px;">
                         <button type="button" class="btn-secondary" onclick="openNewSettingModal()">
-                            ➕ Thêm Tham Số Mới
+                            <i class="fa-solid fa-plus"></i> Thêm Tham Số Mới
                         </button>
                         <button type="button" class="btn-primary" onclick="document.getElementById('settingsForm').submit()">
-                            💾 Lưu Toàn Bộ Cấu Hình
+                            <i class="fa-solid fa-floppy-disk"></i> Lưu Toàn Bộ Cấu Hình
                         </button>
                     </div>
                 </div>
@@ -227,7 +232,9 @@
                         <!-- 1. Cấu hình Đặt vé & Giữ ghế (BOOKING) -->
                         <div class="setting-card card-booking">
                             <div class="setting-card-header">
-                                <div class="icon-badge">🎟️</div>
+                                <div class="icon-badge">
+                                    <i class="fa-solid fa-ticket"></i>
+                                </div>
                                 <div>
                                     <h3>Cấu Hình Đặt Vé & Giữ Ghế (Booking Engine)</h3>
                                     <small style="color: #718096;">Ảnh hưởng trực tiếp đến M-05.1 & M-05.3 của TV 4</small>
@@ -243,7 +250,7 @@
                                        value="${settingsMap['SEAT_HOLD_DURATION_SECONDS'] != null ? settingsMap['SEAT_HOLD_DURATION_SECONDS'] : '300'}" 
                                        min="60" max="3600" required>
                                 <div class="setting-desc">
-                                    💡 300 giây tương đương với <strong>5 phút</strong>. Ghế sẽ tự động nhả nếu khách không thanh toán kịp.
+                                    <i class="fa-solid fa-circle-info" style="color: #0284c7; margin-right: 4px;"></i> 300 giây tương đương với <strong>5 phút</strong>. Ghế sẽ tự động nhả nếu khách không thanh toán kịp.
                                 </div>
                             </div>
 
@@ -264,7 +271,9 @@
                         <!-- 2. Cấu hình Lịch chiếu & Vệ sinh phòng (SHOWTIME) -->
                         <div class="setting-card card-showtime">
                             <div class="setting-card-header">
-                                <div class="icon-badge">🕒</div>
+                                <div class="icon-badge">
+                                    <i class="fa-solid fa-clock"></i>
+                                </div>
                                 <div>
                                     <h3>Cấu Hình Xếp Lịch Chiếu (Showtime Buffer)</h3>
                                     <small style="color: #718096;">Quy chuẩn an toàn giữa 2 suất chiếu (M-03.1)</small>
@@ -288,7 +297,9 @@
                         <!-- 3. Cấu hình Bảo mật & Xác thực (SECURITY) -->
                         <div class="setting-card card-security">
                             <div class="setting-card-header">
-                                <div class="icon-badge">🔒</div>
+                                <div class="icon-badge">
+                                    <i class="fa-solid fa-shield-halved"></i>
+                                </div>
                                 <div>
                                     <h3>Bảo Mật, OTP & Chữ Ký Số QR (Security)</h3>
                                     <small style="color: #718096;">Chống giả mạo vé và rò rỉ tài khoản (M-01.2 & M-07.1)</small>
@@ -331,7 +342,9 @@
                         <!-- 4. Cấu hình Cổng thanh toán (PAYMENT) -->
                         <div class="setting-card card-payment">
                             <div class="setting-card-header">
-                                <div class="icon-badge">💳</div>
+                                <div class="icon-badge">
+                                    <i class="fa-solid fa-credit-card"></i>
+                                </div>
                                 <div>
                                     <h3>Cổng Thanh Toán Trực Tuyến (VNPAY)</h3>
                                     <small style="color: #718096;">Tích hợp Sandbox & Production Cổng VNPAY (M-06.1)</small>
@@ -363,7 +376,9 @@
                         <!-- 5. Cấu hình Tích điểm Hội viên (LOYALTY) -->
                         <div class="setting-card card-loyalty" style="grid-column: 1 / -1;">
                             <div class="setting-card-header">
-                                <div class="icon-badge">⭐</div>
+                                <div class="icon-badge">
+                                    <i class="fa-solid fa-star"></i>
+                                </div>
                                 <div>
                                     <h3>Chương Trình Khách Hàng Thân Thiết (Loyalty Points)</h3>
                                     <small style="color: #718096;">Tỷ lệ quy đổi điểm tích lũy và tiêu điểm (Zone 2)</small>
@@ -400,31 +415,38 @@
 
                 <!-- Bảng danh sách chi tiết các Setting trong CSDL -->
                 <div class="admin-card">
-                    <h3 style="margin-top: 0; margin-bottom: 15px;">Chi Tiết Bản Ghi Trong CSDL (system_settings)</h3>
-                    <table class="order-summary-table">
-                        <thead>
-                            <tr>
-                                <th>Khóa Tham Số (Key)</th>
-                                <th>Giá Trị Hiện Tại</th>
-                                <th>Nhóm (Group)</th>
-                                <th>Mô Tả Chức Năng</th>
-                                <th>Cập Nhật Lần Cuối</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <c:forEach items="${settings}" var="st">
+                    <div class="admin-card-header">
+                        <h3 class="admin-card-title">
+                            <i class="fa-solid fa-database"></i>
+                            Chi Tiết Bản Ghi Trong CSDL (system_settings)
+                        </h3>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="admin-table">
+                            <thead>
                                 <tr>
-                                    <td><strong style="color: #2b6cb0; font-family: monospace;">${st.settingKey}</strong></td>
-                                    <td><strong style="color: #e50914;">${st.settingValue}</strong></td>
-                                    <td><span style="background: #edf2f7; padding: 3px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: 600;">${st.groupName}</span></td>
-                                    <td style="font-size: 0.85rem; color: #4a5568;">${st.description}</td>
-                                    <td style="font-size: 0.8rem; color: #718096;">
-                                        ${st.updatedAt}
-                                    </td>
+                                    <th style="width: 280px;">Khóa Tham Số (Key)</th>
+                                    <th style="width: 180px;">Giá Trị Hiện Tại</th>
+                                    <th style="width: 140px;">Nhóm (Group)</th>
+                                    <th>Mô Tả Chức Năng</th>
+                                    <th style="width: 170px;">Cập Nhật Lần Cuối</th>
                                 </tr>
-                            </c:forEach>
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                <c:forEach items="${settings}" var="st">
+                                    <tr>
+                                        <td><span class="badge-code">${st.settingKey}</span></td>
+                                        <td><strong style="color: #e50914; font-family: ui-monospace, monospace;">${st.settingValue}</strong></td>
+                                        <td><span class="badge-city">${st.groupName}</span></td>
+                                        <td style="font-size: 0.88rem; color: #475569;">${st.description}</td>
+                                        <td style="font-size: 0.82rem; color: #64748b; font-family: ui-monospace, monospace;">
+                                            ${st.updatedAt}
+                                        </td>
+                                    </tr>
+                                </c:forEach>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
 
             </div>

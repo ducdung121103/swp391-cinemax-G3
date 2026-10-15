@@ -5,6 +5,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Quản lý Cụm Rạp Chi Nhánh - Cinema Admin</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/base.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/admin-layout.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/modules/infrastructure.css">
@@ -148,27 +149,31 @@
                 <c:if test="${not empty msg}">
                     <div class="alert-toast alert-success">
                         <span>
+                            <i class="fa-solid fa-circle-check" style="margin-right: 6px;"></i>
                             <c:choose>
-                                <c:when test="${msg == 'created'}">✅ Đã thêm mới cụm rạp thành công!</c:when>
-                                <c:when test="${msg == 'updated'}">✅ Đã cập nhật thông tin cụm rạp thành công!</c:when>
-                                <c:when test="${msg == 'status_updated'}">✅ Đã thay đổi trạng thái hoạt động của rạp!</c:when>
-                                <c:when test="${msg == 'deleted'}">✅ Đã xóa cụm rạp khỏi hệ thống!</c:when>
-                                <c:otherwise>✅ Thao tác thành công!</c:otherwise>
+                                <c:when test="${msg == 'created'}">Đã thêm mới cụm rạp thành công!</c:when>
+                                <c:when test="${msg == 'updated'}">Đã cập nhật thông tin cụm rạp thành công!</c:when>
+                                <c:when test="${msg == 'status_updated'}">Đã thay đổi trạng thái hoạt động của rạp!</c:when>
+                                <c:when test="${msg == 'deleted'}">Đã xóa cụm rạp khỏi hệ thống!</c:when>
+                                <c:otherwise>Thao tác thành công!</c:otherwise>
                             </c:choose>
                         </span>
-                        <button onclick="this.parentElement.style.display='none'" style="background:none; border:none; cursor:pointer;">&times;</button>
+                        <button onclick="this.parentElement.style.display='none'" style="background:none; border:none; cursor:pointer; font-size: 1.2rem;">&times;</button>
                     </div>
                 </c:if>
                 <c:if test="${not empty error}">
                     <div class="alert-toast alert-error">
-                        <span>⚠️ ${error}</span>
-                        <button onclick="this.parentElement.style.display='none'" style="background:none; border:none; cursor:pointer;">&times;</button>
+                        <span>
+                            <i class="fa-solid fa-triangle-exclamation" style="margin-right: 6px;"></i>
+                            ${error}
+                        </span>
+                        <button onclick="this.parentElement.style.display='none'" style="background:none; border:none; cursor:pointer; font-size: 1.2rem;">&times;</button>
                     </div>
                 </c:if>
 
                 <!-- Thanh công cụ Tìm kiếm, Lọc và Thêm mới -->
                 <form method="GET" action="${pageContext.request.contextPath}/admin/infrastructure/cinemas" class="filter-bar">
-                    <input type="text" name="keyword" class="filter-input" placeholder="🔍 Tìm theo tên rạp, mã rạp, địa chỉ..." value="${keyword}">
+                    <input type="text" name="keyword" class="filter-input" placeholder="Tìm theo tên rạp, mã rạp, địa chỉ..." value="${keyword}">
                     
                     <select name="city" class="filter-select">
                         <option value="ALL">-- Tất cả thành phố --</option>
@@ -183,90 +188,100 @@
                         <option value="INACTIVE" ${selectedStatus == 'INACTIVE' ? 'selected' : ''}>Tạm ngưng/Đóng cửa</option>
                     </select>
 
-                    <button type="submit" class="btn-secondary">Lọc dữ liệu</button>
-                    <a href="${pageContext.request.contextPath}/admin/infrastructure/cinemas" class="btn-secondary" style="background:#718096;">Đặt lại</a>
+                    <button type="submit" class="btn-secondary">
+                        <i class="fa-solid fa-filter"></i> Lọc
+                    </button>
+                    <a href="${pageContext.request.contextPath}/admin/infrastructure/cinemas" class="btn-secondary" style="background:#718096;">
+                        <i class="fa-solid fa-rotate-left"></i> Đặt lại
+                    </a>
 
                     <div style="margin-left: auto;">
                         <button type="button" class="btn-primary" onclick="openCreateModal()">
-                            ➕ Thêm Cụm Rạp Mới
+                            <i class="fa-solid fa-plus"></i> Thêm Cụm Rạp Mới
                         </button>
                     </div>
                 </form>
 
                 <!-- Danh sách cụm rạp -->
                 <div class="admin-card">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                        <h2 style="margin: 0; font-size: 1.4rem;">Quản lý Chi Nhánh Cụm Rạp (M-04.1)</h2>
-                        <span style="font-size: 0.85rem; color: #718096;">Tổng số: <strong>${cinemas.size()}</strong> cụm rạp</span>
+                    <div class="admin-card-header">
+                        <h3 class="admin-card-title">
+                            <i class="fa-solid fa-building"></i>
+                            Quản lý Chi Nhánh Cụm Rạp (M-04.1)
+                        </h3>
+                        <span style="font-size: 0.85rem; color: #64748b; font-weight: 600;">Tổng số: <strong>${cinemas.size()}</strong> cụm rạp</span>
                     </div>
 
-                    <table class="order-summary-table">
-                        <thead>
-                            <tr>
-                                <th style="width: 100px;">Mã Rạp</th>
-                                <th>Tên Cụm Rạp</th>
-                                <th style="width: 120px;">Thành Phố</th>
-                                <th>Địa Chỉ</th>
-                                <th style="width: 110px;">Hotline</th>
-                                <th style="width: 110px;">Phòng Chiếu</th>
-                                <th style="width: 130px;">Trạng Thái</th>
-                                <th style="width: 180px; text-align: center;">Thao Tác</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <c:forEach items="${cinemas}" var="c">
+                    <div class="table-responsive">
+                        <table class="admin-table">
+                            <thead>
                                 <tr>
-                                    <td><span class="badge badge-code">${c.cinemaCode}</span></td>
-                                    <td><strong>${c.name}</strong></td>
-                                    <td><span style="background: #edf2f7; padding: 3px 8px; border-radius: 4px; font-size: 0.85rem;">${c.city}</span></td>
-                                    <td style="font-size: 0.85rem; color: #4a5568;">${c.address}</td>
-                                    <td style="font-size: 0.85rem;">${c.phone}</td>
-                                    <td>
-                                        <a href="${pageContext.request.contextPath}/admin/infrastructure/rooms?cinemaId=${c.id}" 
-                                           style="color: #3182ce; font-weight: 600; text-decoration: none;" title="Xem các phòng chiếu của rạp này">
-                                            🎥 ${c.totalRooms} phòng
-                                        </a>
-                                    </td>
-                                    <td>
-                                        <c:choose>
-                                            <c:when test="${c.isActive}">
-                                                <span class="badge badge-success">● Đang hoạt động</span>
-                                            </c:when>
-                                            <c:otherwise>
-                                                <span class="badge badge-danger">● Tạm đóng cửa</span>
-                                            </c:otherwise>
-                                        </c:choose>
-                                    </td>
-                                    <td style="text-align: center;">
-                                        <button type="button" class="btn-sm btn-secondary" 
-                                                onclick="openEditModal('${c.id}', '${c.cinemaCode}', '${c.name}', '${c.city}', '${c.address}', '${c.phone}', '${c.email}', ${c.isActive})">
-                                            ✏️ Sửa
-                                        </button>
-
-                                        <form method="POST" action="${pageContext.request.contextPath}/admin/infrastructure/cinemas" style="display:inline;" onsubmit="return confirm('Bạn có chắc muốn đổi trạng thái rạp này?')">
-                                            <input type="hidden" name="action" value="toggleStatus">
-                                            <input type="hidden" name="id" value="${c.id}">
-                                            <input type="hidden" name="currentActive" value="${c.isActive}">
-                                            <button type="submit" class="btn-sm ${c.isActive ? 'btn-secondary' : 'btn-primary'}" style="${c.isActive ? 'background:#e53e3e;' : 'background:#38a169;'}">
-                                                ${c.isActive ? '🔒 Khóa' : '🔓 Mở'}
+                                    <th style="width: 100px;">Mã Rạp</th>
+                                    <th>Tên Cụm Rạp</th>
+                                    <th style="width: 130px;">Thành Phố</th>
+                                    <th>Địa Chỉ</th>
+                                    <th style="width: 140px;">Hotline</th>
+                                    <th style="width: 120px;">Phòng Chiếu</th>
+                                    <th style="width: 140px;">Trạng Thái</th>
+                                    <th style="width: 190px; text-align: center;">Thao Tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <c:forEach items="${cinemas}" var="c">
+                                    <tr>
+                                        <td><span class="badge-code">${c.cinemaCode}</span></td>
+                                        <td><strong style="color: #0f172a; font-size: 0.95rem;">${c.name}</strong></td>
+                                        <td>
+                                            <span class="badge-city">
+                                                <i class="fa-solid fa-location-dot" style="margin-right: 4px; color: #94a3b8;"></i>${c.city}
+                                            </span>
+                                        </td>
+                                        <td style="font-size: 0.88rem; color: #475569;">${c.address}</td>
+                                        <td style="font-size: 0.88rem; font-family: ui-monospace, monospace; font-weight: 600; color: #334155;">
+                                            <i class="fa-solid fa-phone" style="font-size: 0.75rem; color: #94a3b8; margin-right: 4px;"></i>${c.phone}
+                                        </td>
+                                        <td>
+                                            <a href="${pageContext.request.contextPath}/admin/infrastructure/rooms?cinemaId=${c.id}" 
+                                               class="badge-rooms" style="text-decoration: none;" title="Xem các phòng chiếu của rạp này">
+                                                <i class="fa-solid fa-door-open"></i> ${c.totalRooms} phòng
+                                            </a>
+                                        </td>
+                                        <td>
+                                            <span class="status-indicator ${c.isActive ? 'status-active' : 'status-inactive'}">
+                                                ${c.isActive ? 'Đang hoạt động' : 'Tạm đóng cửa'}
+                                            </span>
+                                        </td>
+                                        <td style="text-align: center;">
+                                            <button type="button" class="btn-sm btn-secondary" 
+                                                    onclick="openEditModal('${c.id}', '${c.cinemaCode}', '${c.name}', '${c.city}', '${c.address}', '${c.phone}', '${c.email}', ${c.isActive})">
+                                                <i class="fa-solid fa-pen-to-square"></i> Sửa
                                             </button>
-                                        </form>
 
-                                        <a href="${pageContext.request.contextPath}/admin/infrastructure/rooms?cinemaId=${c.id}" class="btn-sm btn-secondary" style="background:#2b6cb0;" title="Xem phòng">
-                                            Phòng
-                                        </a>
-                                    </td>
-                                </tr>
-                            </c:forEach>
-                            <c:if test="${empty cinemas}">
-                                <tr>
-                                    <td colspan="8" style="text-align: center; color: #a0aec0; padding: 30px;">
-                                        Không tìm thấy cụm rạp nào phù hợp với bộ lọc!
-                                    </td>
-                                </tr>
-                            </c:if>
-                        </tbody>
-                    </table>
+                                            <form method="POST" action="${pageContext.request.contextPath}/admin/infrastructure/cinemas" style="display:inline;" onsubmit="return confirm('Bạn có chắc muốn đổi trạng thái rạp này?')">
+                                                <input type="hidden" name="action" value="toggleStatus">
+                                                <input type="hidden" name="id" value="${c.id}">
+                                                <input type="hidden" name="currentActive" value="${c.isActive}">
+                                                <button type="submit" class="btn-sm ${c.isActive ? 'btn-secondary' : 'btn-primary'}" style="${c.isActive ? 'background:#ef4444;' : 'background:#10b981;'}">
+                                                    <i class="fa-solid ${c.isActive ? 'fa-lock' : 'fa-lock-open'}"></i> ${c.isActive ? 'Khóa' : 'Mở'}
+                                                </button>
+                                            </form>
+
+                                            <a href="${pageContext.request.contextPath}/admin/infrastructure/rooms?cinemaId=${c.id}" class="btn-sm btn-secondary" style="background:#0284c7;" title="Xem phòng">
+                                                <i class="fa-solid fa-video"></i> Phòng
+                                            </a>
+                                        </td>
+                                    </tr>
+                                </c:forEach>
+                                <c:if test="${empty cinemas}">
+                                    <tr>
+                                        <td colspan="8" style="text-align: center; color: #a0aec0; padding: 30px;">
+                                            Không tìm thấy cụm rạp nào phù hợp với bộ lọc!
+                                        </td>
+                                    </tr>
+                                </c:if>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
 
             </div>

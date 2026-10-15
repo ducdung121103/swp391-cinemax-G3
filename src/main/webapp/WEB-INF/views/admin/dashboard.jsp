@@ -4,83 +4,12 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Tổng quan Hệ Thống - Cinema Admin Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tổng quan Quản trị Hệ Thống - Cinema Admin Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/base.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/admin-layout.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/modules/infrastructure.css">
-    <style>
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-        .stat-card {
-            background: #fff;
-            padding: 24px;
-            border-radius: 10px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.06);
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            border-left: 4px solid #e50914;
-        }
-        .stat-icon {
-            font-size: 2.2rem;
-            width: 55px;
-            height: 55px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 12px;
-            background: #f0f4f8;
-        }
-        .stat-info h3 {
-            margin: 0 0 5px 0;
-            font-size: 1.8rem;
-            color: #1a202c;
-        }
-        .stat-info p {
-            margin: 0;
-            color: #718096;
-            font-size: 0.9rem;
-        }
-        .quick-actions {
-            display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
-            margin-top: 15px;
-        }
-        .btn-action {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 10px 18px;
-            border-radius: 6px;
-            font-weight: 500;
-            text-decoration: none;
-            color: white;
-            background: #e50914;
-            transition: background 0.2s;
-        }
-        .btn-action:hover {
-            background: #b20710;
-        }
-        .btn-secondary-action {
-            background: #2d3748;
-        }
-        .btn-secondary-action:hover {
-            background: #1a202c;
-        }
-        .btn-outline-action {
-            background: transparent;
-            color: #2d3748;
-            border: 1px solid #cbd5e0;
-        }
-        .btn-outline-action:hover {
-            background: #f7fafc;
-        }
-    </style>
 </head>
 <body>
     <div class="admin-wrapper">
@@ -88,109 +17,152 @@
         <div class="admin-main">
             <jsp:include page="../common/navbar.jsp" />
             <div class="admin-content">
-                <div class="admin-card" style="margin-bottom: 25px;">
-                    <h2>Xin chào, ${sessionScope.currentUser.fullName != null ? sessionScope.currentUser.fullName : 'Quản Trị Viên'}!</h2>
-                    <p style="color: #718096; margin-top: 5px;">
-                        Chào mừng bạn đến với Hệ thống Quản trị Cụm rạp Chi nhánh Toàn quốc (CineMax - SWP391 Nhóm 3).
-                        Vai trò hiện tại: <strong style="color: #e50914;">${sessionScope.currentUser.role.roleName != null ? sessionScope.currentUser.role.roleName : 'ADMIN'}</strong>
-                    </p>
+
+                <!-- Welcome Banner & Core Quick Actions -->
+                <div class="admin-card" style="margin-bottom: 24px;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 15px;">
+                        <div>
+                            <h2 style="margin: 0 0 6px 0; font-size: 1.45rem; font-weight: 800; color: #0f172a;">
+                                Xin chào, ${not empty sessionScope.currentUser.fullName ? sessionScope.currentUser.fullName : 'Hệ Thống Quản Trị Viên'}!
+                            </h2>
+                            <p style="margin: 0; color: #64748b; font-size: 0.92rem;">
+                                Hệ thống Quản trị Cụm rạp Chi nhánh Toàn quốc (CineMax - SWP391 Nhóm 3). 
+                                Phân hệ: <strong style="color: #e50914;">HẠ TẦNG & THAM SỐ HỆ THỐNG</strong>
+                            </p>
+                        </div>
+                        <span class="role-tag" style="padding: 6px 14px; font-size: 0.82rem;">
+                            <i class="fa-solid fa-crown" style="margin-right: 5px;"></i> ${not empty sessionScope.currentUser.role.roleName ? sessionScope.currentUser.role.roleName : 'ADMIN'}
+                        </span>
+                    </div>
+
                     <div class="quick-actions">
                         <a href="${pageContext.request.contextPath}/admin/infrastructure/cinemas" class="btn-action">
-                            🏢 Quản lý Cụm Rạp
+                            <i class="fa-solid fa-building"></i> Quản lý Cụm Rạp
                         </a>
-                        <a href="${pageContext.request.contextPath}/admin/infrastructure/rooms" class="btn-action btn-secondary-action">
-                            🎥 Quản lý Phòng Chiếu
+                        <a href="${pageContext.request.contextPath}/admin/infrastructure/rooms" class="btn-action btn-action-secondary">
+                            <i class="fa-solid fa-video"></i> Quản lý Phòng Chiếu
                         </a>
-                        <a href="${pageContext.request.contextPath}/admin/infrastructure/seats" class="btn-action btn-secondary-action">
-                            💺 Thiết kế Sơ đồ Ghế
+                        <a href="${pageContext.request.contextPath}/admin/infrastructure/seats" class="btn-action btn-action-secondary">
+                            <i class="fa-solid fa-couch"></i> Thiết kế Sơ đồ Ghế
                         </a>
-                        <a href="${pageContext.request.contextPath}/admin/infrastructure/settings" class="btn-action btn-outline-action">
-                            ⚙️ Cấu hình Hệ Thống
-                        </a>
-                        <a href="${pageContext.request.contextPath}/admin/operation/pos" class="btn-action btn-outline-action">
-                            🖥️ Quầy Bán Vé (POS)
+                        <a href="${pageContext.request.contextPath}/admin/infrastructure/settings" class="btn-action btn-action-outline">
+                            <i class="fa-solid fa-sliders"></i> Cấu hình Hệ Thống
                         </a>
                     </div>
                 </div>
 
-                <!-- Thẻ thống kê chỉ số thực tế -->
+                <!-- Thống kê chỉ số thực tế (Clean SVG/FontAwesome Vectors) -->
                 <div class="stats-grid">
                     <div class="stat-card">
-                        <div class="stat-icon">🏢</div>
+                        <div class="stat-icon-wrapper stat-icon-red">
+                            <i class="fa-solid fa-building"></i>
+                        </div>
                         <div class="stat-info">
                             <h3>${totalCinemas}</h3>
                             <p>Cụm rạp chi nhánh</p>
                         </div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-icon">🎥</div>
+                        <div class="stat-icon-wrapper stat-icon-blue">
+                            <i class="fa-solid fa-film"></i>
+                        </div>
                         <div class="stat-info">
                             <h3>${totalRooms}</h3>
                             <p>Phòng chiếu hoạt động</p>
                         </div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-icon">💺</div>
+                        <div class="stat-icon-wrapper stat-icon-purple">
+                            <i class="fa-solid fa-couch"></i>
+                        </div>
                         <div class="stat-info">
                             <h3>${totalSeats > 0 ? totalSeats : (totalRooms * 100)}</h3>
-                            <p>Ghế ngồi sẵn sàng phục vụ</p>
+                            <p>Ghế ngồi phục vụ</p>
                         </div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-icon">⚙️</div>
+                        <div class="stat-icon-wrapper stat-icon-orange">
+                            <i class="fa-solid fa-sliders"></i>
+                        </div>
                         <div class="stat-info">
                             <h3>9+</h3>
-                            <p>Tham số hệ thống toàn cục</p>
+                            <p>Tham số toàn cục</p>
                         </div>
                     </div>
                 </div>
 
-                <!-- Danh sách cụm rạp tóm tắt -->
+                <!-- Danh sách cụm rạp tóm tắt với Enterprise Table Layout -->
                 <div class="admin-card">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                        <h3 style="margin: 0;">Danh sách Cụm Rạp Chi Nhánh</h3>
-                        <a href="${pageContext.request.contextPath}/admin/infrastructure/cinemas" style="color: #e50914; font-size: 0.9rem; text-decoration: none; font-weight: 600;">Xem chi tiết & Quản lý &rarr;</a>
+                    <div class="admin-card-header">
+                        <h3 class="admin-card-title">
+                            <i class="fa-solid fa-city"></i>
+                            Danh sách Cụm Rạp Chi Nhánh
+                        </h3>
+                        <a href="${pageContext.request.contextPath}/admin/infrastructure/cinemas" class="action-link">
+                            <span>Quản lý chi tiết</span>
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </a>
                     </div>
-                    <table class="order-summary-table">
-                        <thead>
-                            <tr>
-                                <th>Mã Rạp</th>
-                                <th>Tên Cụm Rạp</th>
-                                <th>Thành Phố</th>
-                                <th>Địa Chỉ</th>
-                                <th>Hotline</th>
-                                <th>Số Phòng</th>
-                                <th>Trạng Thái</th>
-                                <th>Hành Động</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <c:forEach items="${cinemas}" var="c">
+
+                    <div class="table-responsive">
+                        <table class="admin-table">
+                            <thead>
                                 <tr>
-                                    <td><strong style="color: #e50914;">${c.cinemaCode}</strong></td>
-                                    <td><strong>${c.name}</strong></td>
-                                    <td><span style="background: #edf2f7; padding: 3px 8px; border-radius: 4px; font-size: 0.85rem;">${c.city}</span></td>
-                                    <td>${c.address}</td>
-                                    <td>${c.phone}</td>
-                                    <td><strong>${c.totalRooms}</strong> phòng</td>
-                                    <td>
-                                        <c:choose>
-                                            <c:when test="${c.isActive}">
-                                                <span style="color: #38a169; font-weight: 600;">● Đang vận hành</span>
-                                            </c:when>
-                                            <c:otherwise>
-                                                <span style="color: #e53e3e; font-weight: 600;">● Tạm đóng cửa</span>
-                                            </c:otherwise>
-                                        </c:choose>
-                                    </td>
-                                    <td>
-                                        <a href="${pageContext.request.contextPath}/admin/infrastructure/rooms?cinemaId=${c.id}" style="color: #3182ce; font-size: 0.85rem; text-decoration: none;">Xem phòng chiếu</a>
-                                    </td>
+                                    <th style="width: 100px;">Mã Rạp</th>
+                                    <th>Tên Cụm Rạp</th>
+                                    <th style="width: 140px;">Thành Phố</th>
+                                    <th>Địa Chỉ</th>
+                                    <th style="width: 140px;">Hotline</th>
+                                    <th style="width: 130px;">Quy Mô</th>
+                                    <th style="width: 150px;">Trạng Thái</th>
+                                    <th style="width: 140px; text-align: right;">Hành Động</th>
                                 </tr>
-                            </c:forEach>
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                <c:forEach items="${cinemas}" var="c">
+                                    <tr>
+                                        <td>
+                                            <span class="badge-code">${c.cinemaCode}</span>
+                                        </td>
+                                        <td>
+                                            <strong style="font-size: 0.95rem; color: #0f172a;">${c.name}</strong>
+                                        </td>
+                                        <td>
+                                            <span class="badge-city">
+                                                <i class="fa-solid fa-location-dot" style="margin-right: 4px; color: #94a3b8;"></i>${c.city}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span style="color: #475569; font-size: 0.88rem;">${c.address}</span>
+                                        </td>
+                                        <td>
+                                            <span style="font-family: ui-monospace, monospace; font-size: 0.88rem; color: #334155; font-weight: 600;">
+                                                <i class="fa-solid fa-phone" style="font-size: 0.75rem; color: #94a3b8; margin-right: 4px;"></i>${c.phone}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span class="badge-rooms">
+                                                <i class="fa-solid fa-door-open"></i> ${c.totalRooms} phòng
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span class="status-indicator ${c.isActive ? 'status-active' : 'status-inactive'}">
+                                                ${c.isActive ? 'Đang vận hành' : 'Tạm đóng cửa'}
+                                            </span>
+                                        </td>
+                                        <td style="text-align: right;">
+                                            <a href="${pageContext.request.contextPath}/admin/infrastructure/rooms?cinemaId=${c.id}" class="action-link">
+                                                <span>Xem phòng</span>
+                                                <i class="fa-solid fa-arrow-right"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                </c:forEach>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
+
             </div>
         </div>
     </div>

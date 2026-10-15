@@ -6,6 +6,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Thiết Kế Sơ Đồ Ghế - Cinema Admin</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/base.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/admin-layout.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/modules/infrastructure.css">
@@ -227,28 +228,34 @@
                 <c:if test="${not empty msg}">
                     <div class="alert-toast alert-success">
                         <span>
+                            <i class="fa-solid fa-circle-check" style="margin-right: 6px;"></i>
                             <c:choose>
-                                <c:when test="${msg == 'seats_updated'}">✅ Đã cập nhật thành công các ghế được chọn!</c:when>
-                                <c:when test="${msg == 'row_updated'}">✅ Đã cập nhật loại ghế cho cả hàng ghế!</c:when>
-                                <c:when test="${msg == 'matrix_regenerated'}">✅ Đã khởi tạo lại toàn bộ ma trận ghế cho phòng chiếu!</c:when>
-                                <c:when test="${msg == 'type_updated'}">✅ Đã cập nhật thông số phụ thu loại ghế!</c:when>
-                                <c:otherwise>✅ Thao tác thành công!</c:otherwise>
+                                <c:when test="${msg == 'seats_updated'}">Đã cập nhật thành công các ghế được chọn!</c:when>
+                                <c:when test="${msg == 'row_updated'}">Đã cập nhật loại ghế cho cả hàng ghế!</c:when>
+                                <c:when test="${msg == 'matrix_regenerated'}">Đã khởi tạo lại toàn bộ ma trận ghế cho phòng chiếu!</c:when>
+                                <c:when test="${msg == 'type_updated'}">Đã cập nhật thông số phụ thu loại ghế!</c:when>
+                                <c:otherwise>Thao tác thành công!</c:otherwise>
                             </c:choose>
                         </span>
-                        <button onclick="this.parentElement.style.display='none'" style="background:none; border:none; cursor:pointer;">&times;</button>
+                        <button onclick="this.parentElement.style.display='none'" style="background:none; border:none; cursor:pointer; font-size: 1.2rem;">&times;</button>
                     </div>
                 </c:if>
                 <c:if test="${not empty error}">
                     <div class="alert-toast alert-error">
-                        <span>⚠️ ${error}</span>
-                        <button onclick="this.parentElement.style.display='none'" style="background:none; border:none; cursor:pointer;">&times;</button>
+                        <span>
+                            <i class="fa-solid fa-triangle-exclamation" style="margin-right: 6px;"></i>
+                            ${error}
+                        </span>
+                        <button onclick="this.parentElement.style.display='none'" style="background:none; border:none; cursor:pointer; font-size: 1.2rem;">&times;</button>
                     </div>
                 </c:if>
 
                 <!-- Thanh Chọn Phòng Chiếu & Thống Kê Nhanh -->
                 <div class="room-selector-card">
                     <form method="GET" action="${pageContext.request.contextPath}/admin/infrastructure/seats" style="display:flex; align-items:center; gap:10px;">
-                        <label style="font-weight: 700; color: #2d3748;">🎥 Chọn Phòng Chiếu:</label>
+                        <label style="font-weight: 700; color: #2d3748;">
+                            <i class="fa-solid fa-video" style="color: #e50914; margin-right: 6px;"></i>Chọn Phòng Chiếu:
+                        </label>
                         <select name="roomId" class="form-select" style="margin-bottom:0; width: 280px;" onchange="this.form.submit()">
                             <c:forEach items="${allRooms}" var="r">
                                 <option value="${r.id}" ${selectedRoomId == r.id ? 'selected' : ''}>
@@ -273,7 +280,7 @@
                         </span>
                         <c:if test="${maintenanceCount > 0}">
                             <span class="stat-badge" style="background: #fed7d7; color: #9b2c2c;">
-                                ⚠️ Bảo trì: <strong>${maintenanceCount}</strong>
+                                <i class="fa-solid fa-triangle-exclamation" style="margin-right: 4px;"></i>Bảo trì: <strong>${maintenanceCount}</strong>
                             </span>
                         </c:if>
                     </div>
@@ -363,7 +370,7 @@
                         <!-- 1. Bảng áp dụng cho các ghế đang chọn -->
                         <div class="inspector-card">
                             <h4>
-                                <span>🎯 Ghế Đang Chọn</span>
+                                <span><i class="fa-solid fa-crosshairs" style="color: #e50914; margin-right: 6px;"></i>Ghế Đang Chọn</span>
                                 <span id="selectedCountBadge" style="background: #e50914; color:#fff; padding: 2px 8px; border-radius: 10px; font-size: 0.75rem;">0 ghế</span>
                             </h4>
 
@@ -391,14 +398,16 @@
                                 </select>
 
                                 <button type="submit" class="btn-action-primary" id="btnApplySelected" disabled>
-                                    💾 Áp Dụng Thay Đổi
+                                    <i class="fa-solid fa-floppy-disk"></i> Áp Dụng Thay Đổi
                                 </button>
                             </form>
                         </div>
 
                         <!-- 2. Đổi nhanh cả hàng ghế -->
                         <div class="inspector-card">
-                            <h4>⚡ Đổi Nhanh Theo Hàng</h4>
+                            <h4>
+                                <i class="fa-solid fa-bolt" style="color: #f59e0b; margin-right: 6px;"></i>Đổi Nhanh Theo Hàng
+                            </h4>
                             <form method="POST" action="${pageContext.request.contextPath}/admin/infrastructure/seats">
                                 <input type="hidden" name="action" value="applyRowType">
                                 <input type="hidden" name="roomId" value="${selectedRoomId}">
@@ -418,14 +427,16 @@
                                     </div>
                                 </div>
                                 <button type="submit" class="btn-action-secondary" style="width: 100%;">
-                                    Áp Dụng Cho Cả Hàng
+                                    <i class="fa-solid fa-arrows-split-up-and-left"></i> Áp Dụng Cho Cả Hàng
                                 </button>
                             </form>
                         </div>
 
                         <!-- 3. Công cụ Sinh lại Ma trận Tự Động (Auto-Generator) -->
                         <div class="inspector-card">
-                            <h4 style="color: #c53030;">⚙️ Tái Tạo Ma Trận Tự Động</h4>
+                            <h4 style="color: #c53030;">
+                                <i class="fa-solid fa-wand-magic-sparkles" style="color: #e50914; margin-right: 6px;"></i>Tái Tạo Ma Trận Tự Động
+                            </h4>
                             <p style="font-size: 0.75rem; color: #718096; margin-top: -5px; margin-bottom: 10px;">
                                 Khởi tạo lại kích thước lưới và phân bổ ghế mới theo quy tắc.
                             </p>
@@ -457,7 +468,7 @@
                                 <small style="display: block; font-size: 0.7rem; color: #a0aec0; margin-bottom: 10px;">* Các hàng còn lại ở cuối sẽ tự động gán loại COUPLE.</small>
 
                                 <button type="submit" class="btn-action-primary" style="background: #2d3748;">
-                                    🔄 Tái Tạo Sơ Đồ Mới
+                                    <i class="fa-solid fa-rotate"></i> Tái Tạo Sơ Đồ Mới
                                 </button>
                             </form>
                         </div>

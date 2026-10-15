@@ -5,6 +5,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Quản lý Phòng Chiếu Phim - Cinema Admin</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/base.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/admin-layout.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/modules/infrastructure.css">
@@ -145,27 +146,33 @@
                 <c:if test="${not empty msg}">
                     <div class="alert-toast alert-success">
                         <span>
+                            <i class="fa-solid fa-circle-check" style="margin-right: 6px;"></i>
                             <c:choose>
-                                <c:when test="${msg == 'created'}">✅ Đã thêm mới phòng chiếu và tự động sinh ma trận ghế thành công!</c:when>
-                                <c:when test="${msg == 'updated'}">✅ Đã cập nhật thông tin phòng chiếu!</c:when>
-                                <c:when test="${msg == 'status_updated'}">✅ Đã thay đổi trạng thái vận hành của phòng chiếu!</c:when>
-                                <c:when test="${msg == 'deleted'}">✅ Đã đưa phòng chiếu vào trạng thái lưu trữ!</c:when>
-                                <c:otherwise>✅ Thao tác thành công!</c:otherwise>
+                                <c:when test="${msg == 'created'}">Đã thêm mới phòng chiếu và tự động sinh ma trận ghế thành công!</c:when>
+                                <c:when test="${msg == 'updated'}">Đã cập nhật thông tin phòng chiếu!</c:when>
+                                <c:when test="${msg == 'status_updated'}">Đã thay đổi trạng thái vận hành của phòng chiếu!</c:when>
+                                <c:when test="${msg == 'deleted'}">Đã đưa phòng chiếu vào trạng thái lưu trữ!</c:when>
+                                <c:otherwise>Thao tác thành công!</c:otherwise>
                             </c:choose>
                         </span>
-                        <button onclick="this.parentElement.style.display='none'" style="background:none; border:none; cursor:pointer;">&times;</button>
+                        <button onclick="this.parentElement.style.display='none'" style="background:none; border:none; cursor:pointer; font-size: 1.2rem;">&times;</button>
                     </div>
                 </c:if>
                 <c:if test="${not empty error}">
                     <div class="alert-toast alert-error">
-                        <span>⚠️ ${error}</span>
-                        <button onclick="this.parentElement.style.display='none'" style="background:none; border:none; cursor:pointer;">&times;</button>
+                        <span>
+                            <i class="fa-solid fa-triangle-exclamation" style="margin-right: 6px;"></i>
+                            ${error}
+                        </span>
+                        <button onclick="this.parentElement.style.display='none'" style="background:none; border:none; cursor:pointer; font-size: 1.2rem;">&times;</button>
                     </div>
                 </c:if>
 
                 <!-- Thanh công cụ Lọc & Thêm mới -->
                 <form method="GET" action="${pageContext.request.contextPath}/admin/infrastructure/rooms" class="filter-bar">
-                    <label style="font-weight: 600; font-size: 0.9rem; color: #4a5568;">🏢 Cụm Rạp:</label>
+                    <label style="font-weight: 600; font-size: 0.9rem; color: #4a5568;">
+                        <i class="fa-solid fa-building" style="color: #64748b; margin-right: 4px;"></i> Cụm Rạp:
+                    </label>
                     <select name="cinemaId" class="filter-select" onchange="this.form.submit()">
                         <option value="ALL">-- Tất cả cụm rạp --</option>
                         <c:forEach items="${cinemas}" var="c">
@@ -173,7 +180,9 @@
                         </c:forEach>
                     </select>
 
-                    <label style="font-weight: 600; font-size: 0.9rem; color: #4a5568;">Định dạng:</label>
+                    <label style="font-weight: 600; font-size: 0.9rem; color: #4a5568;">
+                        <i class="fa-solid fa-film" style="color: #64748b; margin-right: 4px;"></i> Định dạng:
+                    </label>
                     <select name="roomType" class="filter-select" onchange="this.form.submit()">
                         <option value="ALL">-- Tất cả định dạng --</option>
                         <option value="STANDARD_2D" ${selectedRoomType == 'STANDARD_2D' ? 'selected' : ''}>STANDARD 2D</option>
@@ -190,112 +199,125 @@
                         <option value="INACTIVE" ${selectedStatus == 'INACTIVE' ? 'selected' : ''}>Ngưng hoạt động (INACTIVE)</option>
                     </select>
 
-                    <a href="${pageContext.request.contextPath}/admin/infrastructure/rooms" class="btn-secondary" style="background:#718096;">Đặt lại</a>
+                    <a href="${pageContext.request.contextPath}/admin/infrastructure/rooms" class="btn-secondary" style="background:#718096;">
+                        <i class="fa-solid fa-rotate-left"></i> Đặt lại
+                    </a>
 
                     <div style="margin-left: auto;">
                         <button type="button" class="btn-primary" onclick="openCreateModal()">
-                            ➕ Thêm Phòng Chiếu
+                            <i class="fa-solid fa-plus"></i> Thêm Phòng Chiếu
                         </button>
                     </div>
                 </form>
 
                 <!-- Bảng danh sách phòng chiếu -->
                 <div class="admin-card">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                        <h2 style="margin: 0; font-size: 1.4rem;">Danh Sách Phòng Chiếu Phim (M-04.2)</h2>
-                        <span style="font-size: 0.85rem; color: #718096;">Tìm thấy: <strong>${rooms.size()}</strong> phòng chiếu</span>
+                    <div class="admin-card-header">
+                        <h3 class="admin-card-title">
+                            <i class="fa-solid fa-video"></i>
+                            Danh Sách Phòng Chiếu Phim (M-04.2)
+                        </h3>
+                        <span style="font-size: 0.85rem; color: #64748b; font-weight: 600;">Tìm thấy: <strong>${rooms.size()}</strong> phòng chiếu</span>
                     </div>
 
-                    <table class="order-summary-table">
-                        <thead>
-                            <tr>
-                                <th style="width: 70px;">ID</th>
-                                <th>Cụm Rạp Chi Nhánh</th>
-                                <th>Tên Phòng Chiếu</th>
-                                <th style="width: 140px;">Định Dạng</th>
-                                <th style="width: 120px; text-align: center;">Kích Thước</th>
-                                <th style="width: 110px; text-align: center;">Sức Chứa</th>
-                                <th style="width: 140px;">Trạng Thái</th>
-                                <th style="width: 240px; text-align: center;">Thao Tác</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <c:forEach items="${rooms}" var="r">
+                    <div class="table-responsive">
+                        <table class="admin-table">
+                            <thead>
                                 <tr>
-                                    <td><strong>#${r.id}</strong></td>
-                                    <td>
-                                        <strong>${r.cinema.name}</strong>
-                                        <div style="font-size: 0.8rem; color: #718096;">${r.cinema.city}</div>
-                                    </td>
-                                    <td><strong style="color: #2b6cb0;">${r.name}</strong></td>
-                                    <td>
-                                        <c:choose>
-                                            <c:when test="${r.roomType == 'IMAX_3D'}"><span class="badge badge-type-imax">IMAX 3D</span></c:when>
-                                            <c:when test="${r.roomType == 'VIP_2D'}"><span class="badge badge-type-vip">VIP 2D</span></c:when>
-                                            <c:when test="${r.roomType == '4DX'}"><span class="badge badge-type-4dx">4DX</span></c:when>
-                                            <c:otherwise><span class="badge badge-type-2d">STANDARD 2D</span></c:otherwise>
-                                        </c:choose>
-                                    </td>
-                                    <td style="text-align: center; font-family: monospace;">
-                                        ${r.totalRows} hàng &times; ${r.totalColumns} cột
-                                    </td>
-                                    <td style="text-align: center;">
-                                        <strong style="color: #e50914;">${r.totalCapacity}</strong> ghế
-                                    </td>
-                                    <td>
-                                        <c:choose>
-                                            <c:when test="${r.status == 'ACTIVE'}">
-                                                <span class="badge badge-status-active">● Đang hoạt động</span>
-                                            </c:when>
-                                            <c:when test="${r.status == 'MAINTENANCE'}">
-                                                <span class="badge badge-status-maint">● Đang bảo trì</span>
-                                            </c:when>
-                                            <c:otherwise>
-                                                <span class="badge badge-status-inact">● Tạm ngưng</span>
-                                            </c:otherwise>
-                                        </c:choose>
-                                    </td>
-                                    <td style="text-align: center;">
-                                        <a href="${pageContext.request.contextPath}/admin/infrastructure/seats?roomId=${r.id}" 
-                                           class="btn-sm btn-primary" style="background: #2b6cb0;" title="Thiết kế và xem ma trận ghế">
-                                            💺 Sơ Đồ Ghế
-                                        </a>
-
-                                        <button type="button" class="btn-sm btn-secondary" 
-                                                onclick="openEditModal('${r.id}', '${r.name}', '${r.roomType}', '${r.status}')">
-                                            ✏️ Sửa
-                                        </button>
-
-                                        <form method="POST" action="${pageContext.request.contextPath}/admin/infrastructure/rooms" style="display:inline;">
-                                            <input type="hidden" name="action" value="changeStatus">
-                                            <input type="hidden" name="id" value="${r.id}">
+                                    <th style="width: 70px;">ID</th>
+                                    <th>Cụm Rạp Chi Nhánh</th>
+                                    <th>Tên Phòng Chiếu</th>
+                                    <th style="width: 140px;">Định Dạng</th>
+                                    <th style="width: 140px; text-align: center;">Kích Thước</th>
+                                    <th style="width: 120px; text-align: center;">Sức Chứa</th>
+                                    <th style="width: 150px;">Trạng Thái</th>
+                                    <th style="width: 250px; text-align: center;">Thao Tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <c:forEach items="${rooms}" var="r">
+                                    <tr>
+                                        <td><span class="badge-code">#${r.id}</span></td>
+                                        <td>
+                                            <strong style="color: #0f172a; font-size: 0.95rem;">${r.cinema.name}</strong>
+                                            <div style="font-size: 0.8rem; color: #64748b; margin-top: 2px;">
+                                                <i class="fa-solid fa-location-dot" style="margin-right: 3px;"></i>${r.cinema.city}
+                                            </div>
+                                        </td>
+                                        <td><strong style="color: #0369a1; font-size: 0.95rem;">${r.name}</strong></td>
+                                        <td>
+                                            <c:choose>
+                                                <c:when test="${r.roomType == 'IMAX_3D'}"><span class="badge badge-type-imax">IMAX 3D</span></c:when>
+                                                <c:when test="${r.roomType == 'VIP_2D'}"><span class="badge badge-type-vip">VIP 2D</span></c:when>
+                                                <c:when test="${r.roomType == '4DX'}"><span class="badge badge-type-4dx">4DX</span></c:when>
+                                                <c:otherwise><span class="badge badge-type-2d">STANDARD 2D</span></c:otherwise>
+                                            </c:choose>
+                                        </td>
+                                        <td style="text-align: center; font-family: ui-monospace, monospace; font-size: 0.88rem; color: #475569;">
+                                            ${r.totalRows} hàng &times; ${r.totalColumns} cột
+                                        </td>
+                                        <td style="text-align: center;">
+                                            <span class="badge-rooms" style="background:#fee2e2; color:#b91c1c;">
+                                                <i class="fa-solid fa-couch"></i> ${r.totalCapacity} ghế
+                                            </span>
+                                        </td>
+                                        <td>
                                             <c:choose>
                                                 <c:when test="${r.status == 'ACTIVE'}">
-                                                    <input type="hidden" name="status" value="MAINTENANCE">
-                                                    <button type="submit" class="btn-sm btn-secondary" style="background: #dd6b20;" title="Chuyển sang bảo trì phòng">
-                                                        🔧 Bảo Trì
-                                                    </button>
+                                                    <span class="status-indicator status-active">Đang hoạt động</span>
+                                                </c:when>
+                                                <c:when test="${r.status == 'MAINTENANCE'}">
+                                                    <span class="status-indicator status-inactive" style="background:#fef3c7; color:#92400e;">
+                                                        Đang bảo trì
+                                                    </span>
                                                 </c:when>
                                                 <c:otherwise>
-                                                    <input type="hidden" name="status" value="ACTIVE">
-                                                    <button type="submit" class="btn-sm btn-secondary" style="background: #38a169;" title="Mở lại phòng chiếu">
-                                                        ▶️ Mở Lại
-                                                    </button>
+                                                    <span class="status-indicator status-inactive">Tạm ngưng</span>
                                                 </c:otherwise>
                                             </c:choose>
-                                        </form>
-                                    </td>
-                                </tr>
-                            </c:forEach>
-                            <c:if test="${empty rooms}">
-                                <tr>
-                                    <td colspan="8" style="text-align: center; color: #a0aec0; padding: 30px;">
-                                        Không có phòng chiếu nào phù hợp với bộ lọc!
-                                    </td>
-                                </tr>
-                            </c:if>
-                        </tbody>
-                    </table>
+                                        </td>
+                                        <td style="text-align: center;">
+                                            <a href="${pageContext.request.contextPath}/admin/infrastructure/seats?roomId=${r.id}" 
+                                               class="btn-sm btn-primary" style="background: #0284c7;" title="Thiết kế và xem ma trận ghế">
+                                                <i class="fa-solid fa-couch"></i> Sơ Đồ Ghế
+                                            </a>
+
+                                            <button type="button" class="btn-sm btn-secondary" 
+                                                    onclick="openEditModal('${r.id}', '${r.name}', '${r.roomType}', '${r.status}')">
+                                                <i class="fa-solid fa-pen-to-square"></i> Sửa
+                                            </button>
+
+                                            <form method="POST" action="${pageContext.request.contextPath}/admin/infrastructure/rooms" style="display:inline;">
+                                                <input type="hidden" name="action" value="changeStatus">
+                                                <input type="hidden" name="id" value="${r.id}">
+                                                <c:choose>
+                                                    <c:when test="${r.status == 'ACTIVE'}">
+                                                        <input type="hidden" name="status" value="MAINTENANCE">
+                                                        <button type="submit" class="btn-sm btn-secondary" style="background: #ea580c;" title="Chuyển sang bảo trì phòng">
+                                                            <i class="fa-solid fa-wrench"></i> Bảo Trì
+                                                        </button>
+                                                    </c:when>
+                                                    <c:otherwise>
+                                                        <input type="hidden" name="status" value="ACTIVE">
+                                                        <button type="submit" class="btn-sm btn-secondary" style="background: #10b981;" title="Mở lại phòng chiếu">
+                                                            <i class="fa-solid fa-play"></i> Mở Lại
+                                                        </button>
+                                                    </c:otherwise>
+                                                </c:choose>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                </c:forEach>
+                                <c:if test="${empty rooms}">
+                                    <tr>
+                                        <td colspan="8" style="text-align: center; color: #a0aec0; padding: 30px;">
+                                            Không có phòng chiếu nào phù hợp với bộ lọc!
+                                        </td>
+                                    </tr>
+                                </c:if>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
 
             </div>
