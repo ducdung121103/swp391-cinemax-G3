@@ -1,0 +1,111 @@
+/* Color Variables */
+:root {
+    --primary-black: #212529;
+    --primary-orange: #d96c2c;
+    --primary-orange-hover: #b95a22;
+    --light-gray: #f3f4f6;
+}
+
+body {
+    background-color: var(--light-gray);
+    padding-top: 56px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* --- Sidebar Styling --- */
+#sidebarMenu {
+    background-color: var(--primary-black) !important;
+    position: fixed;
+    top: 56px;
+    left: 0;
+    bottom: 0;
+    width: 280px;
+    z-index: 100;
+    overflow-y: auto;
+    border-right: 1px solid rgba(255,255,255,0.1);
+}
+
+#sidebarMenu .nav-link {
+    color: rgba(255,255,255,0.8);
+    transition: all 0.3s;
+    border-radius: 0.25rem;
+    margin-bottom: 5px;
+}
+
+#sidebarMenu .nav-link:hover {
+    color: #fff;
+    background-color: rgba(217, 108, 44, 0.2); /* Orange mờ */
+}
+
+#sidebarMenu .nav-link.active {
+    background-color: var(--primary-orange) !important;
+    color: white !important;
+    box-shadow: 0 4px 10px rgba(217, 108, 44, 0.4);
+}
+
+/* --- Main Layout --- */
+main {
+    margin-left: 280px;
+    padding: 30px;
+    transition: margin-left 0.3s;
+}
+
+.sidebar-collapsed #sidebarMenu { margin-left: -280px; }
+.sidebar-collapsed main { margin-left: 0; }
+
+/* --- Custom Components --- */
+/* Nút màu Cam chủ đạo */
+.btn-orange {
+    background-color: var(--primary-orange);
+    border-color: var(--primary-orange);
+    color: white;
+}
+
+.btn-orange:hover {
+    background-color: var(--primary-orange-hover);
+    border-color: var(--primary-orange-hover);
+    color: white;
+}
+
+/* Card Styling */
+.card-custom {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+    overflow: hidden;
+}
+
+.card-header-custom {
+    background-color: var(--primary-black);
+    color: white;
+    padding: 1.2rem;
+    border-bottom: 3px solid var(--primary-orange);
+}
+
+/* Table Styling */
+.table-custom thead {
+    background-color: var(--primary-black);
+    color: white;
+}
+.table-custom th {
+    border: none;
+    font-weight: 500;
+}
+
+/* Pagination */
+.pagination .page-link {
+    color: var(--primary-black);
+    border: none;
+    margin: 0 2px;
+    border-radius: 5px;
+}
+.pagination .page-item.active .page-link {
+    background-color: var(--primary-orange);
+    color: white;
+}
+
+/* Form Controls focus state */
+.form-control:focus, .form-select:focus {
+    border-color: var(--primary-orange);
+    box-shadow: 0 0 0 0.25rem rgba(217, 108, 44, 0.25);
+}

@@ -1,0 +1,236 @@
+/* Layout for booking tickets page */
+.content-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 2.2fr) minmax(0, 1.1fr);
+    gap: 24px;
+    align-items: flex-start;
+}
+
+.booking-summary {
+    background: #121212;
+    border-radius: 16px;
+    padding: 18px 20px;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.55);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.booking-summary h3 {
+    font-size: 18px;
+    margin-bottom: 14px;
+}
+
+.info-box {
+    background: linear-gradient(145deg, #191919, #101010);
+    border-radius: 12px;
+    padding: 14px 16px;
+}
+
+.seat {
+    background-color: #48bb78;/* Màu xanh lá cây */
+    color: #ffffff;
+    border-radius: 6px; /* Bo góc nhẹ cho ghế */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    width: 35px;
+    height: 35px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.seat:hover {
+    opacity: 0.8;
+    box-shadow: 0 0 8px rgba(72, 187, 120, 0.5); /* Hiệu ứng phát sáng màu xanh */
+}
+
+/* Ghi đè màu cam khi ghế được click (Selected) */
+.seat.selected {
+    background-color: #d96c2c !important;
+    color: #fff !important;
+    border-color: #d96c2c !important;
+    box-shadow: 0 0 8px rgba(217, 108, 44, 0.6) !important;
+}
+
+.seat-map-section {
+    background: #111;
+    border-radius: 16px;
+    padding: 16px 18px 18px;
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.45);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.seat-checkbox { display: none; }
+.seat input:checked + span,
+label.seat:has(.seat-checkbox:checked) {
+    background: #d96c2c !important;
+    color: #fff !important;
+}
+
+/* Ticket type buttons (Người lớn / Trẻ em) */
+.booking-summary .ticket-type-selector {
+    display: flex;
+    gap: 8px;
+}
+.booking-summary .ticket-type-selector input[type="radio"] {
+    display: none;
+}
+.booking-summary .ticket-type-selector .ticket-type-btn {
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 8px 12px;
+    border: 2px solid #262625;
+    background: transparent;
+    color: #ccc;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-size: 13px;
+    font-weight: 500;
+    margin: 0;
+}
+.booking-summary .ticket-type-selector .ticket-type-btn:hover {
+    border-color: #d96c2c;
+    color: #d96c2c;
+}
+.booking-summary .ticket-type-selector .ticket-type-btn.active,
+.booking-summary .ticket-type-selector label:has(input:checked) {
+    background: #d96c2c;
+    border-color: #d96c2c;
+    color: #fff;
+}
+
+.booking-summary .selected-seat-item .seat-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.booking-summary .selected-seat-item .seat-price {
+    margin-left: 0;
+}
+
+.price-summary {
+    border-top: 1px solid #eee;
+    padding-top: 8px;
+    margin-top: 4px;
+    font-size: 14px;
+}
+
+.price-row.total {
+    display: flex;
+    justify-content: space-between;
+    font-weight: 600;
+}
+
+.price-amount {
+    color: #d96c2c;
+}
+
+.btn-remove-seat {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 999px;
+    border: 1px solid #ff4b5c;
+    color: #ff4b5c;
+    background: transparent;
+    cursor: pointer;
+    font-size: 13px;
+    padding: 0;
+    text-decoration: none;
+}
+.btn-remove-seat:hover {
+    background: #ff4b5c;
+    color: #ffffff;
+}
+
+.seat-price {
+    margin-left: auto;
+    font-weight: 600;
+    color: #d96c2c;
+}
+
+.btn-proceed {
+    border-radius: 999px;
+    font-weight: 600;
+}
+
+.btn-clear-all {
+    border-radius: 999px;
+    padding-inline: 16px;
+}
+
+.concession-counter {
+    background: rgba(255,255,255,0.04);
+    border-radius: 12px;
+    padding: 14px 16px;
+    border: 1px solid rgba(255,255,255,0.08);
+}
+.concession-counter h4 { font-size: 16px; }
+.concession-empty { font-size: 14px; padding: 10px 0; }
+.concession-section h4 { font-size: 15px; }
+
+.concession-list { max-height: 200px; overflow-y: auto; }
+.concession-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.concession-row:last-child { border-bottom: none; }
+.concession-name { flex: 1; font-weight: 500; }
+.concession-price { color: #d96c2c; min-width: 70px; text-align: right; }
+.concession-qty { width: 64px; text-align: center; }
+
+.btn-remove-concession {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 999px;
+    border: 1px solid rgba(255,255,255,0.25);
+    color: #ddd;
+    background: transparent;
+    cursor: pointer;
+    font-size: 14px;
+    line-height: 1;
+    padding: 0;
+}
+.btn-remove-concession:hover {
+    border-color: #ff4b5c;
+    color: #ff4b5c;
+}
+
+.seat.normal {
+    background-color: #48bb78 !important;
+    border-color: #38a169 !important;
+    color: #ffffff !important;
+}
+.seat.normal:hover {
+    box-shadow: 0 0 10px rgba(72, 187, 120, 0.8) !important;
+    opacity: 0.9;
+}
+
+.rounded{
+   border-radius: 1.25rem!important;
+}
+
+.seat.selected,
+.seat.normal.selected,
+.seat.vip.selected,
+.seat.couple.selected {
+    background-color: #d96c2c !important;
+    color: #fff !important;
+    border-color: #d96c2c !important;
+    box-shadow: 0 0 8px rgba(217, 108, 44, 0.6) !important;
+}

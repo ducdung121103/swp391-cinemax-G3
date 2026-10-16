@@ -1,0 +1,30 @@
+body {
+    padding-top: 56px;
+    overflow-x: hidden;
+}
+
+#sidebarMenu {
+    position: fixed;
+    top: 56px;
+    left: 0;
+    width: 280px;
+    height: calc(100vh - 56px);
+    overflow-y: auto;
+    z-index: 1030;
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+main {
+    margin-left: 280px;
+    padding: 20px;
+    transition: margin-left 0.3s;
+}
+
+.sidebar-collapsed #sidebarMenu {
+    margin-left: -280px;
+}
+
+.sidebar-collapsed main {
+    margin-left: 0;
+}
