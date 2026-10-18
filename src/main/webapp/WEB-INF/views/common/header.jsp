@@ -20,6 +20,10 @@
     
     <!-- Custom Cinema Dark Style -->
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/style.css">
+    <c:if test="${not empty pageCss}">
+        <c:url var="pageCssUrl" value="${pageCss}" />
+        <link rel="stylesheet" href="<c:out value='${pageCssUrl}' />">
+    </c:if>
 </head>
 <body>
 

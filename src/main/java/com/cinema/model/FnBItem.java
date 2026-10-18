@@ -25,6 +25,7 @@ public class FnBItem extends BaseEntity {
     private BigDecimal price;
     private String imageUrl;
     private Boolean isCombo;
+    private Integer stockQuantity;
 
     // Quan hệ điều hướng
     private FnBCategory category;

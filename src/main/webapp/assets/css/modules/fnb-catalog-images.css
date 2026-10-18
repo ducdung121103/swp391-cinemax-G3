@@ -1,0 +1,4 @@
+.fnb-product-cell { display: flex; align-items: center; gap: 11px; min-width: 220px; }
+.fnb-product-cell > span { min-width: 0; }
+.fnb-product-cell strong { display: block; max-width: 260px; overflow: hidden; color: #292d3b; text-overflow: ellipsis; white-space: nowrap; }
+.fnb-product-thumb { display: block; width: 48px; height: 44px; flex: 0 0 48px; object-fit: cover; border: 1px solid #eceef3; border-radius: 8px; background: #f7f4ee; }

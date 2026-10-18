@@ -1,6 +1,7 @@
 package com.cinema.modules.infrastructure.service.impl;
 
 import com.cinema.model.Cinema;
+import com.cinema.model.MaintenanceSchedule;
 import com.cinema.model.ScreeningRoom;
 import com.cinema.model.Seat;
 import com.cinema.model.SeatType;
@@ -190,5 +191,34 @@ public class ScreeningRoomServiceImpl implements ScreeningRoomService {
     @Override
     public boolean updateRowSeatType(Long roomId, String seatRow, Long seatTypeId) {
         return screeningRoomDAO.updateRowSeatType(roomId, seatRow, seatTypeId);
+    }
+
+    // =========================================================================
+    // ITERATION 2: SEAT MAINTENANCE & MAINTENANCE SCHEDULES
+    // =========================================================================
+
+    @Override
+    public boolean toggleSeatsMaintenance(Long roomId, List<Long> seatIds, boolean underMaintenance) {
+        return screeningRoomDAO.toggleSeatsMaintenance(roomId, seatIds, underMaintenance);
+    }
+
+    @Override
+    public boolean restoreAllMaintenanceSeatsInRoom(Long roomId) {
+        return screeningRoomDAO.restoreAllMaintenanceSeatsInRoom(roomId);
+    }
+
+    @Override
+    public List<MaintenanceSchedule> getMaintenanceSchedulesByRoom(Long roomId) {
+        return screeningRoomDAO.findMaintenanceSchedulesByRoom(roomId);
+    }
+
+    @Override
+    public Long createMaintenanceSchedule(MaintenanceSchedule schedule, List<Long> seatIds) {
+        return screeningRoomDAO.createMaintenanceSchedule(schedule, seatIds);
+    }
+
+    @Override
+    public boolean resolveMaintenanceSchedule(Long scheduleId, Long roomId, boolean restoreSeats) {
+        return screeningRoomDAO.resolveMaintenanceSchedule(scheduleId, roomId, restoreSeats);
     }
 }

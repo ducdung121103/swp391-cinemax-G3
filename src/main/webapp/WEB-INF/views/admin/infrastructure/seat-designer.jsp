@@ -401,6 +401,28 @@
                                     <i class="fa-solid fa-floppy-disk"></i> Áp Dụng Thay Đổi
                                 </button>
                             </form>
+
+                            <!-- Quick Maintenance Toggles (Function 5 - Iter 2) -->
+                            <div style="margin-top: 15px; padding-top: 15px; border-top: 1px dashed #e2e8f0;">
+                                <div style="font-size: 0.8rem; font-weight: 700; color: #4a5568; margin-bottom: 8px;">
+                                    <i class="fa-solid fa-wrench" style="color: #ed8936;"></i> THAO TÁC BẢO TRÌ NHANH
+                                </div>
+                                <div style="display: flex; flex-direction: column; gap: 8px;">
+                                    <button type="button" class="btn-action-secondary" id="btnQuickMaintToggle" style="background: #ed8936; color: #fff; width: 100%; border: none;" onclick="quickToggleMaint(true)" disabled>
+                                        <i class="fa-solid fa-tools"></i> Chuyển Ghế Đang Chọn sang BẢO TRÌ
+                                    </button>
+                                    <button type="button" class="btn-action-secondary" id="btnQuickMaintRestore" style="background: #319795; color: #fff; width: 100%; border: none;" onclick="quickToggleMaint(false)" disabled>
+                                        <i class="fa-solid fa-check-circle"></i> Mở Lại Ghế Đang Chọn (ACTIVE)
+                                    </button>
+                                    <form method="POST" action="${pageContext.request.contextPath}/admin/infrastructure/seats" onsubmit="return confirm('Bạn có chắc chắn muốn mở lại TOÀN BỘ ghế bảo trì trong phòng này về trạng thái HOẠT ĐỘNG?')">
+                                        <input type="hidden" name="action" value="restoreAllRoomSeats">
+                                        <input type="hidden" name="roomId" value="${selectedRoomId}">
+                                        <button type="submit" class="btn-action-secondary" style="background: #4a5568; color: #fff; width: 100%; border: none;">
+                                            <i class="fa-solid fa-arrows-rotate"></i> Khôi Phục Toàn Bộ Ghế Phòng
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
                         </div>
 
                         <!-- 2. Đổi nhanh cả hàng ghế -->
@@ -476,6 +498,115 @@
                     </div>
                 </div>
 
+                <!-- KHỐI QUẢN LÝ LỊCH BẢO TRÌ PHÒNG CHIẾU (MAINTENANCE SCHEDULES - Function 5) -->
+                <div class="card" style="margin-top: 24px; border-radius: 8px; border: 1px solid #e2e8f0; background: #fff; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); overflow: hidden;">
+                    <div style="background: #1a1a24; padding: 16px 20px; display: flex; justify-content: space-between; align-items: center;">
+                        <h3 style="margin: 0; color: #fff; font-size: 1.05rem; display: flex; align-items: center; gap: 10px;">
+                            <i class="fa-solid fa-calendar-check" style="color: #e50914;"></i>
+                            <span>Lịch Bảo Trì Phòng Chiếu: <strong>${currentRoom.name}</strong> (${currentRoom.cinema.name})</span>
+                        </h3>
+                        <span style="background: rgba(229, 9, 20, 0.2); color: #ff6b6b; padding: 4px 10px; border-radius: 20px; font-size: 0.8rem; font-weight: 600;">
+                            Bảng maintenance_schedules
+                        </span>
+                    </div>
+
+                    <div style="padding: 20px; display: grid; grid-template-columns: 1fr 2fr; gap: 24px;">
+                        <!-- Form Đặt Lịch Bảo Trì Mới -->
+                        <div style="background: #f8fafc; padding: 18px; border-radius: 8px; border: 1px solid #e2e8f0;">
+                            <h4 style="margin: 0 0 14px 0; color: #2d3748; font-size: 0.95rem; display: flex; align-items: center; gap: 6px;">
+                                <i class="fa-solid fa-calendar-plus" style="color: #e50914;"></i> Lên Lịch Bảo Trì Mới
+                            </h4>
+                            <form method="POST" action="${pageContext.request.contextPath}/admin/infrastructure/seats">
+                                <input type="hidden" name="action" value="createMaintenanceSchedule">
+                                <input type="hidden" name="roomId" value="${selectedRoomId}">
+                                <input type="hidden" name="seatIds" id="schedSeatIds" value="">
+
+                                <div style="margin-bottom: 12px;">
+                                    <label style="display: block; font-size: 0.8rem; font-weight: 600; color: #4a5568; margin-bottom: 4px;">Thời gian bắt đầu:</label>
+                                    <input type="datetime-local" name="startTime" class="form-input" required id="schedStartTime">
+                                </div>
+                                <div style="margin-bottom: 12px;">
+                                    <label style="display: block; font-size: 0.8rem; font-weight: 600; color: #4a5568; margin-bottom: 4px;">Thời gian kết thúc:</label>
+                                    <input type="datetime-local" name="endTime" class="form-input" required id="schedEndTime">
+                                </div>
+                                <div style="margin-bottom: 12px;">
+                                    <label style="display: block; font-size: 0.8rem; font-weight: 600; color: #4a5568; margin-bottom: 4px;">Lý do bảo trì:</label>
+                                    <input type="text" name="reason" class="form-input" placeholder="VD: Thay đèn chiếu laser, sửa các ghế hỏng" required>
+                                </div>
+                                <div style="margin-bottom: 14px; background: #edf2f7; padding: 10px; border-radius: 6px; font-size: 0.75rem; color: #4a5568;">
+                                    <i class="fa-solid fa-info-circle"></i> Ghế đính kèm: 
+                                    <strong id="schedSelectedSeatsText">Toàn phòng (Không đính kèm ghế cụ thể)</strong>
+                                </div>
+
+                                <button type="submit" class="btn-action-primary" style="width: 100%;">
+                                    <i class="fa-solid fa-plus"></i> Tạo Phiếu Bảo Trì
+                                </button>
+                            </form>
+                        </div>
+
+                        <!-- Danh sách Lịch Bảo Trì của Phòng -->
+                        <div>
+                            <h4 style="margin: 0 0 14px 0; color: #2d3748; font-size: 0.95rem; display: flex; align-items: center; justify-content: space-between;">
+                                <span><i class="fa-solid fa-clock-rotate-left" style="color: #4a5568;"></i> Danh Sách Phiếu Bảo Trì (${maintenanceSchedules != null ? maintenanceSchedules.size() : 0})</span>
+                            </h4>
+
+                            <div style="max-height: 380px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 8px;">
+                                <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem; text-align: left;">
+                                    <thead style="background: #edf2f7; color: #4a5568; font-weight: 700; position: sticky; top: 0;">
+                                        <tr>
+                                            <th style="padding: 10px 12px;">Mã #</th>
+                                            <th style="padding: 10px 12px;">Bắt đầu</th>
+                                            <th style="padding: 10px 12px;">Kết thúc</th>
+                                            <th style="padding: 10px 12px;">Lý do</th>
+                                            <th style="padding: 10px 12px;">Người tạo</th>
+                                            <th style="padding: 10px 12px;">Trạng thái</th>
+                                            <th style="padding: 10px 12px; text-align: center;">Thao tác</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <c:choose>
+                                            <c:when test="${not empty maintenanceSchedules}">
+                                                <c:forEach items="${maintenanceSchedules}" var="ms">
+                                                    <tr style="border-bottom: 1px solid #edf2f7;">
+                                                        <td style="padding: 10px 12px; font-weight: 700; color: #e50914;">#${ms.id}</td>
+                                                        <td style="padding: 10px 12px; white-space: nowrap;">${ms.startTime}</td>
+                                                        <td style="padding: 10px 12px; white-space: nowrap;">${ms.endTime}</td>
+                                                        <td style="padding: 10px 12px;">${ms.reason}</td>
+                                                        <td style="padding: 10px 12px;">${ms.createdByName != null ? ms.createdByName : 'Quản trị viên'}</td>
+                                                        <td style="padding: 10px 12px;">
+                                                            <span style="background: #feebc8; color: #c05621; padding: 2px 8px; border-radius: 4px; font-weight: 600; font-size: 0.75rem;">
+                                                                ĐANG XỬ LÝ
+                                                            </span>
+                                                        </td>
+                                                        <td style="padding: 10px 12px; text-align: center;">
+                                                            <form method="POST" action="${pageContext.request.contextPath}/admin/infrastructure/seats" style="display: inline;" onsubmit="return confirm('Xác nhận hoàn tất bảo trì và mở khóa ghế?')">
+                                                                <input type="hidden" name="action" value="resolveMaintenanceSchedule">
+                                                                <input type="hidden" name="scheduleId" value="${ms.id}">
+                                                                <input type="hidden" name="roomId" value="${selectedRoomId}">
+                                                                <input type="hidden" name="restoreSeats" value="true">
+                                                                <button type="submit" style="background: #38a169; color: #fff; border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 0.75rem; font-weight: 600;">
+                                                                    <i class="fa-solid fa-check"></i> Hoàn Tất
+                                                                </button>
+                                                            </form>
+                                                        </td>
+                                                    </tr>
+                                                </c:forEach>
+                                            </c:when>
+                                            <c:otherwise>
+                                                <tr>
+                                                    <td colspan="7" style="padding: 24px; text-align: center; color: #a0aec0;">
+                                                        <em>Phòng chiếu này hiện không có lịch bảo trì nào. Toàn bộ cơ sở vật chất sẵn sàng phục vụ!</em>
+                                                    </td>
+                                                </tr>
+                                            </c:otherwise>
+                                        </c:choose>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </div>
     </div>
@@ -506,7 +637,6 @@
             if (!rowWrapper) return;
 
             const cells = rowWrapper.querySelectorAll('.seat-cell');
-            // Kiểm tra xem tất cả đã được chọn chưa
             let allSelected = true;
             cells.forEach(c => {
                 if (!selectedSeatIds.has(c.getAttribute('data-id'))) {
@@ -553,15 +683,77 @@
 
             const displayBox = document.getElementById('selectedSeatsDisplay');
             const btnApply = document.getElementById('btnApplySelected');
+            const btnMaintToggle = document.getElementById('btnQuickMaintToggle');
+            const btnMaintRestore = document.getElementById('btnQuickMaintRestore');
+            const schedSeatIds = document.getElementById('schedSeatIds');
+            const schedSelectedSeatsText = document.getElementById('schedSelectedSeatsText');
 
             if (count === 0) {
                 displayBox.innerHTML = '<em>Chưa chọn ghế nào. Nhấp vào ghế hoặc chữ cái đầu hàng trên sơ đồ để chọn.</em>';
                 btnApply.disabled = true;
+                if (btnMaintToggle) btnMaintToggle.disabled = true;
+                if (btnMaintRestore) btnMaintRestore.disabled = true;
+                if (schedSeatIds) schedSeatIds.value = '';
+                if (schedSelectedSeatsText) schedSelectedSeatsText.innerText = 'Toàn phòng (Không đính kèm ghế cụ thể)';
             } else {
                 displayBox.innerText = Array.from(selectedSeatCodes).sort().join(', ');
                 btnApply.disabled = false;
+                if (btnMaintToggle) btnMaintToggle.disabled = false;
+                if (btnMaintRestore) btnMaintRestore.disabled = false;
+                if (schedSeatIds) schedSeatIds.value = Array.from(selectedSeatIds).join(',');
+                if (schedSelectedSeatsText) schedSelectedSeatsText.innerText = count + ' ghế: ' + Array.from(selectedSeatCodes).sort().join(', ');
             }
         }
+
+        function quickToggleMaint(underMaintenance) {
+            if (selectedSeatIds.size === 0) {
+                alert('Vui lòng chọn ít nhất một ghế trên sơ đồ!');
+                return;
+            }
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '${pageContext.request.contextPath}/admin/infrastructure/seats';
+
+            const actionInp = document.createElement('input');
+            actionInp.type = 'hidden';
+            actionInp.name = 'action';
+            actionInp.value = 'quickToggleMaintenance';
+            form.appendChild(actionInp);
+
+            const roomInp = document.createElement('input');
+            roomInp.type = 'hidden';
+            roomInp.name = 'roomId';
+            roomInp.value = '${selectedRoomId}';
+            form.appendChild(roomInp);
+
+            const seatInp = document.createElement('input');
+            seatInp.type = 'hidden';
+            seatInp.name = 'seatIds';
+            seatInp.value = Array.from(selectedSeatIds).join(',');
+            form.appendChild(seatInp);
+
+            const underInp = document.createElement('input');
+            underInp.type = 'hidden';
+            underInp.name = 'underMaintenance';
+            underInp.value = underMaintenance ? 'true' : 'false';
+            form.appendChild(underInp);
+
+            document.body.appendChild(form);
+            form.submit();
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const now = new Date();
+            const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000);
+            const formatDT = d => {
+                const pad = n => String(n).padStart(2, '0');
+                return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + 'T' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+            };
+            const startInput = document.getElementById('schedStartTime');
+            const endInput = document.getElementById('schedEndTime');
+            if (startInput && !startInput.value) startInput.value = formatDT(now);
+            if (endInput && !endInput.value) endInput.value = formatDT(tomorrow);
+        });
     </script>
 </body>
 </html>

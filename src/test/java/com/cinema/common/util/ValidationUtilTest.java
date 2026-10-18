@@ -52,4 +52,18 @@ class ValidationUtilTest {
         assertFalse(ValidationUtil.isNotEmpty("   "));
         assertFalse(ValidationUtil.isNotEmpty(null));
     }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"Pass@123", "Strong#Pass2026", "Admin$99!", "Cinema@123"})
+    @DisplayName("Should validate strong passwords")
+    void testValidPassword(String pwd) {
+        assertTrue(ValidationUtil.isValidPassword(pwd));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"123456", "abcdefgh", "ABCDEFGH", "Abcdefgh", "Abcdefg1", "Pass@1", "", "   "})
+    @DisplayName("Should reject weak passwords not meeting requirements")
+    void testInvalidPassword(String pwd) {
+        assertFalse(ValidationUtil.isValidPassword(pwd));
+    }
 }

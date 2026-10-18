@@ -47,6 +47,13 @@ public class SystemSettingDAO {
     }
 
     /**
+     * Lấy toàn bộ danh sách tham số cấu hình quy tắc vận hành rạp.
+     */
+    public List<SystemSetting> findAllSettings() {
+        return findAllSettings(null);
+    }
+
+    /**
      * Lấy danh sách cấu hình hệ thống theo nhóm (hoặc toàn bộ nếu groupName null/ALL).
      */
     public List<SystemSetting> findAllSettings(String groupName) {

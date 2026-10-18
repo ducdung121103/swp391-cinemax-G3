@@ -327,16 +327,16 @@ DELETE FROM fnb_items;
 GO
 SET IDENTITY_INSERT fnb_items ON;
 INSERT INTO fnb_items (id, category_id, item_code, name, price, image_url, is_combo, is_active, is_deleted, created_at) VALUES
-(1, 1, N'FNB-PC-01', N'Bắp Rang Bơ Truyền Thống 60oz',    55000.00, N'/assets/images/fnb/popcorn_butter.png',   0, 1, 0, GETDATE()),
-(2, 1, N'FNB-PC-02', N'Bắp Rang Vị Phô Mai 60oz',         65000.00, N'/assets/images/fnb/popcorn_cheese.png',   0, 1, 0, GETDATE()),
-(3, 1, N'FNB-PC-03', N'Bắp Rang Vị Caramel 60oz',         65000.00, N'/assets/images/fnb/popcorn_caramel.png',  0, 1, 0, GETDATE()),
-(4, 2, N'FNB-DK-01', N'Pepsi Vị Chanh Không Calo 22oz',    35000.00, N'/assets/images/fnb/pepsi.png',            0, 1, 0, GETDATE()),
-(5, 2, N'FNB-DK-02', N'Coca-Cola Mát Lạnh 22oz',           35000.00, N'/assets/images/fnb/cocacola.png',         0, 1, 0, GETDATE()),
-(6, 2, N'FNB-DK-03', N'Nước Khoáng Dasani 500ml',         20000.00, N'/assets/images/fnb/water.png',            0, 1, 0, GETDATE()),
-(7, 2, N'FNB-DK-04', N'Trà Sữa Trân Châu Hoàng Gia 500ml', 45000.00, N'/assets/images/fnb/milktea.png',          0, 1, 0, GETDATE()),
-(8, 3, N'FNB-CB-01', N'Solo Combo (1 Bắp Ngọt + 1 Nước)',  79000.00, N'/assets/images/fnb/combo_solo.png',       1, 1, 0, GETDATE()),
-(9, 3, N'FNB-CB-02', N'Couple Combo (1 Bắp Lớn + 2 Nước)', 119000.00, N'/assets/images/fnb/combo_couple.png',     1, 1, 0, GETDATE()),
-(10,3, N'FNB-CB-03', N'Family Party (2 Bắp + 3 Nước + Snack)', 189000.00, N'/assets/images/fnb/combo_family.png', 1, 1, 0, GETDATE());
+(1, 1, N'FNB-PC-01', N'Bắp Rang Bơ Truyền Thống 60oz',    55000.00, N'/assets/images/fnb/popcorn_butter.svg',   0, 1, 0, GETDATE()),
+(2, 1, N'FNB-PC-02', N'Bắp Rang Vị Phô Mai 60oz',         65000.00, N'/assets/images/fnb/popcorn_cheese.svg',   0, 1, 0, GETDATE()),
+(3, 1, N'FNB-PC-03', N'Bắp Rang Vị Caramel 60oz',         65000.00, N'/assets/images/fnb/popcorn_caramel.svg',  0, 1, 0, GETDATE()),
+(4, 2, N'FNB-DK-01', N'Pepsi Vị Chanh Không Calo 22oz',    35000.00, N'/assets/images/fnb/pepsi.svg',            0, 1, 0, GETDATE()),
+(5, 2, N'FNB-DK-02', N'Coca-Cola Mát Lạnh 22oz',           35000.00, N'/assets/images/fnb/cocacola.svg',         0, 1, 0, GETDATE()),
+(6, 2, N'FNB-DK-03', N'Nước Khoáng Dasani 500ml',         20000.00, N'/assets/images/fnb/water.svg',            0, 1, 0, GETDATE()),
+(7, 2, N'FNB-DK-04', N'Trà Sữa Trân Châu Hoàng Gia 500ml', 45000.00, N'/assets/images/fnb/milktea.svg',          0, 1, 0, GETDATE()),
+(8, 3, N'FNB-CB-01', N'Solo Combo (1 Bắp Ngọt + 1 Nước)',  79000.00, N'/assets/images/fnb/combo_solo.svg',       1, 1, 0, GETDATE()),
+(9, 3, N'FNB-CB-02', N'Couple Combo (1 Bắp Lớn + 2 Nước)', 119000.00, N'/assets/images/fnb/combo_couple.svg',     1, 1, 0, GETDATE()),
+(10,3, N'FNB-CB-03', N'Family Party (2 Bắp + 3 Nước + Snack)', 189000.00, N'/assets/images/fnb/combo_family.svg', 1, 1, 0, GETDATE());
 SET IDENTITY_INSERT fnb_items OFF;
 GO
 
@@ -420,3 +420,23 @@ GO
 
 PRINT N'[03_seed_sample_data.sql] Đã nạp thành công dữ liệu mẫu 14 phim, 3 cụm rạp, 6 phòng chiếu và lịch chiếu!';
 GO
+
+-- ----------------------------------------------------------------------------
+-- 14. SEED MAINTENANCE SCHEDULES & ANALYTICS BOOKINGS (M-04.3, M-10.3, M-11 - TV 1)
+-- ----------------------------------------------------------------------------
+IF NOT EXISTS (SELECT 1 FROM maintenance_schedules WHERE reason LIKE N'%Laser Barco 4K%')
+BEGIN
+    INSERT INTO maintenance_schedules (screening_room_id, start_time, end_time, reason, created_by, is_deleted, created_at, updated_at) VALUES
+    (1, DATEADD(DAY, -1, GETDATE()), DATEADD(DAY, 1, GETDATE()), N'Thay bóng đèn máy chiếu Laser Barco 4K & kiểm tra kính lọc', 1, 0, GETDATE(), GETDATE()),
+    (2, DATEADD(DAY, 2, GETDATE()), DATEADD(DAY, 3, GETDATE()), N'Bảo trì định kỳ hệ thống âm thanh vòm Dolby Atmos', 1, 0, GETDATE(), GETDATE()),
+    (3, DATEADD(HOUR, -6, GETDATE()), DATEADD(HOUR, 18, GETDATE()), N'Sửa chữa motor ngả lưng hàng ghế VIP D04, D05', 2, 0, GETDATE(), GETDATE()),
+    (5, DATEADD(DAY, -2, GETDATE()), DATEADD(DAY, -1, GETDATE()), N'Vệ sinh và căng lại màn chiếu cong tráng bạc', 2, 0, GETDATE(), GETDATE());
+
+    UPDATE seats SET status = N'MAINTENANCE', is_active = 0, updated_at = GETDATE()
+    WHERE screening_room_id = 1 AND seat_code IN (N'D04', N'D05');
+
+    UPDATE seats SET status = N'MAINTENANCE', is_active = 0, updated_at = GETDATE()
+    WHERE screening_room_id = 3 AND seat_code IN (N'D04', N'D05');
+END
+GO
+
