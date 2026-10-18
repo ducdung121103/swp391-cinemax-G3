@@ -16,7 +16,7 @@ public class OrderItemDAO {
     public BigDecimal calculateFnbTotal(Connection conn, Map<Long, Integer> fnbItems) throws SQLException {
         if (fnbItems == null || fnbItems.isEmpty()) return BigDecimal.ZERO;
         BigDecimal total = BigDecimal.ZERO;
-        String queryItemSql = "SELECT price FROM fnb_items WHERE id = ? AND is_deleted = 0";
+        String queryItemSql = "SELECT price FROM fnb_items WHERE id = ? AND is_active = 1 AND is_deleted = 0";
         try (PreparedStatement psQuery = conn.prepareStatement(queryItemSql)) {
             for (Map.Entry<Long, Integer> entry : fnbItems.entrySet()) {
                 psQuery.setLong(1, entry.getKey());
@@ -37,9 +37,9 @@ public class OrderItemDAO {
         Long cinemaId = findCinemaIdByBooking(conn, bookingId);
 
         BigDecimal total = BigDecimal.ZERO;
-        String queryItemSql = "SELECT name, price FROM fnb_items WHERE id = ? AND is_deleted = 0";
-        String checkStockSql = "SELECT stock_quantity, warning_threshold FROM cinema_inventories WHERE cinema_id = ? AND fnb_item_id = ?";
-        String updateStockSql = "UPDATE cinema_inventories SET stock_quantity = stock_quantity - ?, updated_at = GETDATE() WHERE cinema_id = ? AND fnb_item_id = ?";
+        String queryItemSql = "SELECT name, price FROM fnb_items WHERE id = ? AND is_active = 1 AND is_deleted = 0";
+        String checkStockSql = "SELECT stock_quantity, warning_threshold FROM cinema_inventories WITH (UPDLOCK, HOLDLOCK) WHERE cinema_id = ? AND fnb_item_id = ?";
+        String updateStockSql = "UPDATE cinema_inventories SET stock_quantity = stock_quantity - ?, updated_at = GETDATE() WHERE cinema_id = ? AND fnb_item_id = ? AND stock_quantity >= ?";
         String insertSql = "INSERT INTO order_items (booking_id, fnb_item_id, item_name, quantity, unit_price, subtotal) " +
                            "VALUES (?, ?, ?, ?, ?, ?)";
 
@@ -89,7 +89,10 @@ public class OrderItemDAO {
                     psUpdateStock.setInt(1, qty);
                     psUpdateStock.setLong(2, cinemaId);
                     psUpdateStock.setLong(3, fnbId);
-                    psUpdateStock.executeUpdate();
+                    psUpdateStock.setInt(4, qty);
+                    if (psUpdateStock.executeUpdate() != 1) {
+                        throw new IllegalStateException("Tồn kho của mặt hàng '" + name + "' vừa thay đổi. Vui lòng thử lại.");
+                    }
                 }
 
                 // 4. Tạo chi tiết hóa đơn order_items

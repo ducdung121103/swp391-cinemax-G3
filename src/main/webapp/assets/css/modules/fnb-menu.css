@@ -1,0 +1,20 @@
+.fnb-menu-page { min-height: 60vh; padding-top: 58px; padding-bottom: 72px; }
+.fnb-menu-heading { margin-bottom: 30px; }
+.fnb-menu-kicker { color: #f5a623; font-size: 11px; font-weight: 800; letter-spacing: .16em; }
+.fnb-menu-heading h1 { margin: 8px 0 5px; color: #fff; font-size: clamp(28px, 4vw, 40px); font-weight: 800; }
+.fnb-menu-heading p { margin: 0; color: #9aa4b2; }
+.fnb-menu-card { overflow: hidden; background: #141b2b; border: 1px solid rgba(255,255,255,.08); border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,.22); transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease; }
+.fnb-menu-card:hover { transform: translateY(-4px); border-color: rgba(245,166,35,.38); box-shadow: 0 15px 36px rgba(0,0,0,.34); }
+.fnb-menu-image-wrap { position: relative; overflow: hidden; aspect-ratio: 1.48; background: #f5ead5; }
+.fnb-menu-image { display: block; width: 100%; height: 100%; object-fit: cover; transition: transform .35s ease; }
+.fnb-menu-card:hover .fnb-menu-image { transform: scale(1.045); }
+.fnb-menu-combo { position: absolute; top: 11px; right: 11px; padding: 6px 9px; color: #4a2f04; background: #ffcc63; border-radius: 30px; font-size: 9px; font-weight: 850; letter-spacing: .08em; }
+.fnb-menu-copy { display: grid; gap: 7px; padding: 15px; }
+.fnb-menu-category { overflow: hidden; color: #f5a623; font-size: 10px; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+.fnb-menu-copy h2 { min-height: 42px; margin: 0; color: #f3f5f8; font-size: 14px; font-weight: 700; line-height: 1.5; }
+.fnb-menu-price { color: #ff737b; font-size: 16px; }
+.fnb-menu-price span { font-size: 12px; }
+.fnb-menu-empty { display: grid; justify-items: center; gap: 10px; padding: 50px 20px; color: #9aa4b2; background: #141b2b; border: 1px solid rgba(255,255,255,.08); border-radius: 16px; text-align: center; }
+.fnb-menu-empty img { width: 150px; border-radius: 12px; }
+.fnb-menu-empty strong { color: #fff; font-size: 18px; }
+@media (max-width: 575px) { .fnb-menu-page { padding-top: 35px; padding-bottom: 48px; } .fnb-menu-copy { padding: 11px; } .fnb-menu-copy h2 { font-size: 12px; } }

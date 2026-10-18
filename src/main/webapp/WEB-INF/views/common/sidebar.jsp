@@ -19,7 +19,7 @@
             </li>
 
             <!-- CHỨC NĂNG QUẢN TRỊ VIÊN (ADMIN - DŨNG) -->
-            <li class="menu-header">HẠ TẦNG & HỆ THỐNG</li>
+            <li class="menu-header">HẠ TẦNG & HỆ THỐNG (ADMIN)</li>
             <li class="${currentUri.contains('/infrastructure/cinemas') ? 'active' : ''}">
                 <a href="${pageContext.request.contextPath}/admin/infrastructure/cinemas">
                     <i class="fa-solid fa-building"></i>
@@ -42,6 +42,27 @@
                 <a href="${pageContext.request.contextPath}/admin/infrastructure/settings">
                     <i class="fa-solid fa-sliders"></i>
                     <span>Cấu Hình Hệ Thống</span>
+                </a>
+            </li>
+
+            <!-- VẬN HÀNH & BÁN LẺ (OPERATION - TUYỂN) -->
+            <li class="menu-header">VẬN HÀNH & POS (STAFF/MANAGER)</li>
+            <li class="${currentUri.contains('/operation/pos') ? 'active' : ''}">
+                <a href="${pageContext.request.contextPath}/admin/operation/pos">
+                    <i class="fa-solid fa-cash-register"></i>
+                    <span>Quầy Bán Vé & POS</span>
+                </a>
+            </li>
+            <li class="${currentUri.contains('/operation/fnb') && !currentUri.contains('/fnb-catalog') ? 'active' : ''}">
+                <a href="${pageContext.request.contextPath}/admin/operation/fnb">
+                    <i class="fa-solid fa-boxes-stacked"></i>
+                    <span>Tồn Kho Bắp Nước</span>
+                </a>
+            </li>
+            <li class="${currentUri.contains('/operation/fnb-catalog') ? 'active' : ''}">
+                <a href="${pageContext.request.contextPath}/admin/operation/fnb-catalog">
+                    <i class="fa-solid fa-burger"></i>
+                    <span>Danh Mục F&B</span>
                 </a>
             </li>
         </ul>

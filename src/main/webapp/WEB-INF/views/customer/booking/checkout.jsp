@@ -31,18 +31,18 @@
                     <tr class="border-bottom border-secondary border-opacity-50">
                         <td><strong>Vé xem phim</strong></td>
                         <td>Ghế: VIP F08, VIP F09 (Suất #${showtimeId})</td>
-                        <td class="text-end text-warning fw-semibold">190.000 đ</td>
+                        <td class="text-end text-warning fw-semibold">190,000đ</td>
                     </tr>
                     <tr class="border-bottom border-secondary border-opacity-50">
                         <td><strong>Combo Bắp Nước Solo</strong></td>
                         <td>1 Bắp Caramel (L) + 1 Pepsi (M)</td>
-                        <td class="text-end text-warning fw-semibold">85.000 đ</td>
+                        <td class="text-end text-warning fw-semibold">85,000đ</td>
                     </tr>
                 </tbody>
                 <tfoot>
                     <tr>
                         <th colspan="2" class="text-end fs-5 text-white pt-3">Tổng thanh toán:</th>
-                        <th class="text-end fs-4 text-danger fw-bold pt-3">275.000 đ</th>
+                        <th class="text-end fs-4 text-danger fw-bold pt-3">275,000đ</th>
                     </tr>
                 </tfoot>
             </table>

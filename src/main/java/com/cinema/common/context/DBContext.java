@@ -20,7 +20,7 @@ public class DBContext {
             config.setDriverClassName(DatabaseConfig.getProperty("db.driver", "com.microsoft.sqlserver.jdbc.SQLServerDriver"));
             config.setJdbcUrl(DatabaseConfig.getProperty("db.url", "jdbc:sqlserver://localhost:1433;databaseName=cinema_chain_db;encrypt=true;trustServerCertificate=true"));
             config.setUsername(DatabaseConfig.getProperty("db.username", "sa"));
-            config.setPassword(DatabaseConfig.getProperty("db.password", "123"));
+            config.setPassword(DatabaseConfig.getProperty("db.password", "123456"));
 
             // Cấu hình Pool
             config.setMaximumPoolSize(DatabaseConfig.getIntProperty("hikari.maximumPoolSize", 10));

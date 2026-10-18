@@ -4,7 +4,8 @@
 const CinemaApp = {
     // Format currency to VND
     formatCurrency: function(amount) {
-        return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
+        const value = Number(amount) || 0;
+        return `${new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(value)}đ`;
     },
 
     // Show toast message
