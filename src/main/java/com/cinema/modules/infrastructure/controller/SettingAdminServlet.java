@@ -18,8 +18,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Controller Quản lý Tham số Cấu hình Hệ thống (System Settings - M-11).
- * Do Dũng (Leader - TV 1) phụ trách.
+ * Controller Quản lý Tham số Quy tắc Vận hành Hệ thống (System Settings - M-11).
+ * Phụ trách bởi Dũng (Leader - TV 1) - Tinh giản cho 3 tham số quy tắc vận hành rạp chiếu phim cốt lõi.
  */
 @WebServlet(name = "SettingAdminServlet", urlPatterns = {"/admin/infrastructure/settings", "/admin/settings"})
 public class SettingAdminServlet extends HttpServlet {
@@ -27,12 +27,9 @@ public class SettingAdminServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        String group = req.getParameter("group");
+        List<SystemSetting> settings = systemSettingDAO.findAllSettings();
 
-        List<SystemSetting> settings = systemSettingDAO.findAllSettings(group);
-        List<String> groups = systemSettingDAO.findAllGroups();
-
-        // Gom nhóm theo Map để dễ dàng hiển thị theo từng Tab trên giao diện
+        // Gom các giá trị vào Map để View settings.jsp dễ dàng bind dữ liệu
         Map<String, String> settingsMap = new HashMap<>();
         for (SystemSetting s : settings) {
             settingsMap.put(s.getSettingKey(), s.getSettingValue());
@@ -40,8 +37,6 @@ public class SettingAdminServlet extends HttpServlet {
 
         req.setAttribute("settings", settings);
         req.setAttribute("settingsMap", settingsMap);
-        req.setAttribute("groups", groups);
-        req.setAttribute("selectedGroup", group);
 
         // Flash message
         String msg = req.getParameter("msg");
@@ -62,57 +57,49 @@ public class SettingAdminServlet extends HttpServlet {
         Integer updatedBy = (currentUser != null && currentUser.getId() != null) ? currentUser.getId().intValue() : 1;
 
         try {
-            if ("saveAll".equalsIgnoreCase(action)) {
-                Map<String, String[]> paramMap = req.getParameterMap();
-                Map<String, String> updateBatch = new HashMap<>();
+            if ("saveAll".equalsIgnoreCase(action) || action == null || action.isBlank()) {
+                String holdDurationStr = req.getParameter("SEAT_HOLD_DURATION_SECONDS");
+                String bufferMinutesStr = req.getParameter("CLEANING_BUFFER_MINUTES");
+                String cancelDeadlineStr = req.getParameter("CANCELLATION_DEADLINE_HOURS");
 
-                for (Map.Entry<String, String[]> entry : paramMap.entrySet()) {
-                    String paramName = entry.getKey();
-                    if (paramName.startsWith("setting_")) {
-                        String key = paramName.substring("setting_".length()).toUpperCase();
-                        String val = entry.getValue() != null && entry.getValue().length > 0 ? entry.getValue()[0].trim() : "";
+                // Hỗ trợ cả tiền tố setting_ nếu form gửi lên
+                if (holdDurationStr == null) holdDurationStr = req.getParameter("setting_SEAT_HOLD_DURATION_SECONDS");
+                if (bufferMinutesStr == null) bufferMinutesStr = req.getParameter("setting_CLEANING_BUFFER_MINUTES");
+                if (cancelDeadlineStr == null) cancelDeadlineStr = req.getParameter("setting_CANCELLATION_DEADLINE_HOURS");
 
-                        // Validation số nguyên dương cho các tham số trọng yếu
-                        if ("SEAT_HOLD_DURATION_SECONDS".equals(key)) {
-                            int sec = Integer.parseInt(val);
-                            if (sec < 60 || sec > 3600) {
-                                throw new IllegalArgumentException("Thời gian giữ ghế tạm thời phải từ 60 giây đến 3600 giây (1h)!");
-                            }
-                        } else if ("CLEANING_BUFFER_MINUTES".equals(key)) {
-                            int min = Integer.parseInt(val);
-                            if (min < 0 || min > 120) {
-                                throw new IllegalArgumentException("Thời gian đệm vệ sinh phòng phải từ 0 đến 120 phút!");
-                            }
-                        } else if ("OTP_EXPIRY_SECONDS".equals(key)) {
-                            int otpSec = Integer.parseInt(val);
-                            if (otpSec < 30 || otpSec > 1800) {
-                                throw new IllegalArgumentException("Thời hạn mã OTP phải từ 30 giây đến 1800 giây!");
-                            }
-                        }
-
-                        updateBatch.put(key, val);
-                    }
+                if (holdDurationStr == null || holdDurationStr.isBlank()
+                        || bufferMinutesStr == null || bufferMinutesStr.isBlank()
+                        || cancelDeadlineStr == null || cancelDeadlineStr.isBlank()) {
+                    throw new IllegalArgumentException("Vui lòng nhập đầy đủ giá trị cho cả 3 tham số vận hành!");
                 }
+
+                int holdDuration = Integer.parseInt(holdDurationStr.trim());
+                int bufferMinutes = Integer.parseInt(bufferMinutesStr.trim());
+                int cancelDeadline = Integer.parseInt(cancelDeadlineStr.trim());
+
+                if (holdDuration < 60 || holdDuration > 3600) {
+                    throw new IllegalArgumentException("Thời gian giữ ghế tạm thời phải từ 60 đến 3600 giây (tối đa 60 phút)!");
+                }
+                if (bufferMinutes < 5 || bufferMinutes > 120) {
+                    throw new IllegalArgumentException("Thời gian đệm vệ sinh phòng chiếu phải từ 5 đến 120 phút!");
+                }
+                if (cancelDeadline < 1 || cancelDeadline > 72) {
+                    throw new IllegalArgumentException("Thời hạn hủy vé trực tuyến phải từ 1 đến 72 giờ trước giờ chiếu!");
+                }
+
+                Map<String, String> updateBatch = new HashMap<>();
+                updateBatch.put("SEAT_HOLD_DURATION_SECONDS", String.valueOf(holdDuration));
+                updateBatch.put("CLEANING_BUFFER_MINUTES", String.valueOf(bufferMinutes));
+                updateBatch.put("CANCELLATION_DEADLINE_HOURS", String.valueOf(cancelDeadline));
 
                 systemSettingDAO.batchUpdateSettings(updateBatch, updatedBy);
-                resp.sendRedirect(req.getContextPath() + "/admin/infrastructure/settings?msg=all_saved");
-                return;
-
-            } else if ("saveSingle".equalsIgnoreCase(action)) {
-                String key = req.getParameter("settingKey");
-                String value = req.getParameter("settingValue");
-                String description = req.getParameter("description");
-                String groupName = req.getParameter("groupName");
-
-                if (key == null || key.trim().isEmpty()) {
-                    throw new IllegalArgumentException("Khóa tham số (Setting Key) không được để trống!");
-                }
-
-                systemSettingDAO.upsertSetting(key, value, description, groupName, updatedBy);
-                resp.sendRedirect(req.getContextPath() + "/admin/infrastructure/settings?msg=single_saved");
+                resp.sendRedirect(req.getContextPath() + "/admin/infrastructure/settings?msg=success");
                 return;
             }
-
+        } catch (NumberFormatException e) {
+            String errorMsg = URLEncoder.encode("Giá trị tham số phải là số nguyên dương hợp lệ!", StandardCharsets.UTF_8);
+            resp.sendRedirect(req.getContextPath() + "/admin/infrastructure/settings?error=" + errorMsg);
+            return;
         } catch (Exception e) {
             e.printStackTrace();
             String errorMsg = URLEncoder.encode(e.getMessage() != null ? e.getMessage() : "Đã có lỗi xảy ra", StandardCharsets.UTF_8);

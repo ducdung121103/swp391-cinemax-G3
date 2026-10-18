@@ -103,15 +103,7 @@ GO
 DELETE FROM system_settings;
 GO
 INSERT INTO system_settings (setting_key, setting_value, description, group_name, updated_by, updated_at) VALUES
-(N'SEAT_HOLD_DURATION_SECONDS', N'300', N'Thời gian giữ ghế tạm thời khi khách thanh toán (giây)', N'BOOKING', 1, GETDATE()),
-(N'CLEANING_BUFFER_MINUTES', N'15', N'Thời gian giãn cách dọn dẹp phòng chiếu giữa 2 suất chiếu (phút)', N'SHOWTIME', 1, GETDATE()),
-(N'POINT_EARN_RATE_VND', N'10000', N'Số tiền chi tiêu (VND) để quy đổi ra 1 điểm thưởng', N'LOYALTY', 1, GETDATE()),
-(N'POINT_REDEEM_VALUE_VND', N'1000', N'Giá trị quy đổi của 1 điểm thưởng khi thanh toán (VND)', N'LOYALTY', 1, GETDATE()),
-(N'STUDENT_TICKET_DISCOUNT_PERCENT', N'15', N'Phần trăm ưu đãi vé HSSV tại quầy POS', N'PRICING', 1, GETDATE()),
-(N'SENIOR_TICKET_DISCOUNT_PERCENT', N'10', N'Phần trăm ưu đãi vé người cao tuổi tại quầy POS', N'PRICING', 1, GETDATE()),
-(N'PASSWORD_RESET_TOKEN_EXPIRY_MINUTES', N'15', N'Thời hạn hiệu lực của link đặt lại mật khẩu qua email (phút)', N'SECURITY', 1, GETDATE()),
-(N'OTP_EXPIRY_SECONDS', N'300', N'Thời hạn mã xác thực OTP gửi qua email (giây)', N'SECURITY', 1, GETDATE()),
-(N'VNPAY_TMN_CODE', N'DEMO_TMN', N'Mã định danh terminal VNPAY', N'PAYMENT', 1, GETDATE()),
-(N'VNPAY_HASH_SECRET', N'DEMO_HASH_SECRET_KEY_CINEMA_2026', N'Mã băm bí mật checksum HMAC-SHA512 VNPAY', N'PAYMENT', 1, GETDATE()),
-(N'QR_HMAC_SECRET', N'CINEMA_SECURE_QR_HMAC_SECRET_2026', N'Khóa bí mật tạo chữ ký số chống làm giả vé QR Code', N'SECURITY', 1, GETDATE());
+(N'SEAT_HOLD_DURATION_SECONDS', N'300', N'Thời gian khóa ghế tạm thời khi khách đang chọn vé (giây)', N'OPERATIONAL', 1, GETDATE()),
+(N'CLEANING_BUFFER_MINUTES', N'15', N'Thời gian đệm dọn vệ sinh phòng chiếu giữa 2 suất chiếu liên tiếp (phút)', N'OPERATIONAL', 1, GETDATE()),
+(N'CANCELLATION_DEADLINE_HOURS', N'2', N'Thời hạn cho phép khách hủy vé trực tuyến trước giờ chiếu (giờ)', N'OPERATIONAL', 1, GETDATE());
 GO
