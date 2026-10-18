@@ -1,6 +1,7 @@
 package com.cinema.modules.infrastructure.service;
 
 import com.cinema.model.Cinema;
+import com.cinema.model.MaintenanceSchedule;
 import com.cinema.model.ScreeningRoom;
 import com.cinema.model.Seat;
 import com.cinema.model.SeatType;
@@ -53,4 +54,13 @@ public interface ScreeningRoomService {
     boolean regenerateRoomSeatMatrix(Long roomId, int totalRows, int totalColumns, int stdRows, int vipRows);
     boolean updateBatchSeats(Long roomId, List<Long> seatIds, Long seatTypeId, String status, Boolean isActive);
     boolean updateRowSeatType(Long roomId, String seatRow, Long seatTypeId);
+
+    // =========================================================================
+    // CÁC PHƯƠNG THỨC MỚI PHỤC VỤ ITERATION 2 (SEAT MAINTENANCE & SCHEDULES)
+    // =========================================================================
+    boolean toggleSeatsMaintenance(Long roomId, List<Long> seatIds, boolean underMaintenance);
+    boolean restoreAllMaintenanceSeatsInRoom(Long roomId);
+    List<MaintenanceSchedule> getMaintenanceSchedulesByRoom(Long roomId);
+    Long createMaintenanceSchedule(MaintenanceSchedule schedule, List<Long> seatIds);
+    boolean resolveMaintenanceSchedule(Long scheduleId, Long roomId, boolean restoreSeats);
 }

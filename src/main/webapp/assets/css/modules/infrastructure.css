@@ -32,3 +32,30 @@
 .seat-vip { background-color: #fd7e14; }
 .seat-couple { background-color: #e83e8c; }
 .seat-disabled { background-color: #343a40; opacity: 0.3; cursor: not-allowed; }
+
+/* Analytics & Occupancy Reporting */
+.occupancy-badge-high {
+    background: #dcfce7;
+    color: #15803d;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+}
+.occupancy-badge-med {
+    background: #fef3c7;
+    color: #b45309;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+}
+.occupancy-badge-low {
+    background: #fee2e2;
+    color: #b91c1c;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+}
+

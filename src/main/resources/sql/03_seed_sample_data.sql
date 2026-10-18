@@ -420,3 +420,23 @@ GO
 
 PRINT N'[03_seed_sample_data.sql] Đã nạp thành công dữ liệu mẫu 14 phim, 3 cụm rạp, 6 phòng chiếu và lịch chiếu!';
 GO
+
+-- ----------------------------------------------------------------------------
+-- 14. SEED MAINTENANCE SCHEDULES & ANALYTICS BOOKINGS (M-04.3, M-10.3, M-11 - TV 1)
+-- ----------------------------------------------------------------------------
+IF NOT EXISTS (SELECT 1 FROM maintenance_schedules WHERE reason LIKE N'%Laser Barco 4K%')
+BEGIN
+    INSERT INTO maintenance_schedules (screening_room_id, start_time, end_time, reason, created_by, is_deleted, created_at, updated_at) VALUES
+    (1, DATEADD(DAY, -1, GETDATE()), DATEADD(DAY, 1, GETDATE()), N'Thay bóng đèn máy chiếu Laser Barco 4K & kiểm tra kính lọc', 1, 0, GETDATE(), GETDATE()),
+    (2, DATEADD(DAY, 2, GETDATE()), DATEADD(DAY, 3, GETDATE()), N'Bảo trì định kỳ hệ thống âm thanh vòm Dolby Atmos', 1, 0, GETDATE(), GETDATE()),
+    (3, DATEADD(HOUR, -6, GETDATE()), DATEADD(HOUR, 18, GETDATE()), N'Sửa chữa motor ngả lưng hàng ghế VIP D04, D05', 2, 0, GETDATE(), GETDATE()),
+    (5, DATEADD(DAY, -2, GETDATE()), DATEADD(DAY, -1, GETDATE()), N'Vệ sinh và căng lại màn chiếu cong tráng bạc', 2, 0, GETDATE(), GETDATE());
+
+    UPDATE seats SET status = N'MAINTENANCE', is_active = 0, updated_at = GETDATE()
+    WHERE screening_room_id = 1 AND seat_code IN (N'D04', N'D05');
+
+    UPDATE seats SET status = N'MAINTENANCE', is_active = 0, updated_at = GETDATE()
+    WHERE screening_room_id = 3 AND seat_code IN (N'D04', N'D05');
+END
+GO
+

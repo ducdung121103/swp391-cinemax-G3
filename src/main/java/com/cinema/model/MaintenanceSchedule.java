@@ -24,4 +24,9 @@ public class MaintenanceSchedule extends BaseEntity {
     private LocalDateTime endTime;
     private String reason;
     private Long createdBy;
+
+    // Helper display fields (JOIN queries)
+    private String roomName;
+    private String cinemaName;
+    private String createdByName;
 }

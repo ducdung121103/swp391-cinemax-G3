@@ -3,6 +3,7 @@ package com.cinema.modules.infrastructure.dao;
 import com.cinema.common.context.DBContext;
 import com.cinema.common.transaction.TransactionManager;
 import com.cinema.model.Cinema;
+import com.cinema.model.MaintenanceSchedule;
 import com.cinema.model.ScreeningRoom;
 import com.cinema.model.Seat;
 import com.cinema.model.SeatType;
@@ -13,6 +14,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -568,5 +570,142 @@ public class ScreeningRoomDAO {
         r.setTotalCapacity(rs.getInt("total_capacity"));
         r.setStatus(rs.getString("status"));
         return r;
+    }
+
+    // =========================================================================
+    // ITERATION 2: SEAT MAINTENANCE & MAINTENANCE SCHEDULES
+    // =========================================================================
+
+    public boolean toggleSeatsMaintenance(Long roomId, List<Long> seatIds, boolean underMaintenance) {
+        if (seatIds == null || seatIds.isEmpty()) return true;
+        String status = underMaintenance ? "MAINTENANCE" : "ACTIVE";
+        int activeBit = underMaintenance ? 0 : 1;
+        return TransactionManager.executeInTransaction(conn -> {
+            String sql = "UPDATE seats SET status = ?, is_active = ?, updated_at = GETDATE() " +
+                         "WHERE screening_room_id = ? AND id = ?";
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                for (Long sid : seatIds) {
+                    ps.setString(1, status);
+                    ps.setInt(2, activeBit);
+                    ps.setLong(3, roomId);
+                    ps.setLong(4, sid);
+                    ps.addBatch();
+                }
+                ps.executeBatch();
+            }
+            return true;
+        });
+    }
+
+    public boolean restoreAllMaintenanceSeatsInRoom(Long roomId) {
+        String sql = "UPDATE seats SET status = 'ACTIVE', is_active = 1, updated_at = GETDATE() " +
+                     "WHERE screening_room_id = ? AND (status = 'MAINTENANCE' OR is_active = 0) AND is_deleted = 0";
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setLong(1, roomId);
+            return ps.executeUpdate() >= 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public List<MaintenanceSchedule> findMaintenanceSchedulesByRoom(Long roomId) {
+        List<MaintenanceSchedule> list = new ArrayList<>();
+        String sql = "SELECT ms.*, sr.name AS room_name, c.name AS cinema_name, u.full_name AS created_by_name " +
+                     "FROM maintenance_schedules ms " +
+                     "JOIN screening_rooms sr ON ms.screening_room_id = sr.id " +
+                     "JOIN cinemas c ON sr.cinema_id = c.id " +
+                     "LEFT JOIN users u ON ms.created_by = u.id " +
+                     "WHERE ms.screening_room_id = ? AND ms.is_deleted = 0 " +
+                     "ORDER BY ms.start_time DESC";
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setLong(1, roomId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    MaintenanceSchedule ms = new MaintenanceSchedule();
+                    ms.setId(rs.getLong("id"));
+                    ms.setScreeningRoomId(rs.getLong("screening_room_id"));
+                    Timestamp st = rs.getTimestamp("start_time");
+                    if (st != null) ms.setStartTime(st.toLocalDateTime());
+                    Timestamp et = rs.getTimestamp("end_time");
+                    if (et != null) ms.setEndTime(et.toLocalDateTime());
+                    ms.setReason(rs.getString("reason"));
+                    ms.setCreatedBy(rs.getObject("created_by") != null ? rs.getLong("created_by") : null);
+                    Timestamp ca = rs.getTimestamp("created_at");
+                    if (ca != null) ms.setCreatedAt(ca.toLocalDateTime());
+                    Timestamp ua = rs.getTimestamp("updated_at");
+                    if (ua != null) ms.setUpdatedAt(ua.toLocalDateTime());
+                    ms.setIsDeleted(rs.getBoolean("is_deleted"));
+                    ms.setRoomName(rs.getString("room_name"));
+                    ms.setCinemaName(rs.getString("cinema_name"));
+                    ms.setCreatedByName(rs.getString("created_by_name"));
+                    list.add(ms);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    public Long createMaintenanceSchedule(MaintenanceSchedule schedule, List<Long> seatIds) {
+        return TransactionManager.executeInTransaction(conn -> {
+            String insertSql = "INSERT INTO maintenance_schedules (screening_room_id, start_time, end_time, reason, created_by, is_deleted, created_at, updated_at) " +
+                               "VALUES (?, ?, ?, ?, ?, 0, GETDATE(), GETDATE())";
+            Long scheduleId = null;
+            try (PreparedStatement ps = conn.prepareStatement(insertSql, Statement.RETURN_GENERATED_KEYS)) {
+                ps.setLong(1, schedule.getScreeningRoomId());
+                ps.setTimestamp(2, schedule.getStartTime() != null ? Timestamp.valueOf(schedule.getStartTime()) : Timestamp.valueOf(LocalDateTime.now()));
+                ps.setTimestamp(3, schedule.getEndTime() != null ? Timestamp.valueOf(schedule.getEndTime()) : Timestamp.valueOf(LocalDateTime.now().plusDays(1)));
+                ps.setString(4, schedule.getReason() != null ? schedule.getReason() : "Bảo trì định kỳ");
+                if (schedule.getCreatedBy() != null) {
+                    ps.setLong(5, schedule.getCreatedBy());
+                } else {
+                    ps.setNull(5, java.sql.Types.INTEGER);
+                }
+                ps.executeUpdate();
+                try (ResultSet rs = ps.getGeneratedKeys()) {
+                    if (rs.next()) {
+                        scheduleId = rs.getLong(1);
+                    }
+                }
+            }
+
+            if (seatIds != null && !seatIds.isEmpty()) {
+                String seatSql = "UPDATE seats SET status = 'MAINTENANCE', is_active = 0, updated_at = GETDATE() " +
+                                 "WHERE screening_room_id = ? AND id = ?";
+                try (PreparedStatement ps = conn.prepareStatement(seatSql)) {
+                    for (Long sid : seatIds) {
+                        ps.setLong(1, schedule.getScreeningRoomId());
+                        ps.setLong(2, sid);
+                        ps.addBatch();
+                    }
+                    ps.executeBatch();
+                }
+            }
+            return scheduleId;
+        });
+    }
+
+    public boolean resolveMaintenanceSchedule(Long scheduleId, Long roomId, boolean restoreSeats) {
+        return TransactionManager.executeInTransaction(conn -> {
+            String updateSched = "UPDATE maintenance_schedules SET is_deleted = 1, updated_at = GETDATE() WHERE id = ?";
+            try (PreparedStatement ps = conn.prepareStatement(updateSched)) {
+                ps.setLong(1, scheduleId);
+                ps.executeUpdate();
+            }
+
+            if (restoreSeats && roomId != null) {
+                String restoreSql = "UPDATE seats SET status = 'ACTIVE', is_active = 1, updated_at = GETDATE() " +
+                                    "WHERE screening_room_id = ? AND (status = 'MAINTENANCE' OR is_active = 0)";
+                try (PreparedStatement ps = conn.prepareStatement(restoreSql)) {
+                    ps.setLong(1, roomId);
+                    ps.executeUpdate();
+                }
+            }
+            return true;
+        });
     }
 }

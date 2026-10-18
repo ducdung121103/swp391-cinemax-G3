@@ -38,6 +38,12 @@
                     <span>Thiết Kế Sơ Đồ Ghế</span>
                 </a>
             </li>
+            <li class="${currentUri.contains('/infrastructure/occupancy') || currentUri.contains('/reports/occupancy') ? 'active' : ''}">
+                <a href="${pageContext.request.contextPath}/admin/infrastructure/occupancy">
+                    <i class="fa-solid fa-chart-pie"></i>
+                    <span>Báo Cáo Tỷ Lệ Lấp Đầy</span>
+                </a>
+            </li>
             <li class="${currentUri.contains('/infrastructure/settings') ? 'active' : ''}">
                 <a href="${pageContext.request.contextPath}/admin/infrastructure/settings">
                     <i class="fa-solid fa-sliders"></i>

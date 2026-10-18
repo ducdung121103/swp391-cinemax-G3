@@ -72,6 +72,9 @@ public class SeatGridServlet extends HttpServlet {
                     }
                 }
             }
+
+            List<com.cinema.model.MaintenanceSchedule> maintenanceSchedules = screeningRoomService.getMaintenanceSchedulesByRoom(roomId);
+            req.setAttribute("maintenanceSchedules", maintenanceSchedules);
         }
 
         req.setAttribute("cinemas", cinemas);
@@ -161,6 +164,59 @@ public class SeatGridServlet extends HttpServlet {
                 screeningRoomService.updateSeatTypeSurcharge(seatTypeId, surcharge, colorHex);
                 resp.sendRedirect(req.getContextPath() + "/admin/infrastructure/seats?roomId=" + roomId + "&msg=type_updated");
                 return;
+
+            } else if ("quickToggleMaintenance".equalsIgnoreCase(action)) {
+                String seatIdsRaw = req.getParameter("seatIds");
+                String underMaintStr = req.getParameter("underMaintenance");
+                boolean underMaintenance = underMaintStr == null || Boolean.parseBoolean(underMaintStr);
+
+                List<Long> seatIds = parseSeatIds(seatIdsRaw);
+                if (!seatIds.isEmpty()) {
+                    screeningRoomService.toggleSeatsMaintenance(roomId, seatIds, underMaintenance);
+                }
+                resp.sendRedirect(req.getContextPath() + "/admin/infrastructure/seats?roomId=" + roomId + "&msg=maintenance_toggled");
+                return;
+
+            } else if ("restoreAllRoomSeats".equalsIgnoreCase(action)) {
+                screeningRoomService.restoreAllMaintenanceSeatsInRoom(roomId);
+                resp.sendRedirect(req.getContextPath() + "/admin/infrastructure/seats?roomId=" + roomId + "&msg=all_seats_restored");
+                return;
+
+            } else if ("createMaintenanceSchedule".equalsIgnoreCase(action)) {
+                String startRaw = req.getParameter("startTime");
+                String endRaw = req.getParameter("endTime");
+                String reason = req.getParameter("reason");
+                String seatIdsRaw = req.getParameter("seatIds");
+
+                java.time.LocalDateTime startTime = (startRaw != null && !startRaw.isBlank())
+                        ? java.time.LocalDateTime.parse(startRaw) : java.time.LocalDateTime.now();
+                java.time.LocalDateTime endTime = (endRaw != null && !endRaw.isBlank())
+                        ? java.time.LocalDateTime.parse(endRaw) : startTime.plusDays(1);
+
+                com.cinema.model.User currentUser = (com.cinema.model.User) req.getSession().getAttribute("currentUser");
+                Long userId = currentUser != null ? currentUser.getId() : null;
+
+                com.cinema.model.MaintenanceSchedule schedule = com.cinema.model.MaintenanceSchedule.builder()
+                        .screeningRoomId(roomId)
+                        .startTime(startTime)
+                        .endTime(endTime)
+                        .reason(reason != null && !reason.isBlank() ? reason : "Bảo trì định kỳ phòng chiếu")
+                        .createdBy(userId)
+                        .build();
+
+                List<Long> seatIds = parseSeatIds(seatIdsRaw);
+                screeningRoomService.createMaintenanceSchedule(schedule, seatIds);
+                resp.sendRedirect(req.getContextPath() + "/admin/infrastructure/seats?roomId=" + roomId + "&msg=schedule_created");
+                return;
+
+            } else if ("resolveMaintenanceSchedule".equalsIgnoreCase(action)) {
+                Long scheduleId = Long.parseLong(req.getParameter("scheduleId"));
+                String restoreSeatsStr = req.getParameter("restoreSeats");
+                boolean restoreSeats = restoreSeatsStr == null || Boolean.parseBoolean(restoreSeatsStr);
+
+                screeningRoomService.resolveMaintenanceSchedule(scheduleId, roomId, restoreSeats);
+                resp.sendRedirect(req.getContextPath() + "/admin/infrastructure/seats?roomId=" + roomId + "&msg=schedule_resolved");
+                return;
             }
 
         } catch (Exception e) {
@@ -171,5 +227,19 @@ public class SeatGridServlet extends HttpServlet {
         }
 
         resp.sendRedirect(req.getContextPath() + "/admin/infrastructure/seats?roomId=" + roomId);
+    }
+
+    private List<Long> parseSeatIds(String seatIdsRaw) {
+        List<Long> list = new ArrayList<>();
+        if (seatIdsRaw != null && !seatIdsRaw.trim().isEmpty()) {
+            for (String p : seatIdsRaw.split(",")) {
+                if (!p.trim().isEmpty()) {
+                    try {
+                        list.add(Long.parseLong(p.trim()));
+                    } catch (NumberFormatException ignored) {}
+                }
+            }
+        }
+        return list;
     }
 }
