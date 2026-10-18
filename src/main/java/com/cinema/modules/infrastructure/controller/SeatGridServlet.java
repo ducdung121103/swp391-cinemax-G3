@@ -30,6 +30,13 @@ public class SeatGridServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        jakarta.servlet.http.HttpSession session = req.getSession(false);
+        com.cinema.model.User currentUser = (session != null) ? (com.cinema.model.User) session.getAttribute("currentUser") : null;
+        if (currentUser != null && currentUser.getRole() != null && "MANAGER".equalsIgnoreCase(currentUser.getRole().getRoleName())) {
+            resp.sendRedirect(req.getContextPath() + "/admin/dashboard?error=" + URLEncoder.encode("Chỉ Quản trị viên (Admin) mới có quyền Thiết kế sơ đồ ghế!", StandardCharsets.UTF_8));
+            return;
+        }
+
         String roomIdParam = req.getParameter("roomId");
         Long roomId = null;
 
@@ -102,6 +109,13 @@ public class SeatGridServlet extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        jakarta.servlet.http.HttpSession session = req.getSession(false);
+        com.cinema.model.User currentUser = (session != null) ? (com.cinema.model.User) session.getAttribute("currentUser") : null;
+        if (currentUser != null && currentUser.getRole() != null && "MANAGER".equalsIgnoreCase(currentUser.getRole().getRoleName())) {
+            resp.sendRedirect(req.getContextPath() + "/admin/dashboard?error=" + URLEncoder.encode("Chỉ Quản trị viên (Admin) mới có quyền chỉnh sửa sơ đồ ghế!", StandardCharsets.UTF_8));
+            return;
+        }
+
         req.setCharacterEncoding("UTF-8");
         String action = req.getParameter("action");
         String roomIdParam = req.getParameter("roomId");
@@ -193,7 +207,6 @@ public class SeatGridServlet extends HttpServlet {
                 java.time.LocalDateTime endTime = (endRaw != null && !endRaw.isBlank())
                         ? java.time.LocalDateTime.parse(endRaw) : startTime.plusDays(1);
 
-                com.cinema.model.User currentUser = (com.cinema.model.User) req.getSession().getAttribute("currentUser");
                 Long userId = currentUser != null ? currentUser.getId() : null;
 
                 com.cinema.model.MaintenanceSchedule schedule = com.cinema.model.MaintenanceSchedule.builder()

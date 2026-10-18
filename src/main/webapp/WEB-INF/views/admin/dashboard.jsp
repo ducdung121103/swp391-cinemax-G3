@@ -144,9 +144,6 @@
                                 <a href="${pageContext.request.contextPath}/admin/infrastructure/rooms" class="btn-action btn-action-secondary">
                                     <i class="fa-solid fa-video"></i> Quản lý Phòng Chiếu
                                 </a>
-                                <a href="${pageContext.request.contextPath}/admin/infrastructure/seats" class="btn-action btn-action-secondary">
-                                    <i class="fa-solid fa-couch"></i> Sơ Đồ Ghế Chi Nhánh
-                                </a>
                                 <a href="${pageContext.request.contextPath}/admin/operation/fnb" class="btn-action" style="background: #1e293b; color: #fff;">
                                     <i class="fa-solid fa-boxes-stacked"></i> Tồn Kho Bắp Nước
                                 </a>

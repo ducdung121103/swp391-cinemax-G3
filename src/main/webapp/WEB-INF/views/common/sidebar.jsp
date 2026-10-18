@@ -96,12 +96,6 @@
                         <span>Quản lý Phòng Chiếu</span>
                     </a>
                 </li>
-                <li class="${currentUri.contains('/infrastructure/seats') ? 'active' : ''}">
-                    <a href="${pageContext.request.contextPath}/admin/infrastructure/seats">
-                        <i class="fa-solid fa-couch"></i>
-                        <span>Sơ Đồ Ghế Chi Nhánh</span>
-                    </a>
-                </li>
                 <li class="${currentUri.contains('/operation/fnb') && !currentUri.contains('/fnb-catalog') ? 'active' : ''}">
                     <a href="${pageContext.request.contextPath}/admin/operation/fnb">
                         <i class="fa-solid fa-boxes-stacked"></i>
