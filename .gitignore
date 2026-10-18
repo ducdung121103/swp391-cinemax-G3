@@ -32,3 +32,10 @@ src/main/resources/db.local.properties
 .~lock.*
 ~$*
 *.tmp
+
+# Documentation, spreadsheets & auxiliary files (Only source code + README.md kept in Git)
+*.xlsx
+*.xls
+docs/
+cine-diagram/
+Feature_Tree*.md

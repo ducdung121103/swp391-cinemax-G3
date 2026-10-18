@@ -83,17 +83,17 @@ GO
 
 -- ----------------------------------------------------------------------------
 -- 6. SEED ROOT ADMIN & PRE-CONFIGURED USERS (Password default: '123456')
--- BCrypt Hash: $2a$12$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy
+-- BCrypt Hash: $2a$12$cxsAcVwLN.iPxYBPXHOCo.WRxmSb8EGdN07hrWLlDpDHQoSCuLKnq
 -- ----------------------------------------------------------------------------
 DELETE FROM users;
 GO
 SET IDENTITY_INSERT users ON;
 INSERT INTO users (id, role_id, cinema_id, email, password_hash, full_name, phone, loyalty_points, tier_id, avatar_url, status, is_2fa_enabled, email_verified, is_deleted, created_at) VALUES
-(1, 1, NULL, N'admin@cinema.com', N'$2a$12$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', N'Hệ Thống Quản Trị Viên', N'0900000001', 0, NULL, N'/assets/images/avatars/admin.png', N'ACTIVE', 0, 1, 0, GETDATE()),
-(2, 2, NULL, N'manager.hn@cinema.com', N'$2a$12$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', N'Trần Quản Lý Hà Nội', N'0900000002', 0, NULL, N'/assets/images/avatars/manager.png', N'ACTIVE', 0, 1, 0, GETDATE()),
-(3, 3, NULL, N'staff.hn@cinema.com', N'$2a$12$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', N'Lê Thu Ngân Viên Hà Nội', N'0900000003', 0, NULL, N'/assets/images/avatars/staff.png', N'ACTIVE', 0, 1, 0, GETDATE()),
-(4, 3, NULL, N'staff.sg@cinema.com', N'$2a$12$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', N'Phạm Thu Ngân Sài Gòn', N'0900000004', 0, NULL, N'/assets/images/avatars/staff.png', N'ACTIVE', 0, 1, 0, GETDATE()),
-(5, 4, NULL, N'customer@gmail.com', N'$2a$12$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', N'Nguyễn Văn Khách Hàng', N'0987654321', 250, 1, N'/assets/images/avatars/customer.png', N'ACTIVE', 0, 1, 0, GETDATE());
+(1, 1, NULL, N'admin@cinema.com', N'$2a$12$cxsAcVwLN.iPxYBPXHOCo.WRxmSb8EGdN07hrWLlDpDHQoSCuLKnq', N'Hệ Thống Quản Trị Viên', N'0900000001', 0, NULL, N'/assets/images/avatars/admin.png', N'ACTIVE', 0, 1, 0, GETDATE()),
+(2, 2, NULL, N'manager.hn@cinema.com', N'$2a$12$cxsAcVwLN.iPxYBPXHOCo.WRxmSb8EGdN07hrWLlDpDHQoSCuLKnq', N'Trần Quản Lý Hà Nội', N'0900000002', 0, NULL, N'/assets/images/avatars/manager.png', N'ACTIVE', 0, 1, 0, GETDATE()),
+(3, 3, NULL, N'staff.hn@cinema.com', N'$2a$12$cxsAcVwLN.iPxYBPXHOCo.WRxmSb8EGdN07hrWLlDpDHQoSCuLKnq', N'Lê Thu Ngân Viên Hà Nội', N'0900000003', 0, NULL, N'/assets/images/avatars/staff.png', N'ACTIVE', 0, 1, 0, GETDATE()),
+(4, 3, NULL, N'staff.sg@cinema.com', N'$2a$12$cxsAcVwLN.iPxYBPXHOCo.WRxmSb8EGdN07hrWLlDpDHQoSCuLKnq', N'Phạm Thu Ngân Sài Gòn', N'0900000004', 0, NULL, N'/assets/images/avatars/staff.png', N'ACTIVE', 0, 1, 0, GETDATE()),
+(5, 4, NULL, N'customer@gmail.com', N'$2a$12$cxsAcVwLN.iPxYBPXHOCo.WRxmSb8EGdN07hrWLlDpDHQoSCuLKnq', N'Nguyễn Văn Khách Hàng', N'0987654321', 250, 1, N'/assets/images/avatars/customer.png', N'ACTIVE', 0, 1, 0, GETDATE());
 SET IDENTITY_INSERT users OFF;
 GO
 
