@@ -135,21 +135,40 @@
                     </div>
 
                     <div class="quick-actions" style="margin-top: 18px;">
-                        <a href="${pageContext.request.contextPath}/admin/infrastructure/cinemas" class="btn-action">
-                            <i class="fa-solid fa-building"></i> Quản lý Cụm Rạp
-                        </a>
-                        <a href="${pageContext.request.contextPath}/admin/infrastructure/rooms" class="btn-action btn-action-secondary">
-                            <i class="fa-solid fa-video"></i> Quản lý Phòng Chiếu
-                        </a>
-                        <a href="${pageContext.request.contextPath}/admin/infrastructure/seats" class="btn-action btn-action-secondary">
-                            <i class="fa-solid fa-couch"></i> Thiết Kế Sơ Đồ Ghế
-                        </a>
-                        <a href="${pageContext.request.contextPath}/admin/infrastructure/occupancy" class="btn-action" style="background: #1e293b; color: #fff;">
-                            <i class="fa-solid fa-chart-pie"></i> Báo Cáo Tỷ Lệ Lấp Đầy
-                        </a>
-                        <a href="${pageContext.request.contextPath}/admin/infrastructure/settings" class="btn-action btn-action-outline">
-                            <i class="fa-solid fa-sliders"></i> Cấu Hình Hệ Thống
-                        </a>
+                        <c:set var="userRole" value="${sessionScope.currentUser.role.roleName}" />
+                        <c:choose>
+                            <c:when test="${userRole == 'MANAGER'}">
+                                <a href="${pageContext.request.contextPath}/manager/showtimes" class="btn-action">
+                                    <i class="fa-solid fa-calendar-days"></i> Quản lý Lịch Chiếu
+                                </a>
+                                <a href="${pageContext.request.contextPath}/admin/infrastructure/rooms" class="btn-action btn-action-secondary">
+                                    <i class="fa-solid fa-video"></i> Quản lý Phòng Chiếu
+                                </a>
+                                <a href="${pageContext.request.contextPath}/admin/infrastructure/seats" class="btn-action btn-action-secondary">
+                                    <i class="fa-solid fa-couch"></i> Sơ Đồ Ghế Chi Nhánh
+                                </a>
+                                <a href="${pageContext.request.contextPath}/admin/operation/fnb" class="btn-action" style="background: #1e293b; color: #fff;">
+                                    <i class="fa-solid fa-boxes-stacked"></i> Tồn Kho Bắp Nước
+                                </a>
+                            </c:when>
+                            <c:otherwise>
+                                <a href="${pageContext.request.contextPath}/admin/infrastructure/cinemas" class="btn-action">
+                                    <i class="fa-solid fa-building"></i> Quản lý Cụm Rạp
+                                </a>
+                                <a href="${pageContext.request.contextPath}/admin/infrastructure/rooms" class="btn-action btn-action-secondary">
+                                    <i class="fa-solid fa-video"></i> Quản lý Phòng Chiếu
+                                </a>
+                                <a href="${pageContext.request.contextPath}/admin/infrastructure/seats" class="btn-action btn-action-secondary">
+                                    <i class="fa-solid fa-couch"></i> Thiết Kế Sơ Đồ Ghế
+                                </a>
+                                <a href="${pageContext.request.contextPath}/admin/infrastructure/occupancy" class="btn-action" style="background: #1e293b; color: #fff;">
+                                    <i class="fa-solid fa-chart-pie"></i> Báo Cáo Tỷ Lệ Lấp Đầy
+                                </a>
+                                <a href="${pageContext.request.contextPath}/admin/infrastructure/settings" class="btn-action btn-action-outline">
+                                    <i class="fa-solid fa-sliders"></i> Cấu Hình Hệ Thống
+                                </a>
+                            </c:otherwise>
+                        </c:choose>
                     </div>
                 </div>
 
