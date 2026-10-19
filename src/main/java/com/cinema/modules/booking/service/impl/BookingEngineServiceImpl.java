@@ -10,12 +10,16 @@ import com.cinema.modules.booking.dao.SeatHoldingDAO;
 import com.cinema.modules.booking.dao.TicketDAO;
 import com.cinema.modules.booking.dto.BookingResult;
 import com.cinema.modules.booking.dto.CreateBookingDTO;
+import com.cinema.modules.booking.dto.FnbReceipt;
+import com.cinema.modules.booking.dto.TicketReceipt;
 import com.cinema.modules.booking.service.BookingEngineService;
 import com.cinema.modules.booking.service.VoucherService;
 import com.cinema.modules.booking.service.impl.VoucherServiceImpl;
 
 import java.math.BigDecimal;
 import java.sql.Connection;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -76,7 +80,29 @@ public class BookingEngineServiceImpl implements BookingEngineService {
 
     @Override
     public BookingResult createBooking(CreateBookingDTO dto) {
+        if (dto == null || dto.getShowtimeId() == null) {
+            throw new IllegalArgumentException("Thiếu thông tin suất chiếu.");
+        }
+        if (dto.getSeatIds() == null || dto.getSeatIds().isEmpty()) {
+            throw new IllegalArgumentException("Chọn ít nhất một ghế.");
+        }
+        if (dto.getSeatIds().stream().anyMatch(seatId -> seatId == null || seatId <= 0)) {
+            throw new IllegalArgumentException("Danh sách ghế không hợp lệ.");
+        }
+        if (dto.getTicketPrices() == null || dto.getTicketPrices().size() != dto.getSeatIds().size()
+                || dto.getTicketPrices().stream().anyMatch(price -> price == null || price.signum() < 0)) {
+            throw new IllegalArgumentException("Thông tin giá vé không hợp lệ.");
+        }
+        if (dto.hasFnb() && dto.getFnbItems().entrySet().stream()
+                .anyMatch(entry -> entry.getKey() == null || entry.getValue() == null || entry.getValue() <= 0)) {
+            throw new IllegalArgumentException("Số lượng sản phẩm F&B không hợp lệ.");
+        }
+
         return TransactionManager.executeInTransaction(conn -> {
+            List<Long> lockOrder = new ArrayList<>(dto.getSeatIds());
+            lockOrder.sort(Comparator.naturalOrder());
+            ticketDAO.assertSeatsAvailable(conn, dto.getShowtimeId(), lockOrder, dto.getSessionId());
+
             // 1. Tính toán tiền vé (sử dụng bảng giá động, nghiêm cấm fallback giá cứng)
             BigDecimal ticketsTotal = BigDecimal.ZERO;
             if (dto.getSeatIds() != null && !dto.getSeatIds().isEmpty()) {
@@ -125,13 +151,23 @@ public class BookingEngineServiceImpl implements BookingEngineService {
             Long bookingId = bookingDAO.insertBooking(conn, b);
 
             // 5. Tạo Tickets (Ràng buộc uk_showtime_seat ngăn chặn trùng ghế)
+            List<TicketReceipt> ticketReceipts = new ArrayList<>();
+            List<FnbReceipt> fnbReceipts = new ArrayList<>();
             if (dto.getSeatIds() != null && !dto.getSeatIds().isEmpty()) {
                 ticketDAO.insertTickets(conn, bookingId, dto.getShowtimeId(), dto.getSeatIds(), dto.getTicketPrices());
+                List<TicketReceipt> insertedTickets = ticketDAO.findReceiptItems(conn, bookingId);
+                if (insertedTickets != null) {
+                    ticketReceipts.addAll(insertedTickets);
+                }
             }
 
             // 6. Tạo OrderItems nếu mua kèm Bắp Nước (tự động kiểm tra và trừ tồn kho rạp)
             if (dto.hasFnb()) {
                 orderItemDAO.insertFnbOrderItems(conn, bookingId, dto.getFnbItems());
+                List<FnbReceipt> insertedItems = orderItemDAO.findReceiptItems(conn, bookingId);
+                if (insertedItems != null) {
+                    fnbReceipts.addAll(insertedItems);
+                }
             }
 
             // 7. Ghi nhận Thanh toán
@@ -153,6 +189,13 @@ public class BookingEngineServiceImpl implements BookingEngineService {
                     .finalAmount(finalAmount)
                     .status("SUCCESS")
                     .message("Đặt vé và thanh toán thành công!")
+                    .tickets(ticketReceipts)
+                    .totalTicketsAmount(ticketsTotal)
+                    .totalFnbAmount(fnbTotal)
+                    .discountAmount(discount)
+                    .ticketDiscountPercent(dto.getTicketDiscountPercent())
+                    .paymentMethod(dto.getPaymentMethod())
+                    .fnbItems(fnbReceipts)
                     .build();
         });
     }

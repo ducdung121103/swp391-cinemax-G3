@@ -65,6 +65,37 @@ public class ShowtimeDAO {
         return list;
     }
 
+    /**
+     * Finds showtimes that can still be sold at a cinema counter on the selected date.
+     * Unlike the management listing, this excludes cancelled and already-started shows.
+     */
+    public List<Showtime> findSellableByCinemaAndDate(Long cinemaId, LocalDate date) {
+        List<Showtime> list = new ArrayList<>();
+        String sql = "SELECT st.*, m.title as movie_title, sr.name as room_name " +
+                     "FROM showtimes st " +
+                     "JOIN movies m ON st.movie_id = m.id " +
+                     "JOIN screening_rooms sr ON st.screening_room_id = sr.id " +
+                     "JOIN cinemas c ON c.id = sr.cinema_id " +
+                     "WHERE sr.cinema_id = ? AND CAST(st.start_time AS DATE) = ? " +
+                     "AND st.start_time > GETDATE() AND st.status IN ('SCHEDULED', 'OPENING') " +
+                     "AND st.is_deleted = 0 AND sr.is_deleted = 0 AND sr.status = 'ACTIVE' " +
+                     "AND c.is_deleted = 0 AND c.is_active = 1 " +
+                     "ORDER BY st.start_time ASC";
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setLong(1, cinemaId);
+            ps.setString(2, date.toString());
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(mapShowtime(rs));
+                }
+            }
+        } catch (SQLException e) {
+            throw new IllegalStateException("Không thể tải suất chiếu còn bán tại quầy.", e);
+        }
+        return list;
+    }
+
     public Showtime findById(Long id) {
         String sql = "SELECT st.*, m.title as movie_title, sr.name as room_name " +
                      "FROM showtimes st " +

@@ -12,6 +12,7 @@ import java.util.List;
 public interface ShowtimeService {
     List<Showtime> getShowtimesByMovieAndDate(Long movieId, LocalDate date);
     List<Showtime> getShowtimesByCinemaAndDate(Long cinemaId, LocalDate date);
+    List<Showtime> getSellableShowtimesByCinemaAndDate(Long cinemaId, LocalDate date);
     Showtime getShowtimeById(Long showtimeId);
     boolean createShowtime(Showtime showtime);
 }

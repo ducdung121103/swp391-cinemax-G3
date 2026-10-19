@@ -25,7 +25,19 @@ public class PosOrderServiceImpl implements PosOrderService {
 
     @Override
     public BookingResult processCounterCheckout(CreateBookingDTO request) {
+        if (request == null) {
+            throw new IllegalArgumentException("Thiếu thông tin đơn bán tại quầy.");
+        }
+        if (request.getStaffId() == null) {
+            throw new IllegalArgumentException("Không xác định được nhân viên đang bán.");
+        }
+        if (request.getPaymentMethod() == null
+                || !"CASH".equals(request.getPaymentMethod())) {
+            throw new IllegalArgumentException("Phương thức thanh toán tại quầy không hợp lệ.");
+        }
+
         request.setChannel("POS");
+        request.setUserId(null);
         return bookingEngineService.createBooking(request);
     }
 }

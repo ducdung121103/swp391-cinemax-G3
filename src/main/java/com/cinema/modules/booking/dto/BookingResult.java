@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 /**
  * DTO trả kết quả sau khi BookingEngineService thực thi thành công.
@@ -22,4 +23,12 @@ public class BookingResult {
     private BigDecimal finalAmount;
     private String status;
     private String message;
+    private List<TicketReceipt> tickets;
+    private BigDecimal totalTicketsAmount;
+    private BigDecimal totalFnbAmount;
+    private BigDecimal discountAmount;
+    private BigDecimal ticketDiscountAmount;
+    private Integer ticketDiscountPercent;
+    private String paymentMethod;
+    private List<FnbReceipt> fnbItems;
 }

@@ -49,6 +49,11 @@ public class ShowtimeServiceImpl implements ShowtimeService {
     }
 
     @Override
+    public List<Showtime> getSellableShowtimesByCinemaAndDate(Long cinemaId, LocalDate date) {
+        return showtimeDAO.findSellableByCinemaAndDate(cinemaId, date);
+    }
+
+    @Override
     public Showtime getShowtimeById(Long showtimeId) {
         return showtimeDAO.findById(showtimeId);
     }
