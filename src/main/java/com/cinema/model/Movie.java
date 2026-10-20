@@ -38,7 +38,7 @@ public class Movie extends BaseEntity {
     private String synopsis;
     private String status; // COMING_SOON, NOW_SHOWING, ENDED
     @Builder.Default
-    private Double rating = 4.8;
+    private Double rating = 4.7;
 
     // Quan hệ điều hướng
     @Builder.Default
