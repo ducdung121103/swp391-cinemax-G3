@@ -25,5 +25,5 @@ public class Payment extends BaseEntity {
     private BigDecimal amount;
     private String transactionNo;
     private LocalDateTime paymentTime;
-    private String status; // SUCCESS, FAILED, REFUNDED
+    private String status; // SUCCESS, FAILED,
 }

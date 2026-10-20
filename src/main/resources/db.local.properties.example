@@ -1,4 +1,4 @@
 # Copy this file to db.local.properties and customize with your local SQL Server credentials
-db.url=jdbc:sqlserver://localhost:1433;databaseName=cinema_chain_db;encrypt=true;trustServerCertificate=true
+db.url=jdbc:sqlserver://localhost:8087;databaseName=cinema_chain_db;encrypt=true;trustServerCertificate=true
 db.username=sa
-db.password=123456
+db.password=06112003
