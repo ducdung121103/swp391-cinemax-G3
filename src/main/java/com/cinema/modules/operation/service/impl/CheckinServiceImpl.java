@@ -7,6 +7,7 @@ import com.cinema.modules.booking.service.impl.BookingEngineServiceImpl;
 import com.cinema.modules.operation.dao.TicketCheckinLogDAO;
 import com.cinema.modules.operation.service.CheckinService;
 
+import java.sql.SQLException;
 import java.time.LocalDateTime;
 
 /**
@@ -53,10 +54,16 @@ public class CheckinServiceImpl implements CheckinService {
         }
 
         // Hợp lệ -> Đánh dấu vé đã sử dụng (USED) và ghi log checkin thành công
-        bookingEngineService.updateTicketStatus(ticket.getId(), "USED");
+        if (!bookingEngineService.updateTicketStatus(ticket.getId(), "USED")) {
+            throw new IllegalStateException("Không thể cập nhật trạng thái vé sau khi soát.");
+        }
         ticket.setStatus("USED");
         log.setStatus("SUCCESS");
-        checkinLogDAO.insertLog(log);
+        try {
+            checkinLogDAO.insertLog(log);
+        } catch (SQLException e) {
+            throw new IllegalStateException("Không thể ghi nhật ký soát vé.", e);
+        }
         return log;
     }
 }

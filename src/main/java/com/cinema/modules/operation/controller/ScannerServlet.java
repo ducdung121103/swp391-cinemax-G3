@@ -29,6 +29,7 @@ public class ScannerServlet extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        req.setCharacterEncoding("UTF-8");
         resp.setContentType("application/json; charset=UTF-8");
         String barcode = req.getParameter("barcode");
 
@@ -36,12 +37,13 @@ public class ScannerServlet extends HttpServlet {
         User staff = (session != null) ? (User) session.getAttribute("currentUser") : null;
         Long staffId = (staff != null) ? staff.getId() : null;
 
-        if (barcode == null || barcode.trim().isEmpty()) {
-            resp.getWriter().write(JsonUtil.toJson(ApiResponse.error("BAD_REQUEST", "Mã vé không được để trống!")));
+        TicketCheckinLog log;
+        try {
+            log = checkinService.checkinTicket(barcode, staffId);
+        } catch (IllegalArgumentException e) {
+            resp.getWriter().write(JsonUtil.toJson(ApiResponse.error("BAD_REQUEST", e.getMessage())));
             return;
         }
-
-        TicketCheckinLog log = checkinService.checkinTicket(barcode.trim(), staffId);
         if ("SUCCESS".equals(log.getStatus())) {
             resp.getWriter().write(JsonUtil.toJson(ApiResponse.success(log, "Vé hợp lệ! Mời quý khách vào phòng chiếu.")));
         } else if ("REJECTED_ALREADY_USED".equals(log.getStatus())) {

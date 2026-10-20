@@ -14,6 +14,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
+import java.sql.SQLException;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -38,7 +39,7 @@ class CheckinServiceTest {
 
     @Test
     @DisplayName("Should successfully check-in a valid ticket and update status to USED")
-    void testCheckinSuccess() {
+    void testCheckinSuccess() throws SQLException {
         Ticket validTicket = Ticket.builder()
                 .bookingId(101L)
                 .showtimeId(1L)
@@ -65,7 +66,7 @@ class CheckinServiceTest {
 
     @Test
     @DisplayName("Should reject ticket if already checked-in (Anti-fraud duplicate entry)")
-    void testCheckinAlreadyUsed() {
+    void testCheckinAlreadyUsed() throws SQLException {
         Ticket usedTicket = Ticket.builder()
                 .barcode("TK-USED-12345")
                 .status("USED")
@@ -85,7 +86,7 @@ class CheckinServiceTest {
 
     @Test
     @DisplayName("Should reject checkin when ticket barcode does not exist")
-    void testCheckinNotFound() {
+    void testCheckinNotFound() throws SQLException {
         when(bookingEngineService.getTicketByBarcode("TK-NONEXISTENT")).thenReturn(null);
 
         TicketCheckinLog result = checkinService.checkinTicket("TK-NONEXISTENT", 3L);

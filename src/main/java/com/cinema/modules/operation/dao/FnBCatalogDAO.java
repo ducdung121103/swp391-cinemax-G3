@@ -4,20 +4,35 @@ import com.cinema.common.context.DBContext;
 import com.cinema.model.FnBCategory;
 import com.cinema.model.FnBItem;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+/** Database access for F&B items and categories. */
 public class FnBCatalogDAO {
+    private static final String FIND_ITEMS_SQL = "SELECT f.*, c.name AS category_name "
+            + "FROM fnb_items f JOIN fnb_categories c ON c.id = f.category_id "
+            + "WHERE f.is_deleted = 0 ORDER BY f.id DESC";
+    private static final String FIND_CATEGORIES_SQL = "SELECT * FROM fnb_categories "
+            + "WHERE is_deleted = 0 ORDER BY name";
+    private static final String INSERT_ITEM_SQL = "INSERT INTO fnb_items "
+            + "(category_id, item_code, name, price, image_url, is_combo) VALUES (?, ?, ?, ?, ?, ?)";
+    private static final String UPDATE_ITEM_SQL = "UPDATE fnb_items SET category_id = ?, item_code = ?, name = ?, "
+            + "price = ?, image_url = ?, is_combo = ?, updated_at = GETDATE() WHERE id = ? AND is_deleted = 0";
+    private static final String INSERT_CATEGORY_SQL = "INSERT INTO fnb_categories (name, description) VALUES (?, ?)";
+    private static final String UPDATE_CATEGORY_SQL = "UPDATE fnb_categories SET name = ?, description = ?, "
+            + "updated_at = GETDATE() WHERE id = ? AND is_deleted = 0";
+
     public List<FnBItem> findItems() throws SQLException {
-        String sql = "SELECT f.*, c.name AS category_name FROM fnb_items f JOIN fnb_categories c ON c.id=f.category_id WHERE f.is_deleted=0 ORDER BY f.id DESC";
         List<FnBItem> items = new ArrayList<>();
-        try (Connection c = DBContext.getConnection(); PreparedStatement ps = c.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
-            while (rs.next()) {
-                FnBItem i = new FnBItem(); i.setId(rs.getLong("id")); i.setCategoryId(rs.getLong("category_id"));
-                i.setItemCode(rs.getString("item_code")); i.setName(rs.getString("name")); i.setPrice(rs.getBigDecimal("price"));
-                i.setImageUrl(rs.getString("image_url")); i.setIsCombo(rs.getBoolean("is_combo")); i.setIsActive(rs.getBoolean("is_active"));
-                FnBCategory cat = new FnBCategory(); cat.setId(i.getCategoryId()); cat.setName(rs.getString("category_name")); i.setCategory(cat); items.add(i);
+        try (Connection connection = DBContext.getConnection();
+             PreparedStatement statement = connection.prepareStatement(FIND_ITEMS_SQL);
+             ResultSet result = statement.executeQuery()) {
+            while (result.next()) {
+                items.add(mapItem(result));
             }
         }
         return items;
@@ -25,24 +40,91 @@ public class FnBCatalogDAO {
 
     public List<FnBCategory> findCategories() throws SQLException {
         List<FnBCategory> categories = new ArrayList<>();
-        try (Connection c = DBContext.getConnection(); PreparedStatement ps = c.prepareStatement("SELECT * FROM fnb_categories WHERE is_deleted=0 ORDER BY name"); ResultSet rs = ps.executeQuery()) {
-            while (rs.next()) { FnBCategory x = new FnBCategory(); x.setId(rs.getLong("id")); x.setName(rs.getString("name")); x.setDescription(rs.getString("description")); x.setIsActive(rs.getBoolean("is_active")); categories.add(x); }
+        try (Connection connection = DBContext.getConnection();
+             PreparedStatement statement = connection.prepareStatement(FIND_CATEGORIES_SQL);
+             ResultSet result = statement.executeQuery()) {
+            while (result.next()) {
+                categories.add(mapCategory(result));
+            }
         }
         return categories;
     }
 
-    public void saveItem(FnBItem i) throws SQLException {
-        String sql = i.getId() == null ? "INSERT INTO fnb_items(category_id,item_code,name,price,image_url,is_combo) VALUES(?,?,?,?,?,?)" : "UPDATE fnb_items SET category_id=?,item_code=?,name=?,price=?,image_url=?,is_combo=?,updated_at=GETDATE() WHERE id=? AND is_deleted=0";
-        try (Connection c=DBContext.getConnection(); PreparedStatement ps=c.prepareStatement(sql)) {
-            ps.setLong(1,i.getCategoryId()); ps.setString(2,i.getItemCode()); ps.setString(3,i.getName()); ps.setBigDecimal(4,i.getPrice()); ps.setString(5,i.getImageUrl()); ps.setBoolean(6,Boolean.TRUE.equals(i.getIsCombo()));
-            if(i.getId()!=null) ps.setLong(7,i.getId()); ps.executeUpdate();
+    public void saveItem(FnBItem item) throws SQLException {
+        boolean insert = item.getId() == null;
+        String sql = insert ? INSERT_ITEM_SQL : UPDATE_ITEM_SQL;
+        try (Connection connection = DBContext.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setLong(1, item.getCategoryId());
+            statement.setString(2, item.getItemCode());
+            statement.setString(3, item.getName());
+            statement.setBigDecimal(4, item.getPrice());
+            statement.setString(5, item.getImageUrl());
+            statement.setBoolean(6, Boolean.TRUE.equals(item.getIsCombo()));
+            if (!insert) {
+                statement.setLong(7, item.getId());
+            }
+            statement.executeUpdate();
         }
     }
-    public void setItemActive(long id, boolean active) throws SQLException { updateStatus("UPDATE fnb_items SET is_active=?,updated_at=GETDATE() WHERE id=? AND is_deleted=0", id, active); }
-    public void saveCategory(FnBCategory x) throws SQLException {
-        String sql=x.getId()==null?"INSERT INTO fnb_categories(name,description) VALUES(?,?)":"UPDATE fnb_categories SET name=?,description=?,updated_at=GETDATE() WHERE id=? AND is_deleted=0";
-        try(Connection c=DBContext.getConnection();PreparedStatement ps=c.prepareStatement(sql)){ps.setString(1,x.getName());ps.setString(2,x.getDescription());if(x.getId()!=null)ps.setLong(3,x.getId());ps.executeUpdate();}
+
+    public void setItemActive(long itemId, boolean active) throws SQLException {
+        updateStatus("UPDATE fnb_items SET is_active = ?, updated_at = GETDATE() WHERE id = ? AND is_deleted = 0",
+                itemId, active);
     }
-    public void setCategoryActive(long id, boolean active) throws SQLException { updateStatus("UPDATE fnb_categories SET is_active=?,updated_at=GETDATE() WHERE id=? AND is_deleted=0", id, active); }
-    private void updateStatus(String sql,long id,boolean active)throws SQLException{try(Connection c=DBContext.getConnection();PreparedStatement ps=c.prepareStatement(sql)){ps.setBoolean(1,active);ps.setLong(2,id);ps.executeUpdate();}}
+
+    public void saveCategory(FnBCategory category) throws SQLException {
+        boolean insert = category.getId() == null;
+        String sql = insert ? INSERT_CATEGORY_SQL : UPDATE_CATEGORY_SQL;
+        try (Connection connection = DBContext.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, category.getName());
+            statement.setString(2, category.getDescription());
+            if (!insert) {
+                statement.setLong(3, category.getId());
+            }
+            statement.executeUpdate();
+        }
+    }
+
+    public void setCategoryActive(long categoryId, boolean active) throws SQLException {
+        updateStatus("UPDATE fnb_categories SET is_active = ?, updated_at = GETDATE() "
+                + "WHERE id = ? AND is_deleted = 0", categoryId, active);
+    }
+
+    private void updateStatus(String sql, long id, boolean active) throws SQLException {
+        try (Connection connection = DBContext.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setBoolean(1, active);
+            statement.setLong(2, id);
+            statement.executeUpdate();
+        }
+    }
+
+    private FnBItem mapItem(ResultSet result) throws SQLException {
+        FnBItem item = new FnBItem();
+        item.setId(result.getLong("id"));
+        item.setCategoryId(result.getLong("category_id"));
+        item.setItemCode(result.getString("item_code"));
+        item.setName(result.getString("name"));
+        item.setPrice(result.getBigDecimal("price"));
+        item.setImageUrl(result.getString("image_url"));
+        item.setIsCombo(result.getBoolean("is_combo"));
+        item.setIsActive(result.getBoolean("is_active"));
+
+        FnBCategory category = new FnBCategory();
+        category.setId(item.getCategoryId());
+        category.setName(result.getString("category_name"));
+        item.setCategory(category);
+        return item;
+    }
+
+    private FnBCategory mapCategory(ResultSet result) throws SQLException {
+        FnBCategory category = new FnBCategory();
+        category.setId(result.getLong("id"));
+        category.setName(result.getString("name"));
+        category.setDescription(result.getString("description"));
+        category.setIsActive(result.getBoolean("is_active"));
+        return category;
+    }
 }

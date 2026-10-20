@@ -49,15 +49,26 @@
             .then(data => {
                 const resBox = document.getElementById('checkResult');
                 resBox.style.display = 'block';
+                resBox.replaceChildren();
                 if (data.status === 'SUCCESS') {
                     resBox.style.background = '#d4edda';
                     resBox.style.color = '#155724';
-                    resBox.innerHTML = '✅ ' + data.message + '<br><small>Mã vé: ' + barcode + '</small>';
                 } else {
                     resBox.style.background = '#f8d7da';
                     resBox.style.color = '#721c24';
-                    resBox.innerHTML = '❌ ' + data.message + '<br><small>Mã vé: ' + barcode + '</small>';
                 }
+                const message = document.createElement('span');
+                message.textContent = (data.status === 'SUCCESS' ? '✅ ' : '❌ ') + data.message;
+                const details = document.createElement('small');
+                details.textContent = 'Mã vé: ' + barcode;
+                resBox.append(message, document.createElement('br'), details);
+            })
+            .catch(() => {
+                const resBox = document.getElementById('checkResult');
+                resBox.style.display = 'block';
+                resBox.style.background = '#f8d7da';
+                resBox.style.color = '#721c24';
+                resBox.textContent = '❌ Không thể kết nối để soát vé. Vui lòng thử lại.';
             });
         }
 
