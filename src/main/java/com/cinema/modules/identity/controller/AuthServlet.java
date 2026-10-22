@@ -217,7 +217,7 @@ public class AuthServlet extends HttpServlet {
                 && redirectParam.startsWith(req.getContextPath())) {
             // Đối với STAFF, chỉ cho phép redirect đến URL mà STAFF có quyền (pos hoặc scanner)
             if (!RoleConstant.STAFF.equalsIgnoreCase(role)
-                    || redirectParam.contains("/admin/operation/pos")
+                    || redirectParam.contains("/operation/pos")
                     || redirectParam.contains("/admin/operation/scanner")) {
                 resp.sendRedirect(redirectParam);
                 return;
@@ -228,7 +228,7 @@ public class AuthServlet extends HttpServlet {
                 || RoleConstant.MANAGER.equalsIgnoreCase(role)) {
             resp.sendRedirect(req.getContextPath() + "/admin/dashboard");
         } else if (RoleConstant.STAFF.equalsIgnoreCase(role)) {
-            resp.sendRedirect(req.getContextPath() + "/admin/operation/pos");
+            resp.sendRedirect(req.getContextPath() + "/operation/pos");
         } else {
             resp.sendRedirect(req.getContextPath() + "/");
         }

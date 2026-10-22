@@ -90,7 +90,7 @@
                     <div class="section-number">01</div>
                     <div><h2 id="pos-picker-title">Chọn suất chiếu</h2><p>Danh sách suất chiếu trong ngày tại chi nhánh.</p></div>
                 </div>
-                <form class="pos-picker-form" method="get" action="${pageContext.request.contextPath}/admin/operation/pos">
+                <form class="pos-picker-form" method="get" action="${pageContext.request.contextPath}/operation/pos">
                     <label class="field-group date-field">Ngày chiếu
                         <input type="date" name="date" value="${selectedDate}" min="${today}"
                                onchange="this.form.elements['showtimeId'].value='';this.form.submit()">
@@ -125,7 +125,7 @@
             </section>
 
             <c:if test="${not empty selectedShowtime}">
-                <form class="pos-order-form" id="pos-order-form" method="post" action="${pageContext.request.contextPath}/admin/operation/pos">
+                <form class="pos-order-form" id="pos-order-form" method="post" action="${pageContext.request.contextPath}/operation/pos">
                     <input type="hidden" name="checkoutConfirmed" value="false">
                     <input type="hidden" name="cinemaId" value="${cinemaId}">
                     <input type="hidden" name="date" value="${selectedDate}">

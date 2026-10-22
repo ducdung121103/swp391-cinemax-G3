@@ -37,16 +37,16 @@ public class AuthorizationFilter implements Filter {
 
         // 1. ADMIN có toàn quyền
         if (RoleConstant.ADMIN.equalsIgnoreCase(role)) {
+            if (uri.contains("/operation/pos")) {
+                res.sendError(HttpServletResponse.SC_FORBIDDEN, "Admin không có quyền sử dụng quầy POS!");
+                return;
+            }
             chain.doFilter(request, response);
             return;
         }
 
         // 2. MANAGER được vào hạ tầng, catalog, hóa đơn, báo cáo của rạp mình
         if (RoleConstant.MANAGER.equalsIgnoreCase(role)) {
-            if (uri.contains("/admin/operation/fnb-catalog")) {
-                res.sendError(HttpServletResponse.SC_FORBIDDEN, "Chỉ Admin được quản lý danh mục F&B!");
-                return;
-            }
             if (uri.contains("/admin/identity/users") && !uri.contains("/admin/identity/staff")) {
                 // Không được sửa tài khoản Admin
                 res.sendError(HttpServletResponse.SC_FORBIDDEN, "Bạn không có quyền quản lý tài khoản cấp cao!");
@@ -58,7 +58,7 @@ public class AuthorizationFilter implements Filter {
 
         // 3. STAFF chỉ được vào POS và Scanner QR
         if (RoleConstant.STAFF.equalsIgnoreCase(role)) {
-            if (uri.contains("/admin/operation/pos") || uri.contains("/admin/operation/scanner")) {
+            if (uri.contains("/operation/pos") || uri.contains("/admin/operation/scanner")) {
                 chain.doFilter(request, response);
                 return;
             } else {

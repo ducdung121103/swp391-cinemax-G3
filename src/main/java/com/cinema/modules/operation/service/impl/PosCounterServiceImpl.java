@@ -75,6 +75,9 @@ public class PosCounterServiceImpl implements PosCounterService {
             throw new IllegalArgumentException("Không tìm thấy tài khoản đang đăng nhập.");
         }
 
+        if (RoleConstant.ADMIN.equalsIgnoreCase(roleName(staff))) {
+            throw new SecurityException("Admin khong co quyen su dung quay POS.");
+        }
         LocalDate today = LocalDate.now();
         LocalDate selectedDate = today;
         String errorMessage = null;
@@ -246,6 +249,9 @@ public class PosCounterServiceImpl implements PosCounterService {
     }
 
     private Long resolveCinemaForCheckout(User staff, String requestedCinema) {
+        if (RoleConstant.ADMIN.equalsIgnoreCase(roleName(staff))) {
+            throw new SecurityException("Admin khong co quyen su dung quay POS.");
+        }
         String role = roleName(staff);
         long requested = parseRequiredLong(requestedCinema, "Chọn chi nhánh.");
         if (RoleConstant.ADMIN.equalsIgnoreCase(role)) {

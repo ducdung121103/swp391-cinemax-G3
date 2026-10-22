@@ -30,6 +30,8 @@
     <filter-mapping>
         <filter-name>AuthenticationFilter</filter-name>
         <url-pattern>/admin/*</url-pattern>
+        <url-pattern>/manager/*</url-pattern>
+        <url-pattern>/operation/*</url-pattern>
         <url-pattern>/customer/account/*</url-pattern>
     </filter-mapping>
 
@@ -41,6 +43,8 @@
     <filter-mapping>
         <filter-name>AuthorizationFilter</filter-name>
         <url-pattern>/admin/*</url-pattern>
+        <url-pattern>/manager/*</url-pattern>
+        <url-pattern>/operation/*</url-pattern>
     </filter-mapping>
 
     <!-- Welcome File List -->

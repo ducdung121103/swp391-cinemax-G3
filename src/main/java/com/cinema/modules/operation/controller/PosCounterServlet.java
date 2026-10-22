@@ -21,7 +21,7 @@ import java.sql.SQLException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-@WebServlet(name = "PosCounterServlet", urlPatterns = {"/admin/operation/pos"})
+@WebServlet(name = "PosCounterServlet", urlPatterns = {"/operation/pos"})
 public class PosCounterServlet extends HttpServlet {
     private static final String VIEW = "/WEB-INF/views/admin/operation/pos-counter.jsp";
     private final PosCounterService posCounterService = new PosCounterServiceImpl();
@@ -142,7 +142,7 @@ public class PosCounterServlet extends HttpServlet {
     }
 
     private String posUrl(HttpServletRequest request, String cinemaId, String date, String showtimeId) {
-        StringBuilder url = new StringBuilder(request.getContextPath()).append("/admin/operation/pos?");
+        StringBuilder url = new StringBuilder(request.getContextPath()).append("/operation/pos?");
         appendParameter(url, "cinemaId", cinemaId);
         appendParameter(url, "date", date);
         appendParameter(url, "showtimeId", showtimeId);

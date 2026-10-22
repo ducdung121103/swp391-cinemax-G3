@@ -16,10 +16,10 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 
-@WebServlet("/admin/operation/fnb-catalog")
+@WebServlet("/manager/operation/fnb-catalog")
 public class FnBCatalogServlet extends HttpServlet {
     private static final String VIEW = "/WEB-INF/views/admin/operation/fnb-catalog.jsp";
-    private static final String URL = "/admin/operation/fnb-catalog";
+    private static final String MANAGER_URL = "/manager/operation/fnb-catalog";
 
     private final FnBCatalogService catalogService = new FnBCatalogServiceImpl();
 
@@ -27,6 +27,7 @@ public class FnBCatalogServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         try {
+            request.setAttribute("fnbCatalogUrl", catalogUrl(request));
             request.setAttribute("items", catalogService.getItems());
             request.setAttribute("categories", catalogService.getCategories());
             request.getRequestDispatcher(VIEW).forward(request, response);
@@ -41,7 +42,7 @@ public class FnBCatalogServlet extends HttpServlet {
         request.setCharacterEncoding("UTF-8");
         try {
             handleAction(request);
-            response.sendRedirect(request.getContextPath() + URL + "?success=1");
+            response.sendRedirect(request.getContextPath() + catalogUrl(request) + "?success=1");
         } catch (IllegalArgumentException e) {
             redirectWithError(request, response, e.getMessage());
         } catch (SQLException e) {
@@ -119,6 +120,10 @@ public class FnBCatalogServlet extends HttpServlet {
     private void redirectWithError(HttpServletRequest request, HttpServletResponse response, String message)
             throws IOException {
         String error = URLEncoder.encode(message, StandardCharsets.UTF_8);
-        response.sendRedirect(request.getContextPath() + URL + "?error=" + error);
+        response.sendRedirect(request.getContextPath() + catalogUrl(request) + "?error=" + error);
+    }
+
+    private String catalogUrl(HttpServletRequest request) {
+        return MANAGER_URL;
     }
 }

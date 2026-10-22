@@ -65,12 +65,6 @@
                 </li>
 
                 <li class="menu-header">DANH MỤC DỊCH VỤ</li>
-                <li class="${currentUri.contains('/operation/fnb-catalog') ? 'active' : ''}">
-                    <a href="${pageContext.request.contextPath}/admin/operation/fnb-catalog">
-                        <i class="fa-solid fa-burger"></i>
-                        <span>Danh Mục F&B</span>
-                    </a>
-                </li>
             </c:if>
 
             <%-- ==================== 2. PHÂN HỆ MANAGER (QUẢN LÝ CỤM RẠP CHI NHÁNH) ==================== --%>
@@ -97,13 +91,19 @@
                     </a>
                 </li>
                 <li class="${currentUri.contains('/operation/fnb') && !currentUri.contains('/fnb-catalog') ? 'active' : ''}">
-                    <a href="${pageContext.request.contextPath}/admin/operation/fnb">
+                    <a href="${pageContext.request.contextPath}/manager/operation/fnb">
                         <i class="fa-solid fa-boxes-stacked"></i>
                         <span>Tồn Kho Bắp Nước</span>
                     </a>
                 </li>
+                <li class="${currentUri.contains('/operation/fnb-catalog') ? 'active' : ''}">
+                    <a href="${pageContext.request.contextPath}/manager/operation/fnb-catalog">
+                        <i class="fa-solid fa-burger"></i>
+                        <span>Danh Mục F&B</span>
+                    </a>
+                </li>
                 <li class="${currentUri.contains('/operation/pos') ? 'active' : ''}">
-                    <a href="${pageContext.request.contextPath}/admin/operation/pos">
+                    <a href="${pageContext.request.contextPath}/operation/pos">
                         <i class="fa-solid fa-cash-register"></i>
                         <span>Quầy Bán Vé & POS</span>
                     </a>
@@ -114,7 +114,7 @@
             <c:if test="${isStaff}">
                 <li class="menu-header">TÁC NGHIỆP TẠI RẠP</li>
                 <li class="${currentUri.contains('/operation/pos') ? 'active' : ''}">
-                    <a href="${pageContext.request.contextPath}/admin/operation/pos">
+                    <a href="${pageContext.request.contextPath}/operation/pos">
                         <i class="fa-solid fa-cash-register"></i>
                         <span>Quầy Bán Vé & POS</span>
                     </a>

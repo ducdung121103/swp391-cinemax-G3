@@ -14,9 +14,11 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
 
-@WebServlet("/admin/operation/fnb")
+@WebServlet(urlPatterns = {"/manager/operation/fnb", "/admin/operation/fnb"})
 public class FnBInventoryServlet extends HttpServlet {
     private static final String VIEW = "/WEB-INF/views/admin/operation/fnb-inventory.jsp";
+    private static final String MANAGER_URL = "/manager/operation/fnb";
+    private static final String ADMIN_URL = "/admin/operation/fnb";
     private final FnBInventoryService inventoryService = new FnBInventoryServiceImpl();
 
     @Override
@@ -29,6 +31,7 @@ public class FnBInventoryServlet extends HttpServlet {
         }
 
         try {
+            request.setAttribute("fnbInventoryUrl", inventoryUrl(request));
             if (user.getCinemaId() == null) {
                 List<Cinema> cinemas = inventoryService.getActiveCinemas();
                 request.setAttribute("cinemas", cinemas);
@@ -69,7 +72,7 @@ public class FnBInventoryServlet extends HttpServlet {
             int quantity = parseInt(request.getParameter("quantity"), "Số lượng tồn kho không hợp lệ.");
             int threshold = parseInt(request.getParameter("threshold"), "Ngưỡng cảnh báo không hợp lệ.");
             inventoryService.updateStock(cinemaId, itemId, quantity, threshold);
-            response.sendRedirect(request.getContextPath() + "/admin/operation/fnb?success=1&cinemaId=" + cinemaId);
+            response.sendRedirect(request.getContextPath() + inventoryUrl(request) + "?success=1&cinemaId=" + cinemaId);
         } catch (IllegalArgumentException e) {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
         } catch (SQLException e) {
@@ -79,6 +82,10 @@ public class FnBInventoryServlet extends HttpServlet {
 
     private User currentUser(HttpServletRequest request) {
         return (User) request.getSession().getAttribute("currentUser");
+    }
+
+    private String inventoryUrl(HttpServletRequest request) {
+        return request.getRequestURI().contains(MANAGER_URL) ? MANAGER_URL : ADMIN_URL;
     }
 
     private long parseLong(String value, String message) {
