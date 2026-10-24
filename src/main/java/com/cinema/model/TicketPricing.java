@@ -20,10 +20,14 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @ToString(callSuper = true)
 public class TicketPricing extends BaseEntity {
+    private Long cinemaId;
     private String dayType; // WEEKDAY, WEEKEND, HOLIDAY
     private String timeSlot; // EARLY, STANDARD, PRIME
     private String experienceFormat; // 2D, 3D, IMAX
+    private Long seatTypeId;
     private BigDecimal basePrice;
     private LocalDate effectiveFrom;
     private LocalDate effectiveTo;
+    private String cinemaName;
+    private String seatTypeName;
 }

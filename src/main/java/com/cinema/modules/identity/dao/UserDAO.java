@@ -1,6 +1,7 @@
 package com.cinema.modules.identity.dao;
 
 import com.cinema.common.context.DBContext;
+import com.cinema.model.Cinema;
 import com.cinema.model.Role;
 import com.cinema.model.User;
 
@@ -63,6 +64,75 @@ public class UserDAO {
             e.printStackTrace();
         }
         return users;
+    }
+
+    /**
+     * Tìm user cho màn quản trị. keyword khớp tên hoặc email. roleName và status để trống thì không lọc.
+     */
+    public List<User> search(String keyword, String roleName, String status, int page, int pageSize) {
+        StringBuilder sql = new StringBuilder(
+                "SELECT u.*, r.role_name, r.description AS role_desc, c.name AS cinema_name " +
+                "FROM users u JOIN roles r ON u.role_id = r.id " +
+                "LEFT JOIN cinemas c ON u.cinema_id = c.id " +
+                "WHERE u.is_deleted = 0 ");
+        List<Object> params = new ArrayList<>();
+        appendUserFilters(sql, params, keyword, roleName, status);
+        sql.append("ORDER BY u.created_at DESC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY");
+        params.add((page - 1) * pageSize);
+        params.add(pageSize);
+
+        List<User> users = new ArrayList<>();
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+            bindParams(ps, params);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    User user = mapUser(rs);
+                    String cinemaName = rs.getString("cinema_name");
+                    if (cinemaName != null) {
+                        Cinema cinema = new Cinema();
+                        cinema.setId(user.getCinemaId());
+                        cinema.setName(cinemaName);
+                        user.setCinema(cinema);
+                    }
+                    users.add(user);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return users;
+    }
+
+    public int countSearch(String keyword, String roleName, String status) {
+        StringBuilder sql = new StringBuilder(
+                "SELECT COUNT(*) FROM users u JOIN roles r ON u.role_id = r.id WHERE u.is_deleted = 0 ");
+        List<Object> params = new ArrayList<>();
+        appendUserFilters(sql, params, keyword, roleName, status);
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+            bindParams(ps, params);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) return rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    /** Số admin đang ACTIVE. Dùng để chặn khóa admin cuối cùng. */
+    public int countActiveAdmins() {
+        String sql = "SELECT COUNT(*) FROM users u JOIN roles r ON u.role_id = r.id " +
+                     "WHERE r.role_name = 'ADMIN' AND u.status = 'ACTIVE' AND u.is_deleted = 0";
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            if (rs.next()) return rs.getInt(1);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
     }
 
     /** Đếm tổng số user (dùng cho phân trang). */
@@ -247,6 +317,29 @@ public class UserDAO {
      * Khóa / mở khóa tài khoản (M-01.4 - Admin User Management).
      * @param status 'ACTIVE' hoặc 'LOCKED'
      */
+    /**
+     * Gán STAFF hoặc MANAGER vào một rạp đang hoạt động.
+     * Không đổi user đang là ADMIN.
+     */
+    public boolean updateRoleAndCinema(Long userId, String roleName, Long cinemaId) {
+        String sql = "UPDATE users SET role_id = (SELECT id FROM roles WHERE role_name = ? AND is_deleted = 0), " +
+                     "cinema_id = ?, updated_at = GETDATE() " +
+                     "WHERE id = ? AND is_deleted = 0 " +
+                     "AND role_id <> (SELECT id FROM roles WHERE role_name = 'ADMIN') " +
+                     "AND EXISTS (SELECT 1 FROM cinemas WHERE id = ? AND is_deleted = 0 AND is_active = 1)";
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, roleName);
+            ps.setLong(2, cinemaId);
+            ps.setLong(3, userId);
+            ps.setLong(4, cinemaId);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
     public boolean updateStatus(Long userId, String status) {
         String sql = "UPDATE users SET status = ?, updated_at = GETDATE() WHERE id = ? AND is_deleted = 0";
         try (Connection conn = DBContext.getConnection();
@@ -263,6 +356,34 @@ public class UserDAO {
     // ────────────────────────────────────────────────────────────────────────────
     // PRIVATE HELPERS
     // ────────────────────────────────────────────────────────────────────────────
+
+    private void appendUserFilters(StringBuilder sql, List<Object> params, String keyword, String roleName, String status) {
+        if (keyword != null && !keyword.isBlank()) {
+            String like = "%" + keyword.trim().replace("[", "[[]").replace("%", "[%]").replace("_", "[_]") + "%";
+            sql.append("AND (u.full_name LIKE ? OR u.email LIKE ?) ");
+            params.add(like);
+            params.add(like);
+        }
+        if (roleName != null && !roleName.isBlank()) {
+            sql.append("AND r.role_name = ? ");
+            params.add(roleName.trim());
+        }
+        if (status != null && !status.isBlank()) {
+            sql.append("AND u.status = ? ");
+            params.add(status.trim());
+        }
+    }
+
+    private void bindParams(PreparedStatement ps, List<Object> params) throws SQLException {
+        for (int i = 0; i < params.size(); i++) {
+            Object value = params.get(i);
+            if (value instanceof Integer) {
+                ps.setInt(i + 1, (Integer) value);
+            } else {
+                ps.setString(i + 1, String.valueOf(value));
+            }
+        }
+    }
 
     @FunctionalInterface
     private interface StatementSetter {

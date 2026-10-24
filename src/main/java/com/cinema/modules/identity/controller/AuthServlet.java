@@ -199,7 +199,7 @@ public class AuthServlet extends HttpServlet {
 
         // Tài khoản bị khóa (LOCKED)
         if ("LOCKED".equalsIgnoreCase(user.getStatus())) {
-            req.setAttribute("errorMessage", "Tài khoản của bạn đã bị khóa. Vui lòng liên hệ hỗ trợ.");
+            req.setAttribute("errorMessage", "Tài khoản đã bị khóa");
             req.getRequestDispatcher("/WEB-INF/views/customer/account/login.jsp").forward(req, resp);
             return;
         }

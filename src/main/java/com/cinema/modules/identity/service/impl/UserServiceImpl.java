@@ -1,12 +1,15 @@
 package com.cinema.modules.identity.service.impl;
 
 import com.cinema.common.util.PasswordUtil;
+import com.cinema.common.constant.RoleConstant;
+import com.cinema.common.util.ValidationUtil;
 import com.cinema.model.User;
 import com.cinema.modules.identity.dao.UserDAO;
 import com.cinema.modules.identity.service.EmailService;
 import com.cinema.modules.identity.service.UserService;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 import java.util.logging.Logger;
 
@@ -35,24 +38,23 @@ public class UserServiceImpl implements UserService {
         User user = userDAO.findByEmail(email.trim().toLowerCase());
         if (user == null) return null;
 
-        // Kiểm tra tài khoản bị xóa mềm hoặc bị khóa
-        if ("LOCKED".equalsIgnoreCase(user.getStatus())) {
-            LOGGER.warning("[AUTH] Tài khoản bị khóa: " + email);
+        if (!PasswordUtil.checkPassword(plainPassword, user.getPasswordHash())) {
             return null;
         }
 
-        // Chặn tài khoản chưa xác thực email — trả null để AuthServlet xử lý riêng
-        if ("UNVERIFIED".equalsIgnoreCase(user.getStatus())) {
-            LOGGER.info("[AUTH] Tài khoản chưa xác thực OTP: " + email);
-            // Trả về user với status=UNVERIFIED để controller phân biệt
-            return PasswordUtil.checkPassword(plainPassword, user.getPasswordHash()) ? user : null;
-        }
-
-        // Xác thực mật khẩu BCrypt
-        if (PasswordUtil.checkPassword(plainPassword, user.getPasswordHash())) {
+        // Mật khẩu đúng nhưng tài khoản bị khóa: trả user để servlet hiện thông báo khóa.
+        if ("LOCKED".equalsIgnoreCase(user.getStatus())) {
+            LOGGER.warning("[AUTH] Tài khoản bị khóa: " + email);
             return user;
         }
-        return null;
+
+        // Chặn tài khoản chưa xác thực email — trả user để AuthServlet chuyển trang OTP
+        if ("UNVERIFIED".equalsIgnoreCase(user.getStatus())) {
+            LOGGER.info("[AUTH] Tài khoản chưa xác thực OTP: " + email);
+            return user;
+        }
+
+        return user;
     }
 
     @Override
@@ -162,7 +164,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public boolean changePassword(Long userId, String oldPassword, String newPassword) {
-        if (userId == null || oldPassword == null || newPassword == null) return false;
+        if (userId == null || oldPassword == null || !ValidationUtil.isValidPassword(newPassword)) return false;
         User user = userDAO.findById(userId);
         if (user == null) return false;
         if (!PasswordUtil.checkPassword(oldPassword, user.getPasswordHash())) return false;
@@ -212,6 +214,77 @@ public class UserServiceImpl implements UserService {
     // ────────────────────────────────────────────────────────────────────────────
     // PRIVATE UTILITY
     // ────────────────────────────────────────────────────────────────────────────
+
+    @Override
+    public String updateProfile(Long userId, String fullName, String phone, String avatarUrl) {
+        if (userId == null || !ValidationUtil.isNotEmpty(fullName) || fullName.trim().length() > 120) {
+            return "NAME";
+        }
+        String normalizedPhone = (phone == null || phone.isBlank()) ? null : phone.trim();
+        if (normalizedPhone != null && !ValidationUtil.isValidPhone(normalizedPhone)) {
+            return "PHONE";
+        }
+        String normalizedAvatar = (avatarUrl == null || avatarUrl.isBlank()) ? null : avatarUrl.trim();
+        if (normalizedAvatar != null && normalizedAvatar.length() > 255) {
+            return "AVATAR";
+        }
+        if (normalizedPhone != null) {
+            User owner = userDAO.findByPhone(normalizedPhone);
+            if (owner != null && !userId.equals(owner.getId())) {
+                return "PHONE_TAKEN";
+            }
+        }
+        boolean updated = userDAO.updateProfile(userId, fullName.trim(), normalizedPhone, normalizedAvatar);
+        return updated ? "OK" : "FAILED";
+    }
+
+    @Override
+    public List<User> searchUsers(String keyword, String roleName, String status, int page, int pageSize) {
+        int safePage = Math.max(page, 1);
+        int safeSize = pageSize < 1 ? 20 : Math.min(pageSize, 50);
+        return userDAO.search(keyword, roleName, status, safePage, safeSize);
+    }
+
+    @Override
+    public int countUsers(String keyword, String roleName, String status) {
+        return userDAO.countSearch(keyword, roleName, status);
+    }
+
+    @Override
+    public String toggleAccountStatus(Long actorId, Long targetId) {
+        if (actorId == null || targetId == null) return "NOT_FOUND";
+        if (actorId.equals(targetId)) return "SELF";
+        User target = userDAO.findById(targetId);
+        if (target == null) return "NOT_FOUND";
+        boolean active = "ACTIVE".equalsIgnoreCase(target.getStatus());
+        boolean locked = "LOCKED".equalsIgnoreCase(target.getStatus());
+        if (!active && !locked) return "FAILED";
+        if (active && isAdmin(target) && userDAO.countActiveAdmins() <= 1) return "LAST_ADMIN";
+        String next = active ? "LOCKED" : "ACTIVE";
+        return userDAO.updateStatus(targetId, next) ? "OK" : "FAILED";
+    }
+
+    @Override
+    public String assignRoleAndBranch(Long actorId, Long targetId, String roleName, Long cinemaId) {
+        if (actorId == null || targetId == null) return "NOT_FOUND";
+        if (actorId.equals(targetId)) return "SELF";
+        if (!RoleConstant.STAFF.equals(roleName) && !RoleConstant.MANAGER.equals(roleName)) return "ROLE";
+        if (cinemaId == null) return "CINEMA";
+        User target = userDAO.findById(targetId);
+        if (target == null) return "NOT_FOUND";
+        if (isAdmin(target)) return "ADMIN";
+        if (isCustomer(target)) return "CUSTOMER";
+        boolean updated = userDAO.updateRoleAndCinema(targetId, roleName, cinemaId);
+        return updated ? "OK" : "FAILED";
+    }
+
+    private boolean isAdmin(User user) {
+        return user.getRole() != null && RoleConstant.ADMIN.equalsIgnoreCase(user.getRole().getRoleName());
+    }
+
+    private boolean isCustomer(User user) {
+        return user.getRole() != null && RoleConstant.CUSTOMER.equalsIgnoreCase(user.getRole().getRoleName());
+    }
 
     /** Tạo OTP 6 chữ số ngẫu nhiên, đảm bảo không bắt đầu bằng 0. */
     private String generateOtp() {

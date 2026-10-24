@@ -2,6 +2,8 @@ package com.cinema.modules.identity.service;
 
 import com.cinema.model.User;
 
+import java.util.List;
+
 /**
  * Public Service Interface do TV 2 (Cường) cung cấp cho toàn hệ thống.
  * Các module khác CHỈ được gọi qua interface này, không import DAO trực tiếp.
@@ -66,4 +68,27 @@ public interface UserService {
      * @return true nếu token hợp lệ và cập nhật thành công
      */
     boolean resetPasswordByToken(String token, String newPassword);
+
+    // ── Profile & admin accounts ─────────────────────────────────────────────
+
+    /**
+     * Cập nhật hồ sơ. Trả về OK, NAME, PHONE, PHONE_TAKEN, AVATAR hoặc FAILED.
+     * Số điện thoại của chính user thì vẫn lưu được.
+     */
+    String updateProfile(Long userId, String fullName, String phone, String avatarUrl);
+
+    List<User> searchUsers(String keyword, String roleName, String status, int page, int pageSize);
+
+    int countUsers(String keyword, String roleName, String status);
+
+    /**
+     * Đổi ACTIVE ↔ LOCKED. Trả về OK, SELF, LAST_ADMIN, NOT_FOUND hoặc FAILED.
+     */
+    String toggleAccountStatus(Long actorId, Long targetId);
+
+    /**
+     * Gán STAFF hoặc MANAGER vào một rạp. Không đổi ADMIN và không gán chi nhánh cho CUSTOMER.
+     * Trả về OK, ROLE, CINEMA, ADMIN, CUSTOMER, SELF, NOT_FOUND hoặc FAILED.
+     */
+    String assignRoleAndBranch(Long actorId, Long targetId, String roleName, Long cinemaId);
 }

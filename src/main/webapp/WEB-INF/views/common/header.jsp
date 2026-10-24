@@ -50,6 +50,11 @@
                         </a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link nav-link-cinema ${activeMenu == 'showtimes' ? 'active' : ''}" href="${pageContext.request.contextPath}/showtimes">
+                            <i class="fa-solid fa-clock me-1 text-warning"></i> Lịch Chiếu
+                        </a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link nav-link-cinema ${activeMenu == 'movies' && type == 'now_showing' ? 'active' : ''}" href="${pageContext.request.contextPath}/movies?type=now_showing">
                             <i class="fa-solid fa-fire me-1 text-danger"></i> Phim Đang Chiếu
                         </a>
@@ -94,6 +99,11 @@
                                         </li>
                                         <li><hr class="dropdown-divider border-secondary"></li>
                                     </c:if>
+                                    <li>
+                                        <a class="dropdown-item" href="${pageContext.request.contextPath}/customer/account/profile">
+                                            <i class="fa-solid fa-id-card me-2"></i> Hồ sơ
+                                        </a>
+                                    </li>
                                     <li>
                                         <a class="dropdown-item" href="${pageContext.request.contextPath}/logout">
                                             <i class="fa-solid fa-right-from-bracket me-2 text-danger"></i> Đăng Xuất

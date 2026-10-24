@@ -23,6 +23,7 @@ public interface ScreeningRoomService {
     List<ScreeningRoom> getRoomsByCinema(Long cinemaId);
     ScreeningRoom getRoomById(Long roomId);
     boolean isRoomAvailable(Long roomId, LocalDateTime startTime, LocalDateTime endTime);
+    boolean isRoomAvailable(Long roomId, LocalDateTime startTime, LocalDateTime endTime, Long excludeShowtimeId);
     List<Seat> getRoomSeatMatrix(Long roomId);
     Seat getSeatById(Long seatId);
 

@@ -63,8 +63,26 @@
                         <span>Cấu Hình Hệ Thống</span>
                     </a>
                 </li>
+                <li class="${currentUri.contains('/identity/users') ? 'active' : ''}">
+                    <a href="${pageContext.request.contextPath}/admin/identity/users">
+                        <i class="fa-solid fa-users"></i>
+                        <span>Quản lý tài khoản</span>
+                    </a>
+                </li>
 
                 <li class="menu-header">DANH MỤC DỊCH VỤ</li>
+                <li class="${currentUri.contains('/catalog/showtimes') ? 'active' : ''}">
+                    <a href="${pageContext.request.contextPath}/admin/catalog/showtimes">
+                        <i class="fa-solid fa-calendar-days"></i>
+                        <span>Quản lý lịch chiếu</span>
+                    </a>
+                </li>
+                <li class="${currentUri.contains('/catalog/pricing') ? 'active' : ''}">
+                    <a href="${pageContext.request.contextPath}/admin/catalog/pricing">
+                        <i class="fa-solid fa-tags"></i>
+                        <span>Bảng giá vé</span>
+                    </a>
+                </li>
                 <li class="${currentUri.contains('/operation/fnb-catalog') ? 'active' : ''}">
                     <a href="${pageContext.request.contextPath}/admin/operation/fnb-catalog">
                         <i class="fa-solid fa-burger"></i>
@@ -88,6 +106,12 @@
                     <a href="${pageContext.request.contextPath}/manager/showtimes">
                         <i class="fa-solid fa-calendar-days"></i>
                         <span>Quản lý Lịch Chiếu</span>
+                    </a>
+                </li>
+                <li class="${currentUri.contains('/catalog/pricing') ? 'active' : ''}">
+                    <a href="${pageContext.request.contextPath}/admin/catalog/pricing">
+                        <i class="fa-solid fa-tags"></i>
+                        <span>Bảng giá vé</span>
                     </a>
                 </li>
                 <li class="${currentUri.contains('/infrastructure/rooms') ? 'active' : ''}">

@@ -415,12 +415,17 @@ public class ScreeningRoomDAO {
     // =========================================================================
 
     public boolean isAvailable(Long roomId, LocalDateTime start, LocalDateTime end) {
+        return isAvailable(roomId, start, end, null);
+    }
+
+    public boolean isAvailable(Long roomId, LocalDateTime start, LocalDateTime end, Long excludeShowtimeId) {
         String maintenanceSql = "SELECT COUNT(*) FROM maintenance_schedules " +
                      "WHERE screening_room_id = ? AND is_deleted = 0 " +
                      "AND NOT (end_time <= ? OR start_time >= ?)";
 
         String showtimeSql = "SELECT COUNT(*) FROM showtimes " +
                      "WHERE screening_room_id = ? AND status != 'CANCELLED' AND is_deleted = 0 " +
+                     "AND (? IS NULL OR id <> ?) " +
                      "AND NOT (end_time <= ? OR start_time >= ?)";
 
         try (Connection conn = DBContext.getConnection()) {
@@ -437,8 +442,15 @@ public class ScreeningRoomDAO {
 
             try (PreparedStatement ps2 = conn.prepareStatement(showtimeSql)) {
                 ps2.setLong(1, roomId);
-                ps2.setTimestamp(2, java.sql.Timestamp.valueOf(start));
-                ps2.setTimestamp(3, java.sql.Timestamp.valueOf(end));
+                if (excludeShowtimeId == null) {
+                    ps2.setNull(2, java.sql.Types.BIGINT);
+                    ps2.setNull(3, java.sql.Types.BIGINT);
+                } else {
+                    ps2.setLong(2, excludeShowtimeId);
+                    ps2.setLong(3, excludeShowtimeId);
+                }
+                ps2.setTimestamp(4, java.sql.Timestamp.valueOf(start));
+                ps2.setTimestamp(5, java.sql.Timestamp.valueOf(end));
                 try (ResultSet rs2 = ps2.executeQuery()) {
                     if (rs2.next() && rs2.getInt(1) > 0) {
                         return false;

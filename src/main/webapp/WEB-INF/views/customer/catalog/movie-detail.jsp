@@ -118,7 +118,7 @@
                 <div class="d-flex flex-wrap gap-3 mt-4">
                     <c:choose>
                         <c:when test="${movie.nowShowing}">
-                            <a href="${pageContext.request.contextPath}/booking/checkout?showtimeId=1" class="btn btn-cinema-primary btn-lg">
+                            <a href="${pageContext.request.contextPath}/showtimes?movieId=${movie.id}" class="btn btn-cinema-primary btn-lg">
                                 <i class="fa-solid fa-ticket me-2"></i> Mua Vé Ngay
                             </a>
                         </c:when>
