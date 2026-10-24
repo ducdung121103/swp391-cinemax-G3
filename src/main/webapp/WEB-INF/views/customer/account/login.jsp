@@ -34,6 +34,12 @@
                 Đăng ký thành công! Vui lòng đăng nhập.
             </div>
         </c:if>
+        <c:if test="${param.msg == 'locked'}">
+            <div class="alert alert-danger py-2 small fw-bold d-flex align-items-center gap-2">
+                <i class="fa-solid fa-lock"></i>
+                Tài khoản đã bị khóa
+            </div>
+        </c:if>
         <c:if test="${param.msg == 'reset_success'}">
             <div class="alert alert-success py-2 small fw-bold d-flex align-items-center gap-2">
                 <i class="fa-solid fa-circle-check"></i>

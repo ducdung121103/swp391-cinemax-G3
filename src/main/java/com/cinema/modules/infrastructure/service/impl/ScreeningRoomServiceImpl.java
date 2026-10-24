@@ -61,6 +61,11 @@ public class ScreeningRoomServiceImpl implements ScreeningRoomService {
     }
 
     @Override
+    public boolean isRoomAvailable(Long roomId, LocalDateTime startTime, LocalDateTime endTime, Long excludeShowtimeId) {
+        return screeningRoomDAO.isAvailable(roomId, startTime, endTime, excludeShowtimeId);
+    }
+
+    @Override
     public List<Seat> getRoomSeatMatrix(Long roomId) {
         return screeningRoomDAO.findSeatsByRoom(roomId);
     }

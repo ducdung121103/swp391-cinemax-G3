@@ -49,8 +49,34 @@ public class ShowtimeServiceImpl implements ShowtimeService {
     }
 
     @Override
+    public List<Showtime> getShowtimesByCinema(Long cinemaId) {
+        return cinemaId == null ? List.of() : showtimeDAO.findByCinema(cinemaId);
+    }
+
+    @Override
+    public List<Showtime> getOccupyingByRoom(Long roomId, LocalDate date) {
+        if (roomId == null || date == null) return List.of();
+        return showtimeDAO.findOccupyingByRoom(roomId, date);
+    }
+
+    @Override
+    public List<Showtime> searchScheduled(Long movieId, Long cinemaId, LocalDate date) {
+        return showtimeDAO.findScheduled(movieId, cinemaId, date == null ? LocalDate.now() : date);
+    }
+
+    @Override
+    public LocalDate findLatestScheduledDate(Long movieId, Long cinemaId) {
+        return showtimeDAO.findLatestScheduledDate(movieId, cinemaId);
+    }
+
+    @Override
     public Showtime getShowtimeById(Long showtimeId) {
         return showtimeDAO.findById(showtimeId);
+    }
+
+    @Override
+    public int getCleaningBufferMinutes() {
+        return systemSettingDAO.getIntSetting("CLEANING_BUFFER_MINUTES", 15);
     }
 
     @Override
@@ -76,5 +102,41 @@ public class ShowtimeServiceImpl implements ShowtimeService {
             throw new IllegalStateException("Phòng chiếu đang bận hoặc đang trong lịch bảo trì!");
         }
         return showtimeDAO.insert(showtime);
+    }
+
+    @Override
+    public boolean updateShowtime(Showtime showtime) {
+        if (showtime == null || showtime.getId() == null || showtime.getStartTime() == null || showtime.getScreeningRoomId() == null) {
+            throw new IllegalArgumentException("Thông tin suất chiếu không hợp lệ!");
+        }
+        Showtime current = showtimeDAO.findById(showtime.getId());
+        if (current == null) {
+            throw new IllegalArgumentException("Không tìm thấy suất chiếu!");
+        }
+        String format = showtime.getExperienceFormat() == null ? "2D" : showtime.getExperienceFormat().trim();
+        if (!"2D".equals(format) && !"3D".equals(format) && !"IMAX".equals(format)) {
+            throw new IllegalArgumentException("Định dạng suất chiếu không hợp lệ!");
+        }
+        String status = showtime.getStatus() == null ? current.getStatus() : showtime.getStatus().trim();
+        if (!"SCHEDULED".equals(status) && !"OPENING".equals(status) && !"FINISHED".equals(status) && !"CANCELLED".equals(status)) {
+            throw new IllegalArgumentException("Trạng thái suất chiếu không hợp lệ!");
+        }
+        Movie movie = movieDAO.findById(current.getMovieId());
+        int durationMinutes = (movie != null && movie.getDurationMinutes() != null) ? movie.getDurationMinutes() : 120;
+        int bufferMinutes = systemSettingDAO.getIntSetting("CLEANING_BUFFER_MINUTES", 15);
+        LocalDateTime endTime = showtime.getStartTime().plusMinutes(durationMinutes + bufferMinutes);
+        if (!"CANCELLED".equals(status) && !"FINISHED".equals(status)) {
+            boolean available = screeningRoomService.isRoomAvailable(
+                    showtime.getScreeningRoomId(), showtime.getStartTime(), endTime, current.getId());
+            if (!available) {
+                throw new IllegalStateException("Phòng chiếu đang bận hoặc đang trong lịch bảo trì!");
+            }
+        }
+        current.setScreeningRoomId(showtime.getScreeningRoomId());
+        current.setStartTime(showtime.getStartTime());
+        current.setEndTime(endTime);
+        current.setExperienceFormat(format);
+        current.setStatus(status);
+        return showtimeDAO.update(current);
     }
 }

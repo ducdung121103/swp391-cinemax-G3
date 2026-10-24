@@ -1,5 +1,8 @@
 package com.cinema.common.filter;
 
+import com.cinema.model.User;
+import com.cinema.modules.identity.service.UserService;
+import com.cinema.modules.identity.service.impl.UserServiceImpl;
 import jakarta.servlet.Filter;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -16,6 +19,7 @@ import java.io.IOException;
  * Nếu chưa đăng nhập mà truy cập tài nguyên bảo mật -> Chuyển hướng về trang /login.
  */
 public class AuthenticationFilter implements Filter {
+    private final UserService userService = new UserServiceImpl();
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
@@ -24,9 +28,8 @@ public class AuthenticationFilter implements Filter {
         HttpServletResponse res = (HttpServletResponse) response;
         HttpSession session = req.getSession(false);
 
-        boolean isLoggedIn = (session != null && session.getAttribute("currentUser") != null);
-
-        if (!isLoggedIn) {
+        Object current = session != null ? session.getAttribute("currentUser") : null;
+        if (!(current instanceof User)) {
             String targetUri = req.getRequestURI();
             String query = req.getQueryString();
             if (query != null) {
@@ -34,6 +37,16 @@ public class AuthenticationFilter implements Filter {
             }
             res.sendRedirect(req.getContextPath() + "/login?redirect=" + java.net.URLEncoder.encode(targetUri, "UTF-8"));
             return;
+        }
+
+        User fresh = userService.getUserById(((User) current).getId());
+        if (fresh != null) {
+            if ("LOCKED".equalsIgnoreCase(fresh.getStatus())) {
+                session.invalidate();
+                res.sendRedirect(req.getContextPath() + "/login?msg=locked");
+                return;
+            }
+            session.setAttribute("currentUser", fresh);
         }
 
         chain.doFilter(request, response);
