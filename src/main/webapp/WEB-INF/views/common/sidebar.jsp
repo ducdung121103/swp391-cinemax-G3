@@ -65,6 +65,12 @@
                 </li>
 
                 <li class="menu-header">DANH MỤC DỊCH VỤ</li>
+                <li class="${currentUri.contains('/catalog/movies') || currentUri.contains('/admin/movies') ? 'active' : ''}">
+                    <a href="${pageContext.request.contextPath}/admin/catalog/movies">
+                        <i class="fa-solid fa-film"></i>
+                        <span>Quản lý Danh Mục Phim</span>
+                    </a>
+                </li>
                 <li class="${currentUri.contains('/operation/fnb-catalog') ? 'active' : ''}">
                     <a href="${pageContext.request.contextPath}/admin/operation/fnb-catalog">
                         <i class="fa-solid fa-burger"></i>

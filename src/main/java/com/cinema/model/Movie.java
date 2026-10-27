@@ -43,6 +43,21 @@ public class Movie extends BaseEntity {
     // Quan hệ điều hướng
     @Builder.Default
     private List<Genre> genres = new ArrayList<>();
+    @Builder.Default
+    private List<Long> genreIds = new ArrayList<>();
+
+    public String getGenreIdsString() {
+        if (genreIds != null && !genreIds.isEmpty()) {
+            return genreIds.stream().map(String::valueOf).collect(Collectors.joining(","));
+        }
+        if (genres != null && !genres.isEmpty()) {
+            return genres.stream()
+                    .filter(g -> g.getId() != null)
+                    .map(g -> String.valueOf(g.getId()))
+                    .collect(Collectors.joining(","));
+        }
+        return "";
+    }
 
     // =========================================================================
     // Các Helper Getters tương thích 100% với giao diện UI & Hệ thống
