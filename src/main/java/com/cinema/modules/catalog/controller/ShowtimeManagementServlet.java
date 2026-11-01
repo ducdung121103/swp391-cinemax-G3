@@ -9,8 +9,13 @@ import com.cinema.model.Movie;
 import com.cinema.model.ScreeningRoom;
 import com.cinema.model.Showtime;
 import com.cinema.model.User;
+import com.cinema.modules.booking.service.BookingEngineService;
+import com.cinema.modules.booking.service.impl.BookingEngineServiceImpl;
+import com.cinema.modules.catalog.service.ShowtimeRepeatPlanner;
+import com.cinema.modules.catalog.service.ShowtimeRepeatPlanner.Preview;
 import com.cinema.modules.catalog.service.ShowtimeSlotPlanner;
 import com.cinema.modules.catalog.service.ShowtimeSlotPlanner.Block;
+import com.cinema.modules.catalog.service.ShowtimeSlotPlanner.StartOption;
 import com.cinema.modules.catalog.service.MovieService;
 import com.cinema.modules.catalog.service.ShowtimeService;
 import com.cinema.modules.catalog.service.impl.MovieServiceImpl;
@@ -27,11 +32,18 @@ import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -44,6 +56,7 @@ import java.util.Set;
 })
 public class ShowtimeManagementServlet extends HttpServlet {
     private final ShowtimeService showtimeService = new ShowtimeServiceImpl();
+    private final BookingEngineService bookingEngineService = new BookingEngineServiceImpl();
     private final MovieService movieService = new MovieServiceImpl();
     private final ScreeningRoomService screeningRoomService = new ScreeningRoomServiceImpl();
 
@@ -73,6 +86,8 @@ public class ShowtimeManagementServlet extends HttpServlet {
         req.setAttribute("actor", currentUser);
         req.setAttribute("msg", req.getParameter("msg"));
         req.setAttribute("error", req.getParameter("error"));
+        req.setAttribute("createdCount", countParam(req.getParameter("createdCount")));
+        req.setAttribute("skippedCount", countParam(req.getParameter("skippedCount")));
         req.setAttribute("rooms", cinemaId == null ? List.of() : screeningRoomService.getRoomsByCinema(cinemaId));
         if (createPage && parseLong(req.getParameter("movieId")) == null) {
             Set<Long> scheduledMovieIds = new HashSet<>();
@@ -104,6 +119,10 @@ public class ShowtimeManagementServlet extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        if ("delete".equals(req.getParameter("action"))) {
+            deleteFromPage(req, resp);
+            return;
+        }
         if ("update".equals(req.getParameter("action"))) {
             updateFromPage(req, resp);
             return;
@@ -121,26 +140,40 @@ public class ShowtimeManagementServlet extends HttpServlet {
             resp.sendRedirect(req.getContextPath() + "/login");
             return;
         }
-        String result = createShowtime(req, currentUser);
-        String key = "OK".equals(result) ? "msg" : "error";
-        String value = "OK".equals(result) ? "created" : result;
+        String result = req.getParameterValues("slot") != null
+                ? createSelected(req, currentUser)
+                : createShowtime(req, currentUser);
+        boolean success = "OK".equals(result) || (result != null && result.startsWith("OK|"));
         String cinema = req.getParameter("cinemaId");
         String path = req.getServletPath();
-        if ("OK".equals(result) && path.endsWith("/create")) {
+        if (success && path.endsWith("/create")) {
             path = path.substring(0, path.length() - "/create".length());
         }
-        String back = req.getContextPath() + path + "?" + key + "="
-                + URLEncoder.encode(value, StandardCharsets.UTF_8);
-        if (cinema != null && !cinema.isBlank()) {
-            back += "&cinemaId=" + URLEncoder.encode(cinema, StandardCharsets.UTF_8);
-        }
-        if (!"OK".equals(result)) {
+        String back;
+        if (result != null && result.startsWith("OK|")) {
+            String[] parts = result.split("\\|");
+            back = req.getContextPath() + path + "?msg=created&createdCount=" + parts[1] + "&skippedCount=" + parts[2];
+        } else if ("OK".equals(result)) {
+            back = req.getContextPath() + path + "?msg=created";
+        } else {
+            String message = result == null ? "Không thể tạo suất chiếu!" : result;
+            back = req.getContextPath() + path + "?error=" + URLEncoder.encode(message, StandardCharsets.UTF_8);
             back = append(back, "movieId", req.getParameter("movieId"));
             back = append(back, "screeningRoomId", req.getParameter("screeningRoomId"));
-            String start = req.getParameter("startTime");
-            if (start != null && start.length() >= 10) {
-                back = append(back, "date", start.substring(0, 10));
+            String date = req.getParameter("date");
+            if (date == null || date.isBlank()) {
+                String start = req.getParameter("startTime");
+                if (start != null && start.length() >= 10) {
+                    date = start.substring(0, 10);
+                }
             }
+            back = append(back, "date", date);
+            back = append(back, "until", req.getParameter("until"));
+            back = appendAll(back, "dow", req.getParameterValues("dow"));
+            back = appendAll(back, "time", req.getParameterValues("time"));
+        }
+        if (cinema != null && !cinema.isBlank()) {
+            back += "&cinemaId=" + URLEncoder.encode(cinema, StandardCharsets.UTF_8);
         }
         resp.sendRedirect(back);
     }
@@ -154,6 +187,28 @@ public class ShowtimeManagementServlet extends HttpServlet {
         String result = updateShowtime(req, currentUser);
         String key = "OK".equals(result) ? "msg" : "error";
         String value = "OK".equals(result) ? "updated" : result;
+        String cinema = req.getParameter("cinemaId");
+        String path = req.getServletPath();
+        if (path.endsWith("/create")) {
+            path = path.substring(0, path.length() - "/create".length());
+        }
+        String back = req.getContextPath() + path + "?" + key + "="
+                + URLEncoder.encode(value, StandardCharsets.UTF_8);
+        if (cinema != null && !cinema.isBlank()) {
+            back += "&cinemaId=" + URLEncoder.encode(cinema, StandardCharsets.UTF_8);
+        }
+        resp.sendRedirect(back);
+    }
+
+    private void deleteFromPage(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        User currentUser = currentUser(req);
+        if (!canManage(currentUser)) {
+            resp.sendRedirect(req.getContextPath() + "/login");
+            return;
+        }
+        String result = removeShowtime(req, currentUser);
+        String key = "DELETED".equals(result) || "KEPT".equals(result) ? "msg" : "error";
+        String value = "DELETED".equals(result) ? "deleted" : "KEPT".equals(result) ? "kept" : result;
         String cinema = req.getParameter("cinemaId");
         String path = req.getServletPath();
         if (path.endsWith("/create")) {
@@ -252,6 +307,30 @@ public class ShowtimeManagementServlet extends HttpServlet {
         }
     }
 
+    private String removeShowtime(HttpServletRequest req, User currentUser) {
+        try {
+            Long showtimeId = Long.parseLong(req.getParameter("showtimeId"));
+            Showtime existing = showtimeService.getShowtimeById(showtimeId);
+            if (existing == null || existing.getScreeningRoom() == null) return "Không tìm thấy suất chiếu!";
+            String role = currentUser.getRole().getRoleName();
+            if (RoleConstant.MANAGER.equalsIgnoreCase(role)) {
+                Long ownCinema = currentUser.getCinemaId();
+                Long currentCinema = existing.getScreeningRoom().getCinemaId();
+                if (ownCinema == null || !ownCinema.equals(currentCinema)) {
+                    return "Quản lý chỉ xóa suất của rạp mình";
+                }
+            }
+            int tickets = bookingEngineService.countTicketsByShowtime(showtimeId);
+            if (tickets < 0) return "Không kiểm tra được vé của suất này";
+            if (tickets > 0) {
+                return showtimeService.cancelShowtime(showtimeId) ? "KEPT" : "Không hủy được suất đã có vé";
+            }
+            return showtimeService.deleteShowtime(showtimeId) ? "DELETED" : "Không xóa được suất chiếu";
+        } catch (Exception e) {
+            return e.getMessage() == null ? "Không xóa được suất chiếu" : e.getMessage();
+        }
+    }
+
     private String updateShowtime(HttpServletRequest req, User currentUser) {
         try {
             Long showtimeId = Long.parseLong(req.getParameter("showtimeId"));
@@ -344,30 +423,197 @@ public class ShowtimeManagementServlet extends HttpServlet {
         int duration = movie.getDurationMinutes() == null ? 120 : movie.getDurationMinutes();
         int needed = duration + buffer;
         req.setAttribute("neededMinutes", needed);
-        List<Block> blocks = new ArrayList<>();
-        if (room != null) {
-            LocalDateTime dayStart = date.atStartOfDay();
-            LocalDateTime dayEnd = date.plusDays(1).atStartOfDay();
-            for (Showtime showtime : showtimeService.getOccupyingByRoom(room.getId(), date)) {
-                String title = showtime.getMovie() == null || showtime.getMovie().getTitle() == null
-                        ? "Suất chiếu" : showtime.getMovie().getTitle();
-                if (showtime.getStartTime() != null && showtime.getEndTime() != null) {
-                    blocks.add(new Block(title, showtime.getStartTime(), showtime.getEndTime()));
-                }
-            }
-            for (MaintenanceSchedule schedule : screeningRoomService.getMaintenanceSchedulesByRoom(room.getId())) {
-                if (schedule.getStartTime() == null || schedule.getEndTime() == null) continue;
-                if (Boolean.TRUE.equals(schedule.getIsDeleted())) continue;
-                if (schedule.getStartTime().isBefore(dayEnd) && schedule.getEndTime().isAfter(dayStart)) {
-                    String reason = schedule.getReason() == null || schedule.getReason().isBlank()
-                            ? "Bảo trì" : "Bảo trì · " + schedule.getReason();
-                    blocks.add(new Block(reason, schedule.getStartTime(), schedule.getEndTime()));
+        fillRepeat(req, room, date, needed);
+    }
+
+    private void fillRepeat(HttpServletRequest req, ScreeningRoom room, LocalDate start, int needed) {
+        LocalDate until = parseDateOrNull(req.getParameter("until"));
+        Set<DayOfWeek> days = new HashSet<>();
+        String[] dows = req.getParameterValues("dow");
+        if (dows != null) {
+            for (String dow : dows) {
+                Long number = parseLong(dow);
+                if (number != null && number >= 1 && number <= 7) {
+                    days.add(DayOfWeek.of(number.intValue()));
                 }
             }
         }
+        if (days.isEmpty()) {
+            days.add(start.getDayOfWeek());
+        }
+        List<LocalDate> dates = ShowtimeRepeatPlanner.dates(start, until, days);
+        List<LocalTime> times = readTimes(req);
+        Map<LocalDate, List<Block>> byDate = new LinkedHashMap<>();
+        List<StartOption> options = List.of();
+        LocalDate suggestDay = dates.isEmpty() ? start : dates.get(0);
+        if (room != null) {
+            for (LocalDate day : dates) {
+                List<Block> dayBlocks = blocksFor(room, day);
+                byDate.put(day, dayBlocks);
+                if (options.isEmpty()) {
+                    List<StartOption> found = ShowtimeSlotPlanner.suggest(day, needed, dayBlocks);
+                    if (!found.isEmpty()) {
+                        options = found;
+                        suggestDay = day;
+                    }
+                }
+            }
+        }
+        List<Preview> rows = ShowtimeRepeatPlanner.preview(dates, times, needed, byDate);
+        int free = 0;
+        for (Preview row : rows) {
+            if (row.isFree()) {
+                free++;
+            }
+        }
+        int requested = dates.size() * times.size();
+        req.setAttribute("weekDays", ShowtimeRepeatPlanner.week(days));
+        req.setAttribute("untilDate", until == null ? "" : until.toString());
+        req.setAttribute("chosenTimes", ShowtimeRepeatPlanner.chosen(times, needed));
+        req.setAttribute("previewRows", rows);
+        req.setAttribute("freeCount", free);
+        req.setAttribute("blockedCount", rows.size() - free);
+        req.setAttribute("previewTruncated", requested > rows.size());
+        req.setAttribute("startOptions", options);
+        req.setAttribute("suggestDateLabel", suggestDay.format(DateTimeFormatter.ofPattern("dd/MM")));
+        req.setAttribute("repeatSummary", ShowtimeRepeatPlanner.summary(dates));
+        req.setAttribute("roomBlocks", room == null ? List.of() : blocksFor(room, start));
+    }
+
+    private List<Block> blocksFor(ScreeningRoom room, LocalDate date) {
+        List<Block> blocks = new ArrayList<>();
+        if (room == null || date == null) {
+            return blocks;
+        }
+        LocalDateTime dayStart = date.atStartOfDay();
+        LocalDateTime dayEnd = date.plusDays(1).atStartOfDay();
+        for (Showtime showtime : showtimeService.getOccupyingByRoom(room.getId(), date)) {
+            String title = showtime.getMovie() == null || showtime.getMovie().getTitle() == null
+                    ? "Suất chiếu" : showtime.getMovie().getTitle();
+            if (showtime.getStartTime() != null && showtime.getEndTime() != null) {
+                blocks.add(new Block(title, showtime.getStartTime(), showtime.getEndTime()));
+            }
+        }
+        for (MaintenanceSchedule schedule : screeningRoomService.getMaintenanceSchedulesByRoom(room.getId())) {
+            if (schedule.getStartTime() == null || schedule.getEndTime() == null) continue;
+            if (Boolean.TRUE.equals(schedule.getIsDeleted())) continue;
+            if (schedule.getStartTime().isBefore(dayEnd) && schedule.getEndTime().isAfter(dayStart)) {
+                String reason = schedule.getReason() == null || schedule.getReason().isBlank()
+                        ? "Bảo trì" : "Bảo trì · " + schedule.getReason();
+                blocks.add(new Block(reason, schedule.getStartTime(), schedule.getEndTime()));
+            }
+        }
         blocks.sort((left, right) -> left.getStart().compareTo(right.getStart()));
-        req.setAttribute("roomBlocks", blocks);
-        req.setAttribute("startOptions", ShowtimeSlotPlanner.suggest(date, needed, blocks));
+        return blocks;
+    }
+
+    private List<LocalTime> readTimes(HttpServletRequest req) {
+        LinkedHashSet<LocalTime> times = new LinkedHashSet<>();
+        addTimes(times, req.getParameterValues("time"));
+        LocalTime toggled = parseTime(req.getParameter("toggleTime"));
+        if (toggled != null && !times.remove(toggled) && times.size() < ShowtimeRepeatPlanner.MAX_TIMES) {
+            times.add(toggled);
+        }
+        if ("1".equals(req.getParameter("addClock"))) {
+            LocalTime added = parseTime(req.getParameter("addTime"));
+            if (added != null && !times.contains(added) && times.size() < ShowtimeRepeatPlanner.MAX_TIMES) {
+                times.add(added);
+            }
+        }
+        List<LocalTime> sorted = new ArrayList<>(times);
+        sorted.sort(Comparator.naturalOrder());
+        return sorted;
+    }
+
+    private void addTimes(Set<LocalTime> times, String[] raw) {
+        if (raw == null) {
+            return;
+        }
+        for (String item : raw) {
+            LocalTime time = parseTime(item);
+            if (time != null && times.size() < ShowtimeRepeatPlanner.MAX_TIMES) {
+                times.add(time);
+            }
+        }
+    }
+
+    private String createSelected(HttpServletRequest req, User currentUser) {
+        String[] slots = req.getParameterValues("slot");
+        if (slots == null || slots.length == 0) {
+            return "Chọn ít nhất một suất trống";
+        }
+        try {
+            Long movieId = Long.parseLong(req.getParameter("movieId"));
+            Long screeningRoomId = Long.parseLong(req.getParameter("screeningRoomId"));
+            String experienceFormat = req.getParameter("experienceFormat");
+            if (experienceFormat == null || experienceFormat.isBlank()) {
+                experienceFormat = "2D";
+            }
+            experienceFormat = experienceFormat.trim();
+            ScreeningRoom room = screeningRoomService.getRoomById(screeningRoomId);
+            String guarded = guardRoom(currentUser, room, experienceFormat);
+            if (guarded != null) {
+                return guarded;
+            }
+            int created = 0;
+            int skipped = 0;
+            String failure = null;
+            Set<String> seen = new HashSet<>();
+            int accepted = 0;
+            for (String slot : slots) {
+                if (slot == null || !seen.add(slot)) {
+                    continue;
+                }
+                accepted++;
+                if (accepted > ShowtimeRepeatPlanner.MAX_ROWS) {
+                    break;
+                }
+                try {
+                    LocalDateTime startTime = LocalDateTime.parse(slot);
+                    Showtime showtime = Showtime.builder()
+                            .movieId(movieId)
+                            .screeningRoomId(screeningRoomId)
+                            .startTime(startTime)
+                            .experienceFormat(experienceFormat)
+                            .status("SCHEDULED")
+                            .build();
+                    if (showtimeService.createShowtime(showtime)) {
+                        created++;
+                    } else {
+                        skipped++;
+                    }
+                } catch (IllegalStateException busy) {
+                    skipped++;
+                } catch (RuntimeException ex) {
+                    failure = ex.getMessage();
+                    break;
+                }
+            }
+            if (created == 0 && failure != null) {
+                return failure;
+            }
+            if (created == 0) {
+                return "Phòng chiếu đang bận hoặc đang trong lịch bảo trì";
+            }
+            return "OK|" + created + "|" + skipped;
+        } catch (Exception e) {
+            return e.getMessage() == null ? "Không thể tạo suất chiếu!" : e.getMessage();
+        }
+    }
+
+    private String guardRoom(User currentUser, ScreeningRoom room, String experienceFormat) {
+        if (room == null) {
+            return "Không tìm thấy phòng chiếu!";
+        }
+        if (!formatsFor(room).contains(experienceFormat)) {
+            return "Phòng này không chiếu định dạng đã chọn";
+        }
+        String role = currentUser.getRole().getRoleName();
+        if (RoleConstant.MANAGER.equalsIgnoreCase(role)
+                && (currentUser.getCinemaId() == null || !currentUser.getCinemaId().equals(room.getCinemaId()))) {
+            return "Quản lý chỉ được tạo suất cho rạp của mình";
+        }
+        return null;
     }
 
     private List<String> formatsFor(ScreeningRoom room) {
@@ -380,6 +626,16 @@ public class ShowtimeManagementServlet extends HttpServlet {
     private String append(String url, String key, String value) {
         if (value == null || value.isBlank()) return url;
         return url + "&" + key + "=" + URLEncoder.encode(value, StandardCharsets.UTF_8);
+    }
+
+    private String appendAll(String url, String key, String[] values) {
+        if (values == null) {
+            return url;
+        }
+        for (String value : values) {
+            url = append(url, key, value);
+        }
+        return url;
     }
 
     private Long resolveCinemaId(HttpServletRequest req, User currentUser) {
@@ -413,6 +669,37 @@ public class ShowtimeManagementServlet extends HttpServlet {
         } catch (Exception e) {
             return LocalDate.now();
         }
+    }
+
+    private LocalDate parseDateOrNull(String raw) {
+        try {
+            return raw == null || raw.isBlank() ? null : LocalDate.parse(raw.trim());
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private LocalTime parseTime(String raw) {
+        try {
+            if (raw == null || raw.isBlank()) {
+                return null;
+            }
+            String value = raw.trim();
+            if (value.length() >= 5) {
+                value = value.substring(0, 5);
+            }
+            return LocalTime.parse(value);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private int countParam(String raw) {
+        Long value = parseLong(raw);
+        if (value == null || value < 0) {
+            return 0;
+        }
+        return value > Integer.MAX_VALUE ? Integer.MAX_VALUE : value.intValue();
     }
 
     private Long parseLong(String raw) {

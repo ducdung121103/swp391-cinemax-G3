@@ -1,12 +1,17 @@
 package com.cinema.modules.booking.dao;
 
+import com.cinema.common.context.DBContext;
 import com.cinema.model.Booking;
+import com.cinema.modules.booking.dto.ShowtimeReminderDTO;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -41,5 +46,39 @@ public class BookingDAO {
             }
         }
         return null;
+    }
+
+    public List<ShowtimeReminderDTO> findBookingsNeedingReminder(int withinMinutes) {
+        String sql = "SELECT b.id, b.user_id, m.title AS movie_title, st.start_time, " +
+                     "sr.name AS room_name, c.name AS cinema_name " +
+                     "FROM bookings b " +
+                     "JOIN showtimes st ON b.showtime_id = st.id " +
+                     "JOIN movies m ON st.movie_id = m.id " +
+                     "JOIN screening_rooms sr ON st.screening_room_id = sr.id " +
+                     "LEFT JOIN cinemas c ON sr.cinema_id = c.id " +
+                     "WHERE b.user_id IS NOT NULL AND b.is_deleted = 0 AND b.status = 'CONFIRMED' " +
+                     "AND st.is_deleted = 0 AND st.status = 'SCHEDULED' " +
+                     "AND st.start_time > SYSDATETIME() " +
+                     "AND st.start_time <= DATEADD(MINUTE, ?, SYSDATETIME())";
+        List<ShowtimeReminderDTO> list = new ArrayList<>();
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, withinMinutes);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Timestamp start = rs.getTimestamp("start_time");
+                    list.add(new ShowtimeReminderDTO(
+                            rs.getLong("id"),
+                            rs.getLong("user_id"),
+                            rs.getString("movie_title"),
+                            start == null ? null : start.toLocalDateTime(),
+                            rs.getString("room_name"),
+                            rs.getString("cinema_name")));
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
     }
 }

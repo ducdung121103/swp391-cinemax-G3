@@ -77,6 +77,14 @@ public class EmailServiceImpl implements EmailService {
         sendHtmlEmail(toEmail, subject, htmlBody);
     }
 
+    @Override
+    public void sendShowtimeReminderEmail(String toEmail, String fullName, String movieTitle,
+                                          String showtimeText, String cinemaRoomText) {
+        String subject = "⏰ [CineMax] Sắp đến giờ chiếu — " + movieTitle;
+        String htmlBody = buildShowtimeReminderEmailHtml(fullName, movieTitle, showtimeText, cinemaRoomText);
+        sendHtmlEmail(toEmail, subject, htmlBody);
+    }
+
     // ────────────────────────────────────────────────────────────────────────────
     // PRIVATE — SMTP CORE
     // ────────────────────────────────────────────────────────────────────────────
@@ -185,7 +193,22 @@ public class EmailServiceImpl implements EmailService {
             "  <p style='margin:6px 0;color:" + TEXT_LIGHT + ";font-size:14px;'>💺 <strong>Ghế:</strong> " + seatInfo + "</p>" +
             "  <p style='margin:6px 0;color:" + GOLD_COLOR + ";font-size:14px;'>🎟️ <strong>Mã đặt vé:</strong> " + bookingCode + "</p>" +
             "</div>" +
-            "<p style='color:#9AA0B2;font-size:13px;'>Vui lòng mang mã QR trong email này đến rạp để soát vé. Chúc bạn xem phim vui!</p>"
+            "<p style='color:#9AA0B2;font-size:13px;'>Mang mã đặt vé đến rạp để soát vé. Chúc bạn xem phim vui!</p>"
+        );
+    }
+
+    private String buildShowtimeReminderEmailHtml(String fullName, String movieTitle,
+                                                  String showtimeText, String cinemaRoomText) {
+        String name = fullName == null || fullName.isBlank() ? "bạn" : fullName;
+        return buildEmailWrapper(
+            "Sắp đến giờ chiếu",
+            "<p style='color:" + TEXT_LIGHT + ";font-size:15px;'>Chào " + name + ", suất chiếu của bạn sắp bắt đầu.</p>" +
+            "<div style='background:#1E2333;border-radius:12px;padding:20px;margin:20px 0;border-left:4px solid " + GOLD_COLOR + ";'>" +
+            "  <p style='margin:6px 0;color:" + TEXT_LIGHT + ";font-size:14px;'>🎬 <strong>Phim:</strong> " + movieTitle + "</p>" +
+            "  <p style='margin:6px 0;color:" + TEXT_LIGHT + ";font-size:14px;'>📅 <strong>Giờ chiếu:</strong> " + showtimeText + "</p>" +
+            "  <p style='margin:6px 0;color:" + TEXT_LIGHT + ";font-size:14px;'>📍 <strong>Rạp:</strong> " + cinemaRoomText + "</p>" +
+            "</div>" +
+            "<p style='color:#9AA0B2;font-size:13px;'>Hãy đến rạp sớm một chút để vào phòng đúng giờ.</p>"
         );
     }
 

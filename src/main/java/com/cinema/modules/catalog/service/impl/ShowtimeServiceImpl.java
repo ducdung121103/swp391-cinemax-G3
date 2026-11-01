@@ -139,4 +139,14 @@ public class ShowtimeServiceImpl implements ShowtimeService {
         current.setStatus(status);
         return showtimeDAO.update(current);
     }
+
+    @Override
+    public boolean cancelShowtime(Long showtimeId) {
+        return showtimeId != null && showtimeDAO.cancel(showtimeId);
+    }
+
+    @Override
+    public boolean deleteShowtime(Long showtimeId) {
+        return showtimeId != null && showtimeDAO.softDelete(showtimeId);
+    }
 }

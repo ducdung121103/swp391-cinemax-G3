@@ -36,6 +36,13 @@
         .suggests { display: flex; flex-wrap: wrap; gap: 8px; }
         .suggest { border: 1px solid #e2e8f0; background: #fff; border-radius: 999px; padding: 8px 14px; font-weight: 700; cursor: pointer; }
         .suggest.is-selected { background: #e50914; color: #fff; border-color: #e50914; }
+        .day-check { display: inline-flex; align-items: center; gap: 6px; border: 1px solid #e2e8f0; border-radius: 999px; padding: 8px 12px; font-weight: 700; background: #fff; }
+        .chip { display: inline-flex; align-items: center; gap: 8px; border: 1px solid #e2e8f0; border-radius: 999px; padding: 6px 10px; background: #fff; font-weight: 700; }
+        .chip button { border: 0; background: transparent; cursor: pointer; font-weight: 700; color: #b20710; }
+        .preview-table { width: 100%; border-collapse: collapse; }
+        .preview-table th, .preview-table td { text-align: left; padding: 8px 10px; border-bottom: 1px solid #e2e8f0; font-size: 14px; }
+        .row-busy { color: #b20710; font-weight: 700; }
+        .summary { font-weight: 700; }
         .end-line { margin: 12px 0; color: #0f172a; }
         .conflict { min-height: 20px; color: #b20710; font-weight: 700; }
         .save-btn { height: 40px; padding: 0 18px; border: 0; border-radius: 8px; background: #e50914; color: #fff; font-weight: 700; cursor: pointer; }
@@ -151,13 +158,65 @@
                                     </select>
                                 </div>
                                 <div>
-                                    <label>Ngày chiếu</label>
+                                    <label>Ngày bắt đầu</label>
                                     <input class="field" type="date" name="date" value="${selectedDate}" onchange="this.form.submit()" />
+                                </div>
+                                <div>
+                                    <label>Lặp đến ngày</label>
+                                    <input class="field" type="date" name="until" value="${untilDate}" onchange="this.form.submit()" />
+                                </div>
+                                <div class="wide" style="flex: 1 1 100%;">
+                                    <label>Ngày trong tuần</label>
+                                    <div class="suggests">
+                                        <c:forEach var="day" items="${weekDays}">
+                                            <label class="day-check">
+                                                <input type="checkbox" name="dow" value="${day.value}" ${day.selected ? 'checked' : ''} onchange="this.form.submit()" />
+                                                ${day.label}
+                                            </label>
+                                        </c:forEach>
+                                    </div>
+                                </div>
+                                <p class="hint" style="flex: 1 1 100%;">${repeatSummary}</p>
+                                <c:forEach var="chosen" items="${chosenTimes}">
+                                    <input type="hidden" name="time" value="${chosen.clock}" />
+                                </c:forEach>
+                                <div class="wide" style="flex: 1 1 100%;">
+                                    <label>Giờ gợi ý ngày ${suggestDateLabel}</label>
+                                    <p class="hint">Bấm để thêm hoặc bỏ. Tối đa 8 giờ. Giờ kết thúc = giờ bắt đầu + thời lượng phim + ${bufferMinutes} phút dọn phòng.</p>
+                                    <div class="suggests">
+                                        <c:forEach var="option" items="${startOptions}">
+                                            <c:set var="picked" value="false" />
+                                            <c:forEach var="chosen" items="${chosenTimes}">
+                                                <c:if test="${chosen.clock == option.label}"><c:set var="picked" value="true" /></c:if>
+                                            </c:forEach>
+                                            <button class="suggest ${picked == 'true' ? 'is-selected' : ''}" type="submit" name="toggleTime" value="${option.label}">${option.label}</button>
+                                        </c:forEach>
+                                        <c:if test="${empty startOptions}"><span class="hint">Không còn khung trống đủ cho phim này ở các ngày đã chọn.</span></c:if>
+                                    </div>
+                                </div>
+                                <div class="wide" style="flex: 1 1 100%;">
+                                    <label>Giờ đã chọn</label>
+                                    <div class="suggests">
+                                        <c:forEach var="chosen" items="${chosenTimes}">
+                                            <span class="chip">${chosen.clock} → ${chosen.endClock}
+                                                <button type="submit" name="toggleTime" value="${chosen.clock}" title="Bỏ giờ">×</button>
+                                            </span>
+                                        </c:forEach>
+                                        <c:if test="${empty chosenTimes}"><span class="hint">Chưa chọn giờ.</span></c:if>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label>Thêm giờ khác</label>
+                                    <input class="field" type="time" name="addTime" step="60" />
+                                </div>
+                                <div>
+                                    <label>&nbsp;</label>
+                                    <button class="save-btn" type="submit" name="addClock" value="1">Thêm giờ</button>
                                 </div>
                             </form>
 
                             <div class="panel">
-                                <h3>Lịch phòng trong ngày</h3>
+                                <h3>Lịch phòng ngày bắt đầu</h3>
                                 <c:choose>
                                     <c:when test="${empty roomBlocks}"><p class="hint">Phòng còn trống cả ngày.</p></c:when>
                                     <c:otherwise>
@@ -176,16 +235,17 @@
                                 <input type="hidden" name="cinemaId" value="${selectedCinemaId}" />
                                 <input type="hidden" name="movieId" value="${selectedMovie.id}" />
                                 <input type="hidden" name="screeningRoomId" value="${selectedRoomId}" />
+                                <input type="hidden" name="date" value="${selectedDate}" />
+                                <input type="hidden" name="until" value="${untilDate}" />
+                                <c:forEach var="day" items="${weekDays}">
+                                    <c:if test="${day.selected}"><input type="hidden" name="dow" value="${day.value}" /></c:if>
+                                </c:forEach>
+                                <c:forEach var="chosen" items="${chosenTimes}">
+                                    <input type="hidden" name="time" value="${chosen.clock}" />
+                                </c:forEach>
                                 <div class="panel">
-                                    <h3>Suất chiếu</h3>
-                                    <p class="hint">Giờ gợi ý trong khung 08:00–23:30. Giờ kết thúc = giờ bắt đầu + thời lượng phim + ${bufferMinutes} phút dọn phòng.</p>
-                                    <div class="suggests">
-                                        <c:forEach var="option" items="${startOptions}">
-                                            <button class="suggest" type="button" data-value="${option.value}">${option.label}</button>
-                                        </c:forEach>
-                                        <c:if test="${empty startOptions}"><span class="hint">Không còn khung trống đủ cho phim này.</span></c:if>
-                                    </div>
-                                    <div class="form-grid" style="margin-top: 14px;">
+                                    <h3>Suất sẽ tạo</h3>
+                                    <div class="form-grid">
                                         <div>
                                             <label>Loại phòng</label>
                                             <input class="field-readonly" readonly value="${selectedRoom.roomType == 'IMAX_3D' ? 'IMAX' : (selectedRoom.roomType == 'VIP_LUXURY' ? 'VIP' : '2D tiêu chuẩn')}" />
@@ -199,15 +259,6 @@
                                             </select>
                                         </div>
                                         <div>
-                                            <label>Giờ bắt đầu</label>
-                                            <input class="field" id="startClock" type="time" step="60" required />
-                                            <input type="hidden" id="startTime" name="startTime" />
-                                        </div>
-                                        <div>
-                                            <label>Giờ kết thúc</label>
-                                            <input class="field-readonly" id="endTime" value="" readonly placeholder="Tự tính khi chọn giờ bắt đầu" />
-                                        </div>
-                                        <div>
                                             <label>Dọn phòng</label>
                                             <input class="field-readonly" value="${bufferMinutes} phút" readonly />
                                         </div>
@@ -216,8 +267,34 @@
                                             <input class="field-readonly" value="Mở bán" readonly />
                                         </div>
                                     </div>
-                                    <p class="conflict" id="conflict"></p>
-                                    <button class="save-btn" id="saveBtn" type="submit" disabled>Tạo lịch chiếu</button>
+                                    <c:choose>
+                                        <c:when test="${empty chosenTimes}">
+                                            <p class="hint" style="margin-top: 14px;">Chọn ít nhất một giờ bắt đầu.</p>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <c:if test="${previewTruncated}"><p class="hint" style="margin-top: 14px;">Chỉ hiện ${fn:length(previewRows)} suất đầu. Thu hẹp ngày hoặc bớt giờ.</p></c:if>
+                                            <table class="preview-table" style="margin-top: 14px;">
+                                                <thead>
+                                                    <tr><th></th><th>Ngày</th><th>Giờ</th><th>Kết thúc</th><th>Kết quả</th></tr>
+                                                </thead>
+                                                <tbody>
+                                                    <c:forEach var="row" items="${previewRows}">
+                                                        <tr>
+                                                            <td>
+                                                                <c:if test="${row.free}"><input type="checkbox" name="slot" value="${row.value}" checked /></c:if>
+                                                            </td>
+                                                            <td>${row.dateLabel}</td>
+                                                            <td>${row.startLabel}</td>
+                                                            <td>${row.endLabel}</td>
+                                                            <td class="${row.free ? '' : 'row-busy'}">${row.result}</td>
+                                                        </tr>
+                                                    </c:forEach>
+                                                </tbody>
+                                            </table>
+                                            <p class="summary" id="summary" data-blocked="${blockedCount}">Sẽ tạo ${freeCount} suất. ${blockedCount} suất bị trùng, không lưu.</p>
+                                        </c:otherwise>
+                                    </c:choose>
+                                    <button class="save-btn" id="saveBtn" type="submit" ${freeCount == 0 ? 'disabled' : ''}>Tạo các suất đã chọn</button>
                                 </div>
                             </form>
                         </c:otherwise>
@@ -228,57 +305,17 @@
     </div>
 </div>
 <script>
-        const neededMinutes = ${empty neededMinutes ? 0 : neededMinutes};
-        const selectedDate = '${selectedDate}';
-        const clockInput = document.getElementById('startClock');
-        const startInput = document.getElementById('startTime');
-        if (clockInput && startInput) {
-            const endTime = document.getElementById('endTime');
-            const conflict = document.getElementById('conflict');
-            const saveBtn = document.getElementById('saveBtn');
-            const form = document.getElementById('createForm');
-            const blocks = Array.from(document.querySelectorAll('.block'));
-            const buttons = Array.from(document.querySelectorAll('.suggest'));
-            const pad = (value) => String(value).padStart(2, '0');
-            const format = (date) => pad(date.getHours()) + ':' + pad(date.getMinutes());
-
-            function refresh() {
-                const value = clockInput.value ? selectedDate + 'T' + clockInput.value : '';
-                startInput.value = value;
-                blocks.forEach((block) => block.classList.remove('is-conflict'));
-                buttons.forEach((button) => button.classList.toggle('is-selected', button.dataset.value === value));
-                if (!value) {
-                    endTime.value = '';
-                    conflict.textContent = '';
-                    saveBtn.disabled = true;
-                    return;
-                }
-                const start = new Date(value);
-                const end = new Date(start.getTime() + neededMinutes * 60000);
-                endTime.value = format(end);
-                const hit = blocks.find((block) => start.getTime() < new Date(block.dataset.end).getTime()
-                    && end.getTime() > new Date(block.dataset.start).getTime());
-                if (hit) {
-                    hit.classList.add('is-conflict');
-                    conflict.textContent = 'Trùng ' + hit.dataset.label;
-                    saveBtn.disabled = true;
-                } else {
-                    conflict.textContent = '';
-                    saveBtn.disabled = false;
-                }
-            }
-
-            buttons.forEach((button) => button.addEventListener('click', () => {
-                clockInput.value = button.dataset.value.substring(11, 16);
-                refresh();
-            }));
-            clockInput.addEventListener('input', refresh);
-            form.addEventListener('submit', (event) => {
-                refresh();
-                if (saveBtn.disabled) event.preventDefault();
-            });
-            refresh();
-        }
+    const boxes = Array.from(document.querySelectorAll('input[name="slot"]'));
+    const saveBtn = document.getElementById('saveBtn');
+    const summary = document.getElementById('summary');
+    const blocked = summary ? summary.dataset.blocked : '0';
+    function sync() {
+        const selected = boxes.filter((box) => box.checked).length;
+        if (saveBtn) saveBtn.disabled = selected === 0;
+        if (summary) summary.textContent = 'Sẽ tạo ' + selected + ' suất. ' + blocked + ' suất bị trùng, không lưu.';
+    }
+    boxes.forEach((box) => box.addEventListener('change', sync));
+    if (boxes.length) sync();
 </script>
 </body>
 </html>

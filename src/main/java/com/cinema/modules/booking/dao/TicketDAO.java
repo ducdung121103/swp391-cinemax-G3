@@ -10,6 +10,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -37,6 +38,43 @@ public class TicketDAO {
             }
             ps.executeBatch();
         }
+    }
+
+    public int countByShowtime(Long showtimeId) {
+        if (showtimeId == null) return 0;
+        String sql = "SELECT COUNT(*) FROM tickets WHERE showtime_id = ? AND is_deleted = 0 " +
+                     "AND status NOT IN ('CANCELLED', 'REFUNDED')";
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setLong(1, showtimeId);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() ? rs.getInt(1) : 0;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return -1;
+        }
+    }
+
+    public List<String> findSeatCodesByBooking(Long bookingId) {
+        List<String> codes = new ArrayList<>();
+        if (bookingId == null) return codes;
+        String sql = "SELECT s.seat_code FROM tickets t " +
+                     "JOIN seats s ON t.seat_id = s.id " +
+                     "WHERE t.booking_id = ? AND t.is_deleted = 0 " +
+                     "ORDER BY s.seat_code";
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setLong(1, bookingId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    codes.add(rs.getString("seat_code"));
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return codes;
     }
 
     public Ticket findByBarcode(String barcode) {

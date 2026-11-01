@@ -72,6 +72,11 @@
             background: #14141e; color: #fff; font-weight: 700; cursor: pointer;
         }
         .save-btn:hover { background: #e50914; }
+        .delete-btn {
+            height: 38px; padding: 0 14px; border: 1px solid #e50914; border-radius: 8px;
+            background: #fff; color: #e50914; font-weight: 700; cursor: pointer;
+        }
+        .delete-btn:hover { background: #fff5f5; }
         .empty-slot {
             padding: 14px; border: 1px dashed #cbd5e0; border-radius: 10px; color: #64748b;
         }
@@ -96,8 +101,18 @@
                     </a>
                 </div>
                 <div class="schedule-body">
-                    <c:if test="${msg == 'created'}"><div class="alert alert-success">Đã tạo suất chiếu.</div></c:if>
+                    <c:if test="${msg == 'created'}">
+                        <div class="alert alert-success">
+                            <c:choose>
+                                <c:when test="${skippedCount > 0}">Đã tạo ${createdCount} suất. ${skippedCount} suất không lưu vì phòng bận.</c:when>
+                                <c:when test="${createdCount > 1}">Đã tạo ${createdCount} suất chiếu.</c:when>
+                                <c:otherwise>Đã tạo suất chiếu.</c:otherwise>
+                            </c:choose>
+                        </div>
+                    </c:if>
                     <c:if test="${msg == 'updated'}"><div class="alert alert-success">Đã cập nhật suất chiếu.</div></c:if>
+                    <c:if test="${msg == 'deleted'}"><div class="alert alert-success">Đã xóa suất chưa có vé.</div></c:if>
+                    <c:if test="${msg == 'kept'}"><div class="alert alert-success">Suất đã có vé nên không xóa. Đã chuyển sang Đã hủy.</div></c:if>
                     <c:if test="${not empty error}"><div class="alert alert-danger">${error}</div></c:if>
 
                     <c:if test="${actor.role.roleName == 'ADMIN'}">
@@ -139,7 +154,6 @@
                                     <c:if test="${showtime.movieId == movie.id}">
                                         <c:set var="hasSlot" value="true" />
                                         <form class="slot-form" method="post" action="${pageContext.request.contextPath}${listPath}">
-                                            <input type="hidden" name="action" value="update" />
                                             <input type="hidden" name="showtimeId" value="${showtime.id}" />
                                             <input type="hidden" name="cinemaId" value="${selectedCinemaId}" />
                                             <div>
@@ -172,7 +186,8 @@
                                                     <option value="CANCELLED" ${showtime.status == 'CANCELLED' ? 'selected' : ''}>Đã hủy</option>
                                                 </select>
                                             </div>
-                                            <button class="save-btn" type="submit">Lưu</button>
+                                            <button class="save-btn" type="submit" name="action" value="update">Lưu</button>
+                                            <button class="delete-btn" type="submit" name="action" value="delete" onclick="return confirm('Xóa suất này? Suất đã có vé sẽ được hủy, không xóa khỏi lịch sử vé.');">Xóa</button>
                                         </form>
                                     </c:if>
                                 </c:forEach>

@@ -37,7 +37,7 @@
     <div class="row g-3">
         <c:forEach var="showtime" items="${showtimes}">
             <div class="col-md-6 col-lg-4">
-                <a class="text-decoration-none" href="${pageContext.request.contextPath}/booking/checkout?showtimeId=${showtime.id}">
+                <a class="text-decoration-none" href="${pageContext.request.contextPath}/movie/detail?id=${showtime.movieId}&amp;showtimeId=${showtime.id}">
                     <div class="card p-3 text-white h-100" style="background:#141820;border:1px solid #2E3550;">
                         <div class="fw-bold">${showtime.movie.title}</div>
                         <div class="text-secondary small mt-1">

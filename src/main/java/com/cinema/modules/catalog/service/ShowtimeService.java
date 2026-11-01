@@ -19,5 +19,7 @@ public interface ShowtimeService {
     Showtime getShowtimeById(Long showtimeId);
     boolean createShowtime(Showtime showtime);
     boolean updateShowtime(Showtime showtime);
+    boolean cancelShowtime(Long showtimeId);
+    boolean deleteShowtime(Long showtimeId);
     int getCleaningBufferMinutes();
 }

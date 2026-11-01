@@ -162,6 +162,27 @@ public class ShowtimeDAO {
         return false;
     }
 
+    public boolean cancel(Long id) {
+        String sql = "UPDATE showtimes SET status = 'CANCELLED' WHERE id = ? AND is_deleted = 0";
+        return updateFlag(sql, id);
+    }
+
+    public boolean softDelete(Long id) {
+        String sql = "UPDATE showtimes SET is_deleted = 1, status = 'CANCELLED' WHERE id = ? AND is_deleted = 0";
+        return updateFlag(sql, id);
+    }
+
+    private boolean updateFlag(String sql, Long id) {
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setLong(1, id);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
     public boolean update(Showtime s) {
         String sql = "UPDATE showtimes SET screening_room_id = ?, start_time = ?, end_time = ?, " +
                      "experience_format = ?, status = ? WHERE id = ? AND is_deleted = 0";

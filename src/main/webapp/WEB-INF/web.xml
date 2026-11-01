@@ -7,6 +7,10 @@
 
     <display-name>Multi-Branch Cinema Management System</display-name>
 
+    <listener>
+        <listener-class>com.cinema.modules.identity.job.ShowtimeReminderListener</listener-class>
+    </listener>
+
     <!-- ==================================================================== -->
     <!-- ABSOLUTE RULE: DO NOT REGISTER SERVLETS HERE. USE @WebServlet!      -->
     <!-- This web.xml file is LOCKED for Filters and System Error Pages only. -->
