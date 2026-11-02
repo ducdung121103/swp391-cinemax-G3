@@ -76,9 +76,8 @@ public class PosCounterServiceImpl implements PosCounterService {
             throw new IllegalArgumentException("Không tìm thấy tài khoản đang đăng nhập.");
         }
 
-        if (RoleConstant.ADMIN.equalsIgnoreCase(roleName(staff))) {
-            throw new SecurityException("Admin khong co quyen su dung quay POS.");
-        }
+        requireCounterRole(staff);
+
         LocalDate today = LocalDate.now();
         LocalDate selectedDate = today;
         String errorMessage = null;
@@ -91,38 +90,15 @@ public class PosCounterServiceImpl implements PosCounterService {
         List<Cinema> cinemas = List.of();
         Long cinemaId;
         String setupMessage = null;
-        String role = roleName(staff);
-        if (RoleConstant.ADMIN.equalsIgnoreCase(role)) {
-            cinemas = screeningRoomService.getAllCinemas();
-            if (cinemas.isEmpty()) {
-                setupMessage = "Chưa có chi nhánh đang hoạt động để bán vé.";
-                cinemaId = null;
-            } else {
-                Long requestedId = parseOptionalPositiveLong(requestedCinemaId);
-                if (requestedCinemaId != null && !requestedCinemaId.isBlank() && requestedId == null) {
-                    errorMessage = "Chi nhánh không hợp lệ.";
-                    cinemaId = null;
-                } else if (requestedId == null) {
-                    cinemaId = cinemas.get(0).getId();
-                } else if (cinemas.stream().noneMatch(cinema -> Objects.equals(cinema.getId(), requestedId))) {
-                    errorMessage = "Chi nhánh không hợp lệ.";
-                    cinemaId = null;
-                } else {
-                    cinemaId = requestedId;
-                }
-            }
+        if (staff.getCinemaId() == null) {
+            setupMessage = "Tài khoản chưa được gán chi nhánh. Hãy nhờ quản trị viên cập nhật tài khoản.";
+            cinemaId = null;
         } else {
-            requireCounterRole(staff);
-            if (staff.getCinemaId() == null) {
-                setupMessage = "Tài khoản chưa được gán chi nhánh. Hãy nhờ quản trị viên cập nhật tài khoản.";
-                cinemaId = null;
-            } else {
-                Long requestedId = parseOptionalPositiveLong(requestedCinemaId);
-                if (requestedId != null && !requestedId.equals(staff.getCinemaId())) {
-                    throw new SecurityException("Bạn chỉ được bán vé tại chi nhánh được gán.");
-                }
-                cinemaId = staff.getCinemaId();
+            Long requestedId = parseOptionalPositiveLong(requestedCinemaId);
+            if (requestedId != null && !requestedId.equals(staff.getCinemaId())) {
+                throw new SecurityException("Bạn chỉ được bán vé tại chi nhánh được gán.");
             }
+            cinemaId = staff.getCinemaId();
         }
 
         List<Showtime> showtimes = List.of();
@@ -204,7 +180,7 @@ public class PosCounterServiceImpl implements PosCounterService {
                 || !showtime.getStartTime().isAfter(LocalDateTime.now())) {
             throw new IllegalStateException("Suất chiếu không còn nhận bán vé.");
         }
-        if (!"CASH".equals(command.getPaymentMethod())) {
+        if (!"CASH".equals(command.getPaymentMethod()) && !"VNPAY".equals(command.getPaymentMethod()) && !"VNPAY_POS".equals(command.getPaymentMethod())) {
             throw new IllegalArgumentException("Phương thức thanh toán không hợp lệ.");
         }
 
@@ -272,7 +248,7 @@ public class PosCounterServiceImpl implements PosCounterService {
             ticketPrices.add(basePrice.multiply(multiplier).setScale(2, RoundingMode.HALF_UP));
         }
 
-        if (!"CASH".equals(command.getPaymentMethod())) {
+        if (!"CASH".equals(command.getPaymentMethod()) && !"VNPAY".equals(command.getPaymentMethod()) && !"VNPAY_POS".equals(command.getPaymentMethod())) {
             throw new IllegalArgumentException("Phương thức thanh toán không hợp lệ.");
         }
 
@@ -308,19 +284,11 @@ public class PosCounterServiceImpl implements PosCounterService {
     }
 
     private Long resolveCinemaForCheckout(User staff, String requestedCinema) {
-        if (RoleConstant.ADMIN.equalsIgnoreCase(roleName(staff))) {
-            throw new SecurityException("Admin khong co quyen su dung quay POS.");
-        }
-        String role = roleName(staff);
-        long requested = parseRequiredLong(requestedCinema, "Chọn chi nhánh.");
-        if (RoleConstant.ADMIN.equalsIgnoreCase(role)) {
-            Cinema cinema = screeningRoomService.getCinemaById(requested);
-            if (cinema == null || !Boolean.TRUE.equals(cinema.getIsActive())) {
-                throw new IllegalArgumentException("Chi nhánh không tồn tại hoặc đã ngừng hoạt động.");
-            }
-            return requested;
+        if (staff == null) {
+            throw new IllegalArgumentException("Không tìm thấy tài khoản đang đăng nhập.");
         }
         requireCounterRole(staff);
+        long requested = parseRequiredLong(requestedCinema, "Chọn chi nhánh.");
         if (staff.getCinemaId() == null || !staff.getCinemaId().equals(requested)) {
             throw new SecurityException("Bạn chỉ được bán vé tại chi nhánh được gán.");
         }
@@ -329,6 +297,9 @@ public class PosCounterServiceImpl implements PosCounterService {
 
     private void requireCounterRole(User user) {
         String role = roleName(user);
+        if (RoleConstant.ADMIN.equalsIgnoreCase(role)) {
+            throw new SecurityException("Admin khong co quyen su dung quay POS.");
+        }
         if (!RoleConstant.STAFF.equalsIgnoreCase(role) && !RoleConstant.MANAGER.equalsIgnoreCase(role)) {
             throw new SecurityException("Tài khoản không được phép bán vé tại quầy.");
         }

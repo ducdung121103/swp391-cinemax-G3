@@ -67,4 +67,36 @@ class PosOrderServiceTest {
         assertEquals("POS", captor.getValue().getChannel());
         assertEquals(3L, captor.getValue().getStaffId());
     }
+
+    @Test
+    @DisplayName("Should accept VNPAY_POS payment method and delegate to Booking Engine")
+    void testPosCheckoutWithVnPay() {
+        CreateBookingDTO request = CreateBookingDTO.builder()
+                .staffId(5L)
+                .showtimeId(2L)
+                .seatIds(List.of(20L))
+                .paymentMethod("VNPAY_POS")
+                .build();
+
+        BookingResult mockResult = BookingResult.builder()
+                .bookingId(999L)
+                .bookingCode("BK-2024-999")
+                .finalAmount(new BigDecimal("95000.00"))
+                .status("SUCCESS")
+                .paymentMethod("VNPAY_POS")
+                .build();
+
+        when(bookingEngineService.createBooking(any(CreateBookingDTO.class))).thenReturn(mockResult);
+
+        BookingResult result = posOrderService.processCounterCheckout(request);
+
+        assertNotNull(result);
+        assertEquals("SUCCESS", result.getStatus());
+        assertEquals(999L, result.getBookingId());
+
+        ArgumentCaptor<CreateBookingDTO> captor = ArgumentCaptor.forClass(CreateBookingDTO.class);
+        verify(bookingEngineService, times(1)).createBooking(captor.capture());
+        assertEquals("POS", captor.getValue().getChannel());
+        assertEquals("VNPAY_POS", captor.getValue().getPaymentMethod());
+    }
 }

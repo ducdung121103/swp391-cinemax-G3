@@ -32,7 +32,9 @@ public class PosOrderServiceImpl implements PosOrderService {
             throw new IllegalArgumentException("Không xác định được nhân viên đang bán.");
         }
         if (request.getPaymentMethod() == null
-                || !"CASH".equals(request.getPaymentMethod())) {
+                || (!"CASH".equals(request.getPaymentMethod())
+                    && !"VNPAY".equals(request.getPaymentMethod())
+                    && !"VNPAY_POS".equals(request.getPaymentMethod()))) {
             throw new IllegalArgumentException("Phương thức thanh toán tại quầy không hợp lệ.");
         }
 

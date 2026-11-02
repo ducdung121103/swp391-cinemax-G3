@@ -8,7 +8,9 @@ import com.cinema.model.User;
 import com.cinema.modules.booking.dto.BookingResult;
 import com.cinema.modules.booking.dto.CreateBookingDTO;
 import com.cinema.modules.booking.service.BookingEngineService;
+import com.cinema.modules.booking.service.VNPayService;
 import com.cinema.modules.booking.service.impl.BookingEngineServiceImpl;
+import com.cinema.modules.booking.service.impl.VNPayServiceImpl;
 import com.cinema.modules.catalog.service.PricingService;
 import com.cinema.modules.catalog.service.ShowtimeService;
 import com.cinema.modules.catalog.service.impl.PricingServiceImpl;
@@ -25,7 +27,9 @@ import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Controller điều hướng luồng Giữ ghế & Thanh toán trực tuyến (TV 4).
@@ -36,6 +40,7 @@ public class BookingFlowServlet extends HttpServlet {
     private final ScreeningRoomService screeningRoomService = new ScreeningRoomServiceImpl();
     private final ShowtimeService showtimeService = new ShowtimeServiceImpl();
     private final PricingService pricingService = new PricingServiceImpl();
+    private final VNPayService vnpayService = new VNPayServiceImpl();
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -97,6 +102,11 @@ public class BookingFlowServlet extends HttpServlet {
             String voucherIdParam = req.getParameter("voucherId");
             Long voucherId = (voucherIdParam != null && !voucherIdParam.trim().isEmpty()) ? Long.parseLong(voucherIdParam.trim()) : null;
 
+            String paymentMethod = req.getParameter("paymentMethod");
+            if (paymentMethod == null || paymentMethod.isBlank()) {
+                paymentMethod = "VNPAY";
+            }
+
             CreateBookingDTO dto = CreateBookingDTO.builder()
                     .userId(currentUser != null ? currentUser.getId() : null)
                     .showtimeId(showtimeId)
@@ -104,12 +114,23 @@ public class BookingFlowServlet extends HttpServlet {
                     .ticketPrices(ticketPrices)
                     .voucherId(voucherId)
                     .channel("ONLINE")
-                    .paymentMethod(req.getParameter("paymentMethod"))
+                    .paymentMethod(paymentMethod)
                     .sessionId(session.getId())
                     .build();
 
             try {
                 BookingResult result = bookingEngineService.createBooking(dto);
+                if ("VNPAY".equalsIgnoreCase(dto.getPaymentMethod())) {
+                    String payUrl = vnpayService.createPaymentUrl(req, result.getBookingCode(),
+                            result.getFinalAmount(), "Thanh toan ve CineMax " + result.getBookingCode());
+                    Map<String, Object> responseData = new HashMap<>();
+                    responseData.put("success", true);
+                    responseData.put("paymentUrl", payUrl);
+                    responseData.put("bookingCode", result.getBookingCode());
+                    responseData.put("data", result);
+                    resp.getWriter().write(JsonUtil.toJson(responseData));
+                    return;
+                }
                 resp.getWriter().write(JsonUtil.toJson(ApiResponse.success(result, "Đặt vé thành công!")));
             } catch (Exception e) {
                 resp.getWriter().write(JsonUtil.toJson(ApiResponse.error("BOOKING_FAILED", e.getMessage())));

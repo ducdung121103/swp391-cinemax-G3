@@ -47,7 +47,7 @@
                         <h2 id="receipt-title">Đơn hàng đã được tạo và thanh toán</h2>
                         <p>Mã đơn <strong><c:out value="${checkoutResult.bookingCode}" /></strong><span class="receipt-divider">·</span>Trạng thái <strong><c:out value="${checkoutResult.status}" /></strong></p>
                         <p class="receipt-showtime"><c:out value="${checkoutShowtime.movie.title}" /> · <c:out value="${checkoutShowtime.startTime}" /> · <c:out value="${checkoutShowtime.screeningRoom.name}" /></p>
-                        <p class="receipt-showtime">Thanh toán: <strong><c:choose><c:when test="${checkoutResult.paymentMethod eq 'CASH'}">Tiền mặt</c:when><c:otherwise><c:out value="${checkoutResult.paymentMethod}" /></c:otherwise></c:choose></strong></p>
+                        <p class="receipt-showtime">Thanh toán: <strong><c:choose><c:when test="${checkoutResult.paymentMethod eq 'CASH'}">Tiền mặt</c:when><c:when test="${checkoutResult.paymentMethod eq 'VNPAY_POS' or checkoutResult.paymentMethod eq 'VNPAY'}">Quét mã QR VNPay POS</c:when><c:otherwise><c:out value="${checkoutResult.paymentMethod}" /></c:otherwise></c:choose></strong></p>
                     </div>
                     <div class="receipt-total"><small>Tổng thanh toán</small><strong><fmt:formatNumber value="${checkoutResult.finalAmount}" pattern="#,##0" groupingUsed="true" /><span>đ</span></strong></div>
                     <button class="button button-secondary receipt-print" type="button" onclick="window.print()">In hóa đơn</button>
@@ -252,7 +252,7 @@
                             <label class="field-group payment-field">Phương thức thanh toán
                                 <select name="paymentMethod" required>
                                     <option value="CASH">Tiền mặt</option>
-                                    <option value="VNPAY_POS" disabled>Quét QR VNPay POS (Bảo trì)</option>
+                                    <option value="VNPAY_POS">Quét mã QR VNPay POS</option>
                                 </select>
                             </label>
                             <button class="button button-primary checkout-button" type="submit" ${availableSeatCount eq 0 ? 'disabled' : ''}>Tạo đơn & thanh toán <span aria-hidden="true">→</span></button>
@@ -278,6 +278,14 @@
                             <div class="pos-confirm-line"><span>Tổng bắp nước</span><strong id="confirm-fnb-total"></strong></div>
                             <div class="pos-confirm-line"><span>Thanh toán bằng</span><strong id="confirm-payment"></strong></div>
                             <div class="pos-confirm-line pos-confirm-grand-total"><span>Tổng thanh toán</span><strong id="confirm-grand-total"></strong></div>
+                            <div id="pos-vnpay-qr-container" style="display:none; text-align:center; padding:14px; margin-top:12px; background:rgba(0,0,0,0.35); border-radius:10px; border:1px dashed #e5a93b;">
+                                <div style="font-weight:600; color:#e5a93b; margin-bottom:8px; font-size:13px; text-transform:uppercase; letter-spacing:0.5px;">Quét Mã QR VNPay Để Thanh Toán</div>
+                                <img id="pos-vnpay-qr-image" src="" alt="Mã QR VNPay POS" style="width:190px; height:190px; border-radius:8px; background:#fff; padding:6px; display:inline-block; box-shadow:0 4px 12px rgba(0,0,0,0.5);">
+                                <p style="margin-top:8px; font-size:12px; color:#bbb; line-height:1.4; margin-bottom:0;">
+                                    Bảo khách mở App Ngân hàng hoặc ví VNPay để quét mã.<br>
+                                    <strong>Số tiền: </strong><span id="pos-qr-amount-text" style="color:#2ecc71; font-weight:700;"></span>
+                                </p>
+                            </div>
                         </div>
                         <div class="pos-confirm-actions">
                             <button class="button button-secondary" id="cancel-pos-confirmation" type="button">Quay lại chỉnh sửa</button>
@@ -428,6 +436,7 @@
                 fnbSubtotal.textContent = formatMoney(Number(quote.fnbTotal));
                 grandTotal.textContent = formatMoney(Number(quote.grandTotal));
                 const quoteDiscount = Number(quote.ticketDiscountAmount);
+                const discountPercent = Number(form.querySelector('input[name="ticketClass"]:checked')?.dataset.discountPercent || 0);
                 ticketDiscount.textContent = discountPercent + '%' +
                     (quoteDiscount > 0 ? ' · giảm ' + formatMoney(quoteDiscount) : '');
                 quotedTotalInput.value = Number(quote.grandTotal).toFixed(2);
@@ -482,6 +491,21 @@
             document.getElementById('confirm-payment').textContent =
                     form.querySelector('[name="paymentMethod"] option:checked')?.textContent.trim() || '';
             document.getElementById('confirm-grand-total').textContent = grandTotal.textContent;
+            const selectedMethod = form.querySelector('[name="paymentMethod"]')?.value;
+            const qrContainer = document.getElementById('pos-vnpay-qr-container');
+            const qrImage = document.getElementById('pos-vnpay-qr-image');
+            const qrAmountText = document.getElementById('pos-qr-amount-text');
+            if (selectedMethod === 'VNPAY_POS' || selectedMethod === 'VNPAY') {
+                if (qrContainer) qrContainer.style.display = 'block';
+                const numericAmount = grandTotal.textContent.replace(/[^\d]/g, '') || '0';
+                if (qrAmountText) qrAmountText.textContent = grandTotal.textContent;
+                const qrUrl = 'https://api.vietqr.io/image/970407-123456789-compact2.png?amount=' + numericAmount + '&addInfo=CINEMAX%20POS&accountName=CINEMAX%20CHAIN';
+                if (qrImage) qrImage.src = qrUrl;
+                if (confirmButton) confirmButton.textContent = 'Đã nhận tiền QR & Xuất vé';
+            } else {
+                if (qrContainer) qrContainer.style.display = 'none';
+                if (confirmButton) confirmButton.textContent = 'Xác nhận thanh toán tiền mặt';
+            }
             confirmation.hidden = false;
             confirmationDialog?.focus();
         });

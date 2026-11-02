@@ -30,7 +30,7 @@
                 <tbody>
                     <tr class="border-bottom border-secondary border-opacity-50">
                         <td><strong>Vé xem phim</strong></td>
-                        <td>Ghế: VIP F08, VIP F09 (Suất #${showtimeId})</td>
+                        <td>Ghế: VIP F08, VIP F09 (Suất #${showtimeId != null ? showtimeId : 1})</td>
                         <td class="text-end text-warning fw-semibold">190,000đ</td>
                     </tr>
                     <tr class="border-bottom border-secondary border-opacity-50">
@@ -41,7 +41,7 @@
                 </tbody>
                 <tfoot>
                     <tr>
-                        <th colspan="2" class="text-end fs-5 text-white pt-3">Tổng thanh toán:</th>
+                        <th colspan="2" class="fs-5 pt-3">Tổng số tiền thanh toán:</th>
                         <th class="text-end fs-4 text-danger fw-bold pt-3">275,000đ</th>
                     </tr>
                 </tfoot>
@@ -58,8 +58,8 @@
             </div>
         </div>
 
-        <button type="button" class="btn btn-cinema-primary w-100 py-3 fs-5 fw-bold shadow">
-            <i class="fa-solid fa-lock me-2"></i> Thanh Toán Ngay
+        <button type="button" id="btnCheckout" class="btn btn-cinema-primary w-100 py-3 fs-5 fw-bold shadow">
+            <i class="fa-solid fa-lock me-2"></i> Thanh Toán Qua Cổng VNPAY
         </button>
     </div>
 </div>
@@ -83,4 +83,36 @@
             window.location.href = '${pageContext.request.contextPath}/movies';
         }
     }, 1000);
+
+    document.getElementById('btnCheckout')?.addEventListener('click', async () => {
+        const btn = document.getElementById('btnCheckout');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Đang kết nối Cổng VNPAY...';
+        try {
+            const formData = new URLSearchParams();
+            formData.append('showtimeId', '${showtimeId != null && not empty showtimeId ? showtimeId : 1}');
+            formData.append('paymentMethod', 'VNPAY');
+            formData.append('seatIds', '1');
+            const resp = await fetch('${pageContext.request.contextPath}/booking/checkout', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: formData
+            });
+            const data = await resp.json();
+            if (data.paymentUrl) {
+                window.location.href = data.paymentUrl;
+            } else if (data.data?.status === 'SUCCESS' || data.success) {
+                alert('Đặt vé thành công!');
+                window.location.href = '${pageContext.request.contextPath}/profile';
+            } else {
+                alert(data.message || 'Lỗi xử lý thanh toán.');
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-lock me-2"></i> Thanh Toán Qua Cổng VNPAY';
+            }
+        } catch (e) {
+            alert('Không thể kết nối đến máy chủ.');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-lock me-2"></i> Thanh Toán Qua Cổng VNPAY';
+        }
+    });
 </script>
