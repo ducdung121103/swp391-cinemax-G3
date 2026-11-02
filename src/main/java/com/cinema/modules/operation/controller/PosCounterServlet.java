@@ -1,6 +1,7 @@
 package com.cinema.modules.operation.controller;
 
 import com.cinema.model.User;
+import com.cinema.modules.operation.dto.PosQuoteResult;
 import com.cinema.modules.operation.dto.PosCheckoutCommand;
 import com.cinema.modules.operation.dto.PosCheckoutResult;
 import com.cinema.modules.operation.dto.PosCounterPageData;
@@ -13,6 +14,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import com.google.gson.Gson;
 
 import java.io.IOException;
 import java.net.URLEncoder;
@@ -68,6 +70,10 @@ public class PosCounterServlet extends HttpServlet {
             session.removeAttribute("posCheckoutShowtime");
             request.getRequestDispatcher(VIEW).forward(request, response);
         } catch (SecurityException e) {
+            if (isQuoteRequest(request)) {
+                writeQuoteError(response, HttpServletResponse.SC_FORBIDDEN, e.getMessage());
+                return;
+            }
             response.sendError(HttpServletResponse.SC_FORBIDDEN, e.getMessage());
         } catch (SQLException e) {
             throw new ServletException("Không thể tải dữ liệu quầy POS.", e);
@@ -85,6 +91,12 @@ public class PosCounterServlet extends HttpServlet {
         }
 
         try {
+            if ("quote".equalsIgnoreCase(request.getParameter("mode"))) {
+                PosQuoteResult quote = posCounterService.quote(toCommand(request, staff));
+                response.setContentType("application/json;charset=UTF-8");
+                response.getWriter().write(new Gson().toJson(quote));
+                return;
+            }
             PosCheckoutResult checkout = posCounterService.checkout(toCommand(request, staff));
             HttpSession session = request.getSession();
             session.setAttribute("posCheckoutResult", checkout.getBookingResult());
@@ -92,12 +104,25 @@ public class PosCounterServlet extends HttpServlet {
             response.sendRedirect(posUrl(request, checkout.getCinemaId().toString(),
                     checkout.getDate().toString(), null));
         } catch (SecurityException e) {
+            if (isQuoteRequest(request)) {
+                writeQuoteError(response, HttpServletResponse.SC_FORBIDDEN, e.getMessage());
+                return;
+            }
             response.sendError(HttpServletResponse.SC_FORBIDDEN, e.getMessage());
         } catch (CheckoutConfirmationRequiredException e) {
             redirectWithError(request, response, e.getMessage());
         } catch (IllegalArgumentException | IllegalStateException e) {
+            if (isQuoteRequest(request)) {
+                writeQuoteError(response, HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
+                return;
+            }
             redirectWithError(request, response, e.getMessage());
         } catch (Exception e) {
+            if (isQuoteRequest(request)) {
+                writeQuoteError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+                        "Không thể lấy báo giá POS.");
+                return;
+            }
             throw new ServletException("Không thể tạo giao dịch POS.", e);
         }
     }
@@ -113,6 +138,7 @@ public class PosCounterServlet extends HttpServlet {
                 .ticketClass(request.getParameter("ticketClass"))
                 .paymentMethod(request.getParameter("paymentMethod"))
                 .sessionId(request.getSession().getId())
+                .quotedTotal(request.getParameter("quotedTotal"))
                 .fnbQuantities(fnbQuantities(request.getParameterMap()))
                 .build();
     }
@@ -162,5 +188,17 @@ public class PosCounterServlet extends HttpServlet {
         url.append(name).append('=')
                 .append(URLEncoder.encode(value, StandardCharsets.UTF_8))
                 .append('&');
+    }
+
+    private boolean isQuoteRequest(HttpServletRequest request) {
+        return "quote".equalsIgnoreCase(request.getParameter("mode"));
+    }
+
+    private void writeQuoteError(HttpServletResponse response, int status, String message)
+            throws IOException {
+        response.setStatus(status);
+        response.setContentType("application/json;charset=UTF-8");
+        response.getWriter().write(new Gson().toJson(Map.of(
+                "message", message == null ? "Không thể lấy báo giá POS." : message)));
     }
 }

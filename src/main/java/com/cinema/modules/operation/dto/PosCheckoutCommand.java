@@ -25,4 +25,5 @@ public class PosCheckoutCommand {
     private String paymentMethod;
     private String sessionId;
     private Map<String, String> fnbQuantities;
+    private String quotedTotal;
 }

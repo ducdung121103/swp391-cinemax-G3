@@ -27,6 +27,7 @@ public class CreateBookingDTO {
     private String paymentMethod; // VNPAY, CASH, POINTS
     private Integer ticketDiscountPercent;
     private String sessionId;
+    private BigDecimal expectedFinalAmount;
 
     /** Danh sách ID ghế chọn mua */
     private List<Long> seatIds;

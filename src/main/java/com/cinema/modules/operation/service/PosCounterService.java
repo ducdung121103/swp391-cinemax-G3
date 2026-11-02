@@ -4,6 +4,7 @@ import com.cinema.model.User;
 import com.cinema.modules.operation.dto.PosCheckoutCommand;
 import com.cinema.modules.operation.dto.PosCheckoutResult;
 import com.cinema.modules.operation.dto.PosCounterPageData;
+import com.cinema.modules.operation.dto.PosQuoteResult;
 
 import java.sql.SQLException;
 
@@ -12,4 +13,6 @@ public interface PosCounterService {
                                 String requestedShowtimeId, String sessionId) throws SQLException;
 
     PosCheckoutResult checkout(PosCheckoutCommand command);
+
+    PosQuoteResult quote(PosCheckoutCommand command);
 }

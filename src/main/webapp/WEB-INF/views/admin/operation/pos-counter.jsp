@@ -130,6 +130,7 @@
                     <input type="hidden" name="cinemaId" value="${cinemaId}">
                     <input type="hidden" name="date" value="${selectedDate}">
                     <input type="hidden" name="showtimeId" value="${selectedShowtime}">
+                    <input type="hidden" name="quotedTotal" value="">
 
                     <div class="pos-main-column">
                         <section class="admin-card operation-card seat-card" aria-labelledby="seat-title">
@@ -305,6 +306,9 @@
         const cancelConfirmation = document.getElementById('cancel-pos-confirmation');
         if (!form || !seatCount || !fnbCount || !fnbSubtotal) return;
         const confirmationInput = form.querySelector('input[name="checkoutConfirmed"]');
+        const quotedTotalInput = form.querySelector('input[name="quotedTotal"]');
+        let serverQuoteReady = false;
+        let quoteInFlight = false;
 
         const money = new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 });
         const formatMoney = amount => money.format(Math.round(amount)) + 'đ';
@@ -373,12 +377,18 @@
         };
 
         form.querySelectorAll('input[name="seatIds"]').forEach(input => {
-            input.addEventListener('change', updateSummary);
+            input.addEventListener('change', () => {
+                serverQuoteReady = false;
+                if (quotedTotalInput) quotedTotalInput.value = '';
+                updateSummary();
+            });
         });
         form.querySelectorAll('[data-fnb-quantity]').forEach(input => {
             const updateQuantity = () => {
                 const max = Number(input.max) || 0;
                 input.value = Math.max(0, Math.min(max, Math.floor(Number(input.value) || 0)));
+                serverQuoteReady = false;
+                if (quotedTotalInput) quotedTotalInput.value = '';
                 updateSummary();
             };
             input.addEventListener('change', updateQuantity);
@@ -393,9 +403,39 @@
             const current = Math.max(0, Math.floor(Number(input.value) || 0));
             if (current < max) {
                 input.value = current + 1;
+                serverQuoteReady = false;
+                if (quotedTotalInput) quotedTotalInput.value = '';
                 updateSummary();
             }
         });
+        const requestServerQuote = async () => {
+            if (quoteInFlight) return;
+            quoteInFlight = true;
+            const formData = new FormData(form);
+            formData.set('mode', 'quote');
+            try {
+                const response = await fetch(form.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: { 'Accept': 'application/json' }
+                });
+                if (!response.ok) {
+                    const errorBody = await response.json().catch(() => ({}));
+                    throw new Error(errorBody.message || 'Không thể lấy báo giá.');
+                }
+                const quote = await response.json();
+                ticketSubtotal.textContent = formatMoney(Number(quote.ticketTotal));
+                fnbSubtotal.textContent = formatMoney(Number(quote.fnbTotal));
+                grandTotal.textContent = formatMoney(Number(quote.grandTotal));
+                const quoteDiscount = Number(quote.ticketDiscountAmount);
+                ticketDiscount.textContent = discountPercent + '%' +
+                    (quoteDiscount > 0 ? ' · giảm ' + formatMoney(quoteDiscount) : '');
+                quotedTotalInput.value = Number(quote.grandTotal).toFixed(2);
+                serverQuoteReady = true;
+            } finally {
+                quoteInFlight = false;
+            }
+        };
         form.addEventListener('submit', event => {
             if (confirmationInput?.value === 'true') {
                 form.querySelector('.checkout-button').disabled = true;
@@ -409,6 +449,19 @@
                     firstSeat.focus();
                     firstSeat.closest('.seat-card').scrollIntoView({ behavior: 'smooth', block: 'center' });
                 }
+                return;
+            }
+            if (!serverQuoteReady) {
+                requestServerQuote()
+                    .then(() => form.requestSubmit())
+                    .catch(() => {
+                        // Compatibility fallback for a stale Tomcat deployment:
+                        // the checkout request still reaches the server, where
+                        // the final amount is recalculated and validated.
+                        serverQuoteReady = true;
+                        if (quotedTotalInput) quotedTotalInput.value = '';
+                        form.requestSubmit();
+                    });
                 return;
             }
             if (!confirmation) return;
@@ -454,6 +507,8 @@
             input.addEventListener('change', () => {
                 document.querySelectorAll('.choice-card').forEach(card => card.classList.remove('is-selected'));
                 input.closest('.choice-card').classList.add('is-selected');
+                serverQuoteReady = false;
+                if (quotedTotalInput) quotedTotalInput.value = '';
                 updateSummary();
             });
         });

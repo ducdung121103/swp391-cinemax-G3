@@ -19,6 +19,7 @@ import com.cinema.modules.operation.dao.PosSeatDAO;
 import com.cinema.modules.operation.dto.PosCheckoutCommand;
 import com.cinema.modules.operation.dto.PosCheckoutResult;
 import com.cinema.modules.operation.dto.PosCounterPageData;
+import com.cinema.modules.operation.dto.PosQuoteResult;
 import com.cinema.modules.operation.service.CheckoutConfirmationRequiredException;
 import com.cinema.modules.operation.service.FnBMenuService;
 import com.cinema.modules.operation.service.PosCounterService;
@@ -190,6 +191,50 @@ public class PosCounterServiceImpl implements PosCounterService {
     }
 
     @Override
+    public PosQuoteResult quote(PosCheckoutCommand command) {
+        if (command == null || command.getStaff() == null) {
+            throw new IllegalArgumentException("Không tìm thấy tài khoản đang đăng nhập.");
+        }
+        User staff = command.getStaff();
+        Long cinemaId = resolveCinemaForCheckout(staff, command.getRequestedCinemaId());
+        LocalDate date = parseDate(command.getDate());
+        long showtimeId = parseRequiredLong(command.getShowtimeId(), "Chọn suất chiếu.");
+        Showtime showtime = findSellableShowtime(cinemaId, date, showtimeId);
+        if (showtime == null || showtime.getStartTime() == null
+                || !showtime.getStartTime().isAfter(LocalDateTime.now())) {
+            throw new IllegalStateException("Suất chiếu không còn nhận bán vé.");
+        }
+        if (!"CASH".equals(command.getPaymentMethod())) {
+            throw new IllegalArgumentException("Phương thức thanh toán không hợp lệ.");
+        }
+
+        List<Long> seatIds = parseSeatIds(command.getSeatIds());
+        String ticketClass = normalizedTicketClass(command.getTicketClass());
+        int discountPercent = discountPercentForTicketClass(ticketClass);
+        BigDecimal multiplier = BigDecimal.ONE.subtract(
+                BigDecimal.valueOf(discountPercent).movePointLeft(2));
+        BigDecimal baseTicketTotal = BigDecimal.ZERO;
+        BigDecimal ticketTotal = BigDecimal.ZERO;
+        for (Long seatId : seatIds) {
+            Seat seat = screeningRoomService.getSeatById(seatId);
+            if (seat == null || !Objects.equals(seat.getScreeningRoomId(), showtime.getScreeningRoomId())
+                    || !Boolean.TRUE.equals(seat.getIsActive())
+                    || !"ACTIVE".equalsIgnoreCase(seat.getStatus())) {
+                throw new IllegalArgumentException("Một trong các ghế đã bị khóa hoặc không thuộc phòng chiếu này.");
+            }
+            BigDecimal basePrice = pricingService.calculateTicketPrice(
+                    showtimeId, seat.getSeatTypeId(), showtime.getStartTime(), showtime.getExperienceFormat());
+            baseTicketTotal = baseTicketTotal.add(basePrice);
+            ticketTotal = ticketTotal.add(basePrice.multiply(multiplier).setScale(2, RoundingMode.HALF_UP));
+        }
+
+        Map<Long, Integer> fnbItems = parseFnbItems(command.getFnbQuantities());
+        BigDecimal fnbTotal = calculateFnbQuote(cinemaId, fnbItems);
+        return new PosQuoteResult(ticketTotal, fnbTotal,
+                baseTicketTotal.subtract(ticketTotal), ticketTotal.add(fnbTotal));
+    }
+
+    @Override
     public PosCheckoutResult checkout(PosCheckoutCommand command) {
         if (command == null || command.getStaff() == null) {
             throw new IllegalArgumentException("Không tìm thấy tài khoản đang đăng nhập.");
@@ -231,6 +276,19 @@ public class PosCounterServiceImpl implements PosCounterService {
             throw new IllegalArgumentException("Phương thức thanh toán không hợp lệ.");
         }
 
+        BigDecimal quotedTotal = parseOptionalMoney(command.getQuotedTotal());
+        if (quotedTotal != null) {
+            BigDecimal currentFnbTotal = calculateFnbQuote(cinemaId,
+                    parseFnbItems(command.getFnbQuantities()));
+            BigDecimal currentTotal = ticketPrices.stream()
+                    .reduce(BigDecimal.ZERO, BigDecimal::add)
+                    .add(currentFnbTotal);
+            if (quotedTotal.compareTo(currentTotal) != 0) {
+                throw new IllegalStateException(
+                        "Giá hoặc tồn kho đã thay đổi. Vui lòng kiểm tra lại tổng tiền trước khi thanh toán.");
+            }
+        }
+
         CreateBookingDTO bookingRequest = CreateBookingDTO.builder()
                 .staffId(staff.getId())
                 .showtimeId(showtimeId)
@@ -241,6 +299,7 @@ public class PosCounterServiceImpl implements PosCounterService {
                 .paymentMethod(command.getPaymentMethod())
                 .ticketDiscountPercent(ticketDiscountPercent)
                 .sessionId(command.getSessionId())
+                .expectedFinalAmount(quotedTotal)
                 .build();
 
         BookingResult result = posOrderService.processCounterCheckout(bookingRequest);
@@ -363,6 +422,41 @@ public class PosCounterServiceImpl implements PosCounterService {
             return discount("SENIOR_TICKET_DISCOUNT_PERCENT", 10).intValue();
         }
         return 0;
+    }
+
+    private BigDecimal calculateFnbQuote(Long cinemaId, Map<Long, Integer> quantities) {
+        if (quantities == null || quantities.isEmpty()) {
+            return BigDecimal.ZERO;
+        }
+        Map<Long, FnBItem> availableItems = new HashMap<>();
+        for (FnBItem item : fnbMenuService.getAvailableItems(cinemaId)) {
+            availableItems.put(item.getId(), item);
+        }
+        BigDecimal total = BigDecimal.ZERO;
+        for (Map.Entry<Long, Integer> entry : quantities.entrySet()) {
+            FnBItem item = availableItems.get(entry.getKey());
+            int quantity = entry.getValue();
+            if (item == null || item.getPrice() == null) {
+                throw new IllegalArgumentException("Sản phẩm F&B không còn bán tại chi nhánh.");
+            }
+            if (item.getStockQuantity() == null || item.getStockQuantity() < quantity) {
+                throw new IllegalStateException("Sản phẩm F&B không đủ tồn kho để báo giá.");
+            }
+            total = total.add(item.getPrice().multiply(BigDecimal.valueOf(quantity)));
+        }
+        return total;
+    }
+
+    private BigDecimal parseOptionalMoney(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        try {
+            BigDecimal amount = new BigDecimal(value.trim());
+            return amount.signum() >= 0 ? amount.setScale(2, RoundingMode.HALF_UP) : null;
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("Tổng tiền báo giá không hợp lệ.", e);
+        }
     }
 
     private BigDecimal discount(String key, int fallback) {

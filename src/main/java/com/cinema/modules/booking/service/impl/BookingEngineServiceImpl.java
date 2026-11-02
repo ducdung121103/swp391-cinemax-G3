@@ -134,6 +134,11 @@ public class BookingEngineServiceImpl implements BookingEngineService {
             if (finalAmount.compareTo(BigDecimal.ZERO) < 0) {
                 finalAmount = BigDecimal.ZERO;
             }
+            if (dto.getExpectedFinalAmount() != null
+                    && dto.getExpectedFinalAmount().compareTo(finalAmount) != 0) {
+                throw new IllegalStateException(
+                        "Giá hoặc tồn kho đã thay đổi. Vui lòng lấy lại báo giá trước khi thanh toán.");
+            }
 
             // 4. Tạo Booking Master
             Booking b = Booking.builder()
