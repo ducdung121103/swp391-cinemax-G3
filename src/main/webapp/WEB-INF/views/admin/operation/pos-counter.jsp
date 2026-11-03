@@ -12,6 +12,27 @@
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/base.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/admin-layout.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/modules/operation.css?v=3">
+    <style>
+        .legend-seat.couple { border-color: #d63384; background: #fff0f6; }
+        .seat-option.seat-couple span {
+            border-color: #f783ac;
+            background: #fff0f6;
+            color: #d63384;
+            font-weight: 700;
+        }
+        .seat-option.seat-couple:hover span {
+            border-color: #d63384;
+            background: #fcc2d7;
+            color: #a61e4d;
+            transform: translateY(-2px);
+        }
+        .seat-option.seat-couple input:checked + span {
+            background: #d63384;
+            border-color: #a61e4d;
+            color: #ffffff;
+            box-shadow: 0 0 8px rgba(214, 51, 132, 0.4);
+        }
+    </style>
 </head>
 <body>
 <c:url var="fnbFallbackUrl" value="/assets/images/fnb/default.svg" />
@@ -99,7 +120,8 @@
                                 <div><h2 id="seat-title">Chọn ghế</h2><p>Chạm vào ghế còn trống để thêm vào đơn.</p></div>
                             </div>
                             <div class="seat-legend" aria-label="Chú thích trạng thái ghế">
-                                <span><i class="legend-seat available"></i>Còn trống</span>
+                                <span><i class="legend-seat available"></i>Tiêu chuẩn / VIP</span>
+                                <span><i class="legend-seat couple"></i>Ghế đôi Sweetbox</span>
                                 <span><i class="legend-seat selected"></i>Đang chọn</span>
                             </div>
                             <div class="screen-label"><span>MÀN HÌNH</span></div>
@@ -107,11 +129,20 @@
                                 <c:when test="${not empty availableSeats}">
                                     <div class="seat-grid">
                                         <c:forEach items="${availableSeats}" var="seat">
-                                            <label class="seat-option">
-                                            <input type="checkbox" name="seatIds" value="${seat.id}">
+                                            <c:set var="isCouple" value="${seat.seatTypeId eq 3 or (not empty seat.seatType and seat.seatType.typeCode eq 'COUPLE')}" />
+                                            <label class="seat-option ${isCouple ? 'seat-couple' : ''}" title="${isCouple ? 'Ghế đôi Sweetbox (Yêu cầu chọn theo cặp liền kề)' : 'Ghế tiêu chuẩn / VIP'}">
+                                                <input type="checkbox" name="seatIds" value="${seat.id}"
+                                                       data-is-couple="${isCouple}"
+                                                       data-row="${seat.seatRow}"
+                                                       data-number="${seat.seatNumber}"
+                                                       data-code="${seat.seatCode}">
                                                 <span><c:out value="${seat.seatCode}" /></span>
                                             </label>
                                         </c:forEach>
+                                    </div>
+                                    <div id="couple-seat-warning" class="operation-alert alert-error" style="display:none; margin-top:14px;" role="alert">
+                                        <span class="alert-icon">!</span>
+                                        <span id="couple-seat-warning-text"></span>
                                     </div>
                                 </c:when>
                                 <c:otherwise><div class="empty-state"><span>◌</span><strong>Chưa có ghế trống</strong><small>Suất chiếu đã hết ghế hoặc phòng chưa được cấu hình.</small></div></c:otherwise>
@@ -177,7 +208,13 @@
                                 <div class="section-number">05</div>
                                 <div><h2 id="summary-title">Thanh toán</h2><p>Kiểm tra thông tin trước khi xác nhận.</p></div>
                             </div>
-                            <div class="summary-line"><span>Ghế đã chọn</span><strong><span id="selected-seat-count">0</span> ghế</strong></div>
+                            <div class="summary-line">
+                                <span>Ghế đã chọn</span>
+                                <strong><span id="selected-seat-count">0</span> ghế</strong>
+                            </div>
+                            <div id="couple-seat-summary-line" style="display:none; font-size:11px; margin-top:-6px; margin-bottom:8px; padding: 4px 8px; border-radius: 4px; background: #fff0f6; border: 1px solid #fcc2d7;">
+                                <span id="couple-seat-summary-text" style="color: #d63384; font-weight: 600;"></span>
+                            </div>
                             <div class="summary-line"><span>Bắp nước</span><strong id="selected-fnb-count">0 món</strong></div>
                             <div class="summary-line summary-fnb-total"><span>Tạm tính bắp nước</span><strong id="fnb-subtotal">0đ</strong></div>
                             <p class="summary-help">Giá vé và tổng thanh toán được tính khi tạo đơn.</p>
@@ -201,9 +238,108 @@
         const seatCount = document.getElementById('selected-seat-count');
         const fnbCount = document.getElementById('selected-fnb-count');
         const fnbSubtotal = document.getElementById('fnb-subtotal');
+        const coupleSummaryLine = document.getElementById('couple-seat-summary-line');
+        const coupleSummaryText = document.getElementById('couple-seat-summary-text');
+        const coupleWarningBox = document.getElementById('couple-seat-warning');
+        const coupleWarningText = document.getElementById('couple-seat-warning-text');
+
         if (!seatCount || !fnbCount || !fnbSubtotal) return;
 
         const money = new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 });
+
+        // Hàm kiểm tra nghiệp vụ chọn ghế đôi Sweetbox
+        const validateCoupleSeatsSelection = (showWarning = false) => {
+            const coupleChecked = [...document.querySelectorAll('input[name="seatIds"]:checked')]
+                .filter(inp => inp.dataset.isCouple === 'true');
+
+            if (coupleChecked.length === 0) {
+                if (coupleSummaryLine) coupleSummaryLine.style.display = 'none';
+                if (coupleWarningBox) coupleWarningBox.style.display = 'none';
+                return { valid: true, count: 0 };
+            }
+
+            // Quy tắc 1: Tổng số lượng ghế đôi Sweetbox phải là số chẵn
+            if (coupleChecked.length % 2 !== 0) {
+                const msg = 'Ghế đôi Sweetbox phải được chọn theo số lượng chẵn (bạn đang chọn ' + coupleChecked.length + ' ghế đôi; ví dụ: 2, 4, 6... ghế, không được chọn số lẻ như 1 hay 3 ghế)!';
+                if (coupleSummaryLine && coupleSummaryText) {
+                    coupleSummaryLine.style.display = 'block';
+                    coupleSummaryLine.style.background = '#fef2f2';
+                    coupleSummaryLine.style.borderColor = '#fca5a5';
+                    coupleSummaryText.style.color = '#dc2626';
+                    coupleSummaryText.textContent = '⚠️ Ghế đôi: ' + coupleChecked.length + ' (cần số chẵn)';
+                }
+                if (showWarning && coupleWarningBox && coupleWarningText) {
+                    coupleWarningText.textContent = msg;
+                    coupleWarningBox.style.display = 'flex';
+                }
+                return { valid: false, message: msg, count: coupleChecked.length };
+            }
+
+            // Quy tắc 2: Phải đi theo cặp cùng hàng (không chọn chéo hàng)
+            const byRow = {};
+            coupleChecked.forEach(inp => {
+                const row = (inp.dataset.row || '').toUpperCase();
+                if (!byRow[row]) byRow[row] = [];
+                byRow[row].push(inp);
+            });
+
+            for (const row in byRow) {
+                const rowSeats = byRow[row];
+                if (rowSeats.length % 2 !== 0) {
+                    const msg = 'Ghế đôi Sweetbox phải được chọn theo cặp trong cùng một hàng (hàng ' + row + ' đang chọn ' + rowSeats.length + ' ghế lẻ, không thể ghép cặp)!';
+                    if (coupleSummaryLine && coupleSummaryText) {
+                        coupleSummaryLine.style.display = 'block';
+                        coupleSummaryLine.style.background = '#fef2f2';
+                        coupleSummaryLine.style.borderColor = '#fca5a5';
+                        coupleSummaryText.style.color = '#dc2626';
+                        coupleSummaryText.textContent = '⚠️ Hàng ' + row + ' có ghế lẻ';
+                    }
+                    if (showWarning && coupleWarningBox && coupleWarningText) {
+                        coupleWarningText.textContent = msg;
+                        coupleWarningBox.style.display = 'flex';
+                    }
+                    return { valid: false, message: msg, count: coupleChecked.length };
+                }
+
+                // Quy tắc 3: Trong cùng một hàng, các ghế phải liền kề nhau theo từng cặp (không được cách quãng)
+                rowSeats.sort((a, b) => Number(a.dataset.number) - Number(b.dataset.number));
+                for (let i = 0; i < rowSeats.length; i += 2) {
+                    const s1 = rowSeats[i];
+                    const s2 = rowSeats[i + 1];
+                    const num1 = Number(s1.dataset.number);
+                    const num2 = Number(s2.dataset.number);
+                    const diff = Math.abs(num2 - num1);
+                    if (diff !== 1) {
+                        const gap = diff - 1;
+                        const msg = 'Ghế đôi Sweetbox được chọn phải liền kề nhau, không được cách quãng! Cặp ghế ' + s1.dataset.code + ' và ' + s2.dataset.code + ' đang cách nhau ' + gap + ' ghế, không hợp lệ.';
+                        if (coupleSummaryLine && coupleSummaryText) {
+                            coupleSummaryLine.style.display = 'block';
+                            coupleSummaryLine.style.background = '#fef2f2';
+                            coupleSummaryLine.style.borderColor = '#fca5a5';
+                            coupleSummaryText.style.color = '#dc2626';
+                            coupleSummaryText.textContent = '⚠️ Ghế đôi không nằm cạnh nhau';
+                        }
+                        if (showWarning && coupleWarningBox && coupleWarningText) {
+                            coupleWarningText.textContent = msg;
+                            coupleWarningBox.style.display = 'flex';
+                        }
+                        return { valid: false, message: msg, count: coupleChecked.length };
+                    }
+                }
+            }
+
+            // Hợp lệ hoàn toàn
+            if (coupleSummaryLine && coupleSummaryText) {
+                coupleSummaryLine.style.display = 'block';
+                coupleSummaryLine.style.background = '#f0fdf4';
+                coupleSummaryLine.style.borderColor = '#86efac';
+                coupleSummaryText.style.color = '#16a34a';
+                coupleSummaryText.textContent = '✓ ' + coupleChecked.length + ' ghế đôi Sweetbox (' + (coupleChecked.length / 2) + ' cặp liền kề)';
+            }
+            if (coupleWarningBox) coupleWarningBox.style.display = 'none';
+            return { valid: true, count: coupleChecked.length };
+        };
+
         const updateSummary = () => {
             const selectedSeats = document.querySelectorAll('input[name="seatIds"]:checked').length;
             const quantities = [...document.querySelectorAll('[data-fnb-quantity]')];
@@ -217,21 +353,39 @@
             seatCount.textContent = selectedSeats;
             fnbCount.textContent = `${items} món`;
             fnbSubtotal.textContent = `${money.format(subtotal)}đ`;
+
+            // Kiểm tra trạng thái ghế đôi Sweetbox realtime
+            validateCoupleSeatsSelection(false);
         };
 
         document.querySelectorAll('input[name="seatIds"], [data-fnb-quantity]').forEach(input => {
             input.addEventListener('change', updateSummary);
             input.addEventListener('input', updateSummary);
         });
+
         document.querySelector('.pos-order-form')?.addEventListener('submit', event => {
-            if (document.querySelector('input[name="seatIds"]:checked')) return;
-            event.preventDefault();
-            const firstSeat = document.querySelector('input[name="seatIds"]');
-            if (firstSeat) {
-                firstSeat.focus();
-                firstSeat.closest('.seat-card').scrollIntoView({ behavior: 'smooth', block: 'center' });
+            const checkedSeats = document.querySelectorAll('input[name="seatIds"]:checked');
+            if (checkedSeats.length === 0) {
+                event.preventDefault();
+                const firstSeat = document.querySelector('input[name="seatIds"]');
+                if (firstSeat) {
+                    firstSeat.focus();
+                    firstSeat.closest('.seat-card').scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+                return;
+            }
+
+            // Kiểm tra chặt chẽ ghế đôi Sweetbox trước khi submit
+            const coupleValidation = validateCoupleSeatsSelection(true);
+            if (!coupleValidation.valid) {
+                event.preventDefault();
+                alert(coupleValidation.message);
+                if (coupleWarningBox) {
+                    coupleWarningBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
             }
         });
+
         document.querySelectorAll('.choice-card input').forEach(input => {
             input.addEventListener('change', () => {
                 document.querySelectorAll('.choice-card').forEach(card => card.classList.remove('is-selected'));

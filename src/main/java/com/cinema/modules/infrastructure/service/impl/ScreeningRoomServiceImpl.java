@@ -70,6 +70,11 @@ public class ScreeningRoomServiceImpl implements ScreeningRoomService {
         return screeningRoomDAO.findSeatById(seatId);
     }
 
+    @Override
+    public List<Seat> getSeatsByIds(List<Long> seatIds) {
+        return screeningRoomDAO.findSeatsByIds(seatIds);
+    }
+
     // =========================================================================
     // TRIỂN KHAI CÁC PHƯƠNG THỨC MỚI PHỤC VỤ ITERATION 1
     // =========================================================================

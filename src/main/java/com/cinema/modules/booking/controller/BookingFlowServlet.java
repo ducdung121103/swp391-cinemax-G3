@@ -2,6 +2,7 @@ package com.cinema.modules.booking.controller;
 
 import com.cinema.common.dto.ApiResponse;
 import com.cinema.common.util.JsonUtil;
+import com.cinema.common.util.ValidationUtil;
 import com.cinema.model.Seat;
 import com.cinema.model.Showtime;
 import com.cinema.model.User;
@@ -62,8 +63,14 @@ public class BookingFlowServlet extends HttpServlet {
             }
 
             try {
+                // Kiểm tra nghiệp vụ chọn ghế đôi Sweetbox
+                List<Seat> seats = screeningRoomService.getSeatsByIds(seatIds);
+                ValidationUtil.validateCoupleSeats(seats);
+
                 boolean held = bookingEngineService.holdSeats(showtimeId, seatIds, session.getId());
                 resp.getWriter().write(JsonUtil.toJson(ApiResponse.success(held, "Giữ ghế thành công trong 5 phút")));
+            } catch (IllegalArgumentException e) {
+                resp.getWriter().write(JsonUtil.toJson(ApiResponse.error("INVALID_SEAT_SELECTION", e.getMessage())));
             } catch (Exception e) {
                 resp.getWriter().write(JsonUtil.toJson(ApiResponse.error("SEAT_ALREADY_RESERVED", e.getMessage())));
             }
@@ -82,6 +89,15 @@ public class BookingFlowServlet extends HttpServlet {
             Showtime showtime = showtimeService.getShowtimeById(showtimeId);
             if (showtime == null) {
                 resp.getWriter().write(JsonUtil.toJson(ApiResponse.error("SHOWTIME_NOT_FOUND", "Không tìm thấy thông tin suất chiếu")));
+                return;
+            }
+
+            // Kiểm tra nghiệp vụ chọn ghế đôi Sweetbox
+            List<Seat> seats = screeningRoomService.getSeatsByIds(seatIds);
+            try {
+                ValidationUtil.validateCoupleSeats(seats);
+            } catch (IllegalArgumentException e) {
+                resp.getWriter().write(JsonUtil.toJson(ApiResponse.error("INVALID_SEAT_SELECTION", e.getMessage())));
                 return;
             }
 

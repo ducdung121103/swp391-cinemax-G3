@@ -1,7 +1,9 @@
 package com.cinema.modules.booking.service.impl;
 
 import com.cinema.common.transaction.TransactionManager;
+import com.cinema.common.util.ValidationUtil;
 import com.cinema.model.Booking;
+import com.cinema.model.Seat;
 import com.cinema.model.Ticket;
 import com.cinema.modules.booking.dao.BookingDAO;
 import com.cinema.modules.booking.dao.OrderItemDAO;
@@ -12,7 +14,7 @@ import com.cinema.modules.booking.dto.BookingResult;
 import com.cinema.modules.booking.dto.CreateBookingDTO;
 import com.cinema.modules.booking.service.BookingEngineService;
 import com.cinema.modules.booking.service.VoucherService;
-import com.cinema.modules.booking.service.impl.VoucherServiceImpl;
+import com.cinema.modules.infrastructure.dao.ScreeningRoomDAO;
 
 import java.math.BigDecimal;
 import java.sql.Connection;
@@ -29,6 +31,7 @@ public class BookingEngineServiceImpl implements BookingEngineService {
     private final PaymentDAO paymentDAO;
     private final SeatHoldingDAO seatHoldingDAO;
     private final VoucherService voucherService;
+    private final ScreeningRoomDAO screeningRoomDAO;
 
     public BookingEngineServiceImpl() {
         this.bookingDAO = new BookingDAO();
@@ -37,27 +40,42 @@ public class BookingEngineServiceImpl implements BookingEngineService {
         this.paymentDAO = new PaymentDAO();
         this.seatHoldingDAO = new SeatHoldingDAO();
         this.voucherService = new VoucherServiceImpl();
+        this.screeningRoomDAO = new ScreeningRoomDAO();
     }
 
     public BookingEngineServiceImpl(BookingDAO bookingDAO, TicketDAO ticketDAO,
                                     OrderItemDAO orderItemDAO, PaymentDAO paymentDAO,
                                     SeatHoldingDAO seatHoldingDAO) {
-        this(bookingDAO, ticketDAO, orderItemDAO, paymentDAO, seatHoldingDAO, new VoucherServiceImpl());
+        this(bookingDAO, ticketDAO, orderItemDAO, paymentDAO, seatHoldingDAO, new VoucherServiceImpl(), null);
     }
 
     public BookingEngineServiceImpl(BookingDAO bookingDAO, TicketDAO ticketDAO,
                                     OrderItemDAO orderItemDAO, PaymentDAO paymentDAO,
                                     SeatHoldingDAO seatHoldingDAO, VoucherService voucherService) {
+        this(bookingDAO, ticketDAO, orderItemDAO, paymentDAO, seatHoldingDAO, voucherService, null);
+    }
+
+    public BookingEngineServiceImpl(BookingDAO bookingDAO, TicketDAO ticketDAO,
+                                    OrderItemDAO orderItemDAO, PaymentDAO paymentDAO,
+                                    SeatHoldingDAO seatHoldingDAO, VoucherService voucherService,
+                                    ScreeningRoomDAO screeningRoomDAO) {
         this.bookingDAO = bookingDAO;
         this.ticketDAO = ticketDAO;
         this.orderItemDAO = orderItemDAO;
         this.paymentDAO = paymentDAO;
         this.seatHoldingDAO = seatHoldingDAO;
         this.voucherService = voucherService;
+        this.screeningRoomDAO = screeningRoomDAO;
     }
 
     @Override
     public boolean holdSeats(Long showtimeId, List<Long> seatIds, String sessionId) {
+        if (screeningRoomDAO != null && seatIds != null && !seatIds.isEmpty()) {
+            List<Seat> seats = screeningRoomDAO.findSeatsByIds(seatIds);
+            if (!seats.isEmpty()) {
+                ValidationUtil.validateCoupleSeats(seats);
+            }
+        }
         return TransactionManager.executeInTransaction(conn -> {
             for (Long seatId : seatIds) {
                 seatHoldingDAO.holdSeat(conn, showtimeId, seatId, sessionId);
@@ -76,6 +94,12 @@ public class BookingEngineServiceImpl implements BookingEngineService {
 
     @Override
     public BookingResult createBooking(CreateBookingDTO dto) {
+        if (screeningRoomDAO != null && dto.getSeatIds() != null && !dto.getSeatIds().isEmpty()) {
+            List<Seat> seats = screeningRoomDAO.findSeatsByIds(dto.getSeatIds());
+            if (!seats.isEmpty()) {
+                ValidationUtil.validateCoupleSeats(seats);
+            }
+        }
         return TransactionManager.executeInTransaction(conn -> {
             // 1. Tính toán tiền vé (sử dụng bảng giá động, nghiêm cấm fallback giá cứng)
             BigDecimal ticketsTotal = BigDecimal.ZERO;

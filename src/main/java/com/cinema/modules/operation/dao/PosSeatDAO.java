@@ -2,6 +2,7 @@ package com.cinema.modules.operation.dao;
 
 import com.cinema.common.context.DBContext;
 import com.cinema.model.Seat;
+import com.cinema.model.SeatType;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -13,8 +14,11 @@ import java.util.List;
 /** Loads seats that are not sold or temporarily held for a showtime. */
 public class PosSeatDAO {
     public List<Seat> findAvailable(long showtimeId, long roomId) throws SQLException {
-        String sql = "SELECT s.id, s.screening_room_id, s.seat_type_id, s.seat_row, s.seat_number, s.seat_code "
-                + "FROM seats s WHERE s.screening_room_id = ? AND s.is_deleted = 0 "
+        String sql = "SELECT s.id, s.screening_room_id, s.seat_type_id, s.seat_row, s.seat_number, s.seat_code, "
+                + "st.type_code, st.name as type_name, st.color_hex, st.surcharge "
+                + "FROM seats s "
+                + "JOIN seat_types st ON s.seat_type_id = st.id "
+                + "WHERE s.screening_room_id = ? AND s.is_deleted = 0 "
                 + "AND NOT EXISTS (SELECT 1 FROM tickets t WHERE t.showtime_id = ? AND t.seat_id = s.id "
                 + "AND t.is_deleted = 0 AND t.status NOT IN ('CANCELLED', 'REFUNDED')) "
                 + "AND NOT EXISTS (SELECT 1 FROM seat_holdings h WHERE h.showtime_id = ? "
@@ -35,6 +39,15 @@ public class PosSeatDAO {
                     seat.setSeatRow(result.getString("seat_row"));
                     seat.setSeatNumber(result.getInt("seat_number"));
                     seat.setSeatCode(result.getString("seat_code"));
+
+                    SeatType st = new SeatType();
+                    st.setId(result.getLong("seat_type_id"));
+                    st.setTypeCode(result.getString("type_code"));
+                    st.setName(result.getString("type_name"));
+                    st.setColorHex(result.getString("color_hex"));
+                    st.setSurcharge(result.getBigDecimal("surcharge"));
+                    seat.setSeatType(st);
+
                     seats.add(seat);
                 }
             }

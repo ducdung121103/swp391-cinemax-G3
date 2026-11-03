@@ -531,6 +531,55 @@ public class ScreeningRoomDAO {
         return null;
     }
 
+
+    public List<Seat> findSeatsByIds(List<Long> seatIds) {
+        if (seatIds == null || seatIds.isEmpty()) return new ArrayList<>();
+        List<Seat> seats = new ArrayList<>();
+        StringBuilder placeholders = new StringBuilder();
+        for (int i = 0; i < seatIds.size(); i++) {
+            if (i > 0) placeholders.append(",");
+            placeholders.append("?");
+        }
+        String sql = "SELECT s.*, st.type_code, st.name as type_name, st.color_hex, st.surcharge " +
+                     "FROM seats s " +
+                     "JOIN seat_types st ON s.seat_type_id = st.id " +
+                     "WHERE s.id IN (" + placeholders + ") AND s.is_deleted = 0";
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            for (int i = 0; i < seatIds.size(); i++) {
+                ps.setLong(i + 1, seatIds.get(i));
+            }
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Seat seat = new Seat();
+                    seat.setId(rs.getLong("id"));
+                    seat.setScreeningRoomId(rs.getLong("screening_room_id"));
+                    seat.setSeatTypeId(rs.getLong("seat_type_id"));
+                    seat.setSeatRow(rs.getString("seat_row"));
+                    seat.setSeatNumber(rs.getInt("seat_number"));
+                    seat.setSeatCode(rs.getString("seat_code"));
+                    seat.setGridRowIndex(rs.getInt("grid_row_index"));
+                    seat.setGridColIndex(rs.getInt("grid_col_index"));
+                    seat.setStatus(rs.getString("status"));
+                    seat.setIsActive(rs.getBoolean("is_active"));
+
+                    SeatType st = new SeatType();
+                    st.setId(rs.getLong("seat_type_id"));
+                    st.setTypeCode(rs.getString("type_code"));
+                    st.setName(rs.getString("type_name"));
+                    st.setColorHex(rs.getString("color_hex"));
+                    st.setSurcharge(rs.getBigDecimal("surcharge"));
+                    seat.setSeatType(st);
+
+                    seats.add(seat);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return seats;
+    }
+
     public int countTotalRooms() {
         String sql = "SELECT COUNT(*) FROM screening_rooms WHERE is_deleted = 0 AND status = 'ACTIVE'";
         try (Connection conn = DBContext.getConnection();
