@@ -36,4 +36,20 @@ public interface ReportExportService {
                           List<RevenueBreakdownDTO> byCinema,
                           List<RevenueBreakdownDTO> byChannel,
                           OutputStream out) throws Exception;
+
+    /**
+     * Exports Enterprise BI & Branch Comparison report to formatted Excel workbook (.xlsx).
+     */
+    void exportComparisonExcel(List<com.cinema.modules.infrastructure.dto.CinemaMetricDTO> metrics,
+                               com.cinema.modules.infrastructure.dto.ChainSummaryDTO summary,
+                               com.cinema.modules.infrastructure.dto.ComparisonFilterDTO filter,
+                               OutputStream out) throws IOException;
+
+    /**
+     * Exports Enterprise BI & Branch Comparison report to landscape PDF document.
+     */
+    void exportComparisonPdf(List<com.cinema.modules.infrastructure.dto.CinemaMetricDTO> metrics,
+                             com.cinema.modules.infrastructure.dto.ChainSummaryDTO summary,
+                             com.cinema.modules.infrastructure.dto.ComparisonFilterDTO filter,
+                             OutputStream out) throws Exception;
 }

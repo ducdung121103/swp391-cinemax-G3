@@ -379,6 +379,237 @@ public class ReportExportServiceImpl implements ReportExportService {
         }
     }
 
+    @Override
+    public void exportComparisonExcel(List<com.cinema.modules.infrastructure.dto.CinemaMetricDTO> metrics,
+                                      com.cinema.modules.infrastructure.dto.ChainSummaryDTO summary,
+                                      com.cinema.modules.infrastructure.dto.ComparisonFilterDTO filter,
+                                      OutputStream out) throws IOException {
+        try (XSSFWorkbook wb = new XSSFWorkbook()) {
+            DataFormat df = wb.createDataFormat();
+
+            CellStyle titleStyle = wb.createCellStyle();
+            org.apache.poi.ss.usermodel.Font titleFont = wb.createFont();
+            titleFont.setBold(true);
+            titleFont.setFontHeightInPoints((short) 16);
+            titleFont.setColor(IndexedColors.DARK_RED.getIndex());
+            titleStyle.setFont(titleFont);
+
+            CellStyle metaStyle = wb.createCellStyle();
+            org.apache.poi.ss.usermodel.Font metaFont = wb.createFont();
+            metaFont.setItalic(true);
+            metaStyle.setFont(metaFont);
+
+            CellStyle headerStyle = wb.createCellStyle();
+            headerStyle.setFillForegroundColor(IndexedColors.DARK_RED.getIndex());
+            headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+            setThinBorders(headerStyle);
+            org.apache.poi.ss.usermodel.Font headerFont = wb.createFont();
+            headerFont.setBold(true);
+            headerFont.setColor(IndexedColors.WHITE.getIndex());
+            headerStyle.setFont(headerFont);
+            headerStyle.setAlignment(HorizontalAlignment.CENTER);
+            headerStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+
+            CellStyle currencyStyle = wb.createCellStyle();
+            setThinBorders(currencyStyle);
+            currencyStyle.setDataFormat(df.getFormat("#,##0 ₫"));
+            currencyStyle.setAlignment(HorizontalAlignment.RIGHT);
+
+            CellStyle percentStyle = wb.createCellStyle();
+            setThinBorders(percentStyle);
+            percentStyle.setDataFormat(df.getFormat("0.00%"));
+            percentStyle.setAlignment(HorizontalAlignment.RIGHT);
+
+            CellStyle intStyle = wb.createCellStyle();
+            setThinBorders(intStyle);
+            intStyle.setDataFormat(df.getFormat("#,##0"));
+            intStyle.setAlignment(HorizontalAlignment.RIGHT);
+
+            CellStyle textStyle = wb.createCellStyle();
+            setThinBorders(textStyle);
+            textStyle.setAlignment(HorizontalAlignment.LEFT);
+
+            CellStyle centerStyle = wb.createCellStyle();
+            setThinBorders(centerStyle);
+            centerStyle.setAlignment(HorizontalAlignment.CENTER);
+
+            Sheet sheet = wb.createSheet("So Sánh Cụm Rạp");
+            sheet.setDisplayGridlines(true);
+
+            int rIdx = 0;
+            Row rTitle = sheet.createRow(rIdx++);
+            Cell cTitle = rTitle.createCell(0);
+            cTitle.setCellValue("CINEMAX - BÁO CÁO SO SÁNH HIỆU SUẤT CỤM RẠP TOÀN HỆ THỐNG");
+            cTitle.setCellStyle(titleStyle);
+
+            Row rSub = sheet.createRow(rIdx++);
+            rSub.createCell(0).setCellValue("Kỳ báo cáo: " + filter.getFrom().format(DATE_FMT) + " đến " + filter.getTo().format(DATE_FMT)
+                    + " | Chế độ: " + filter.getCompareMode()
+                    + " | Xuất lúc: " + LocalDateTime.now().format(DATETIME_FMT));
+            rSub.getCell(0).setCellStyle(metaStyle);
+
+            rIdx++; // blank
+
+            // Chain summary KPI block
+            Row rKpiH = sheet.createRow(rIdx++);
+            rKpiH.createCell(0).setCellValue("Chỉ Số Toàn Chuỗi");
+            rKpiH.createCell(1).setCellValue("Giá Trị");
+            rKpiH.getCell(0).setCellStyle(headerStyle);
+            rKpiH.getCell(1).setCellStyle(headerStyle);
+
+            addSummaryRow(sheet, rIdx++, "Tổng doanh thu chuỗi", summary.getTotalRevenue(), currencyStyle, textStyle);
+            addSummaryRow(sheet, rIdx++, "Tổng doanh thu kỳ trước/cùng kỳ", summary.getTotalComparisonRevenue(), currencyStyle, textStyle);
+            addSummaryRow(sheet, rIdx++, "Tăng trưởng toàn chuỗi", summary.getChainGrowthPercent().divide(BigDecimal.valueOf(100)), percentStyle, textStyle);
+            addSummaryRow(sheet, rIdx++, "Số cụm rạp hoạt động", BigDecimal.valueOf(summary.getActiveCinemasCount()), intStyle, textStyle);
+            addSummaryRow(sheet, rIdx++, "Tổng số phòng chiếu", BigDecimal.valueOf(summary.getTotalRoomsCount()), intStyle, textStyle);
+            addSummaryRow(sheet, rIdx++, "Tổng vé bán ra", BigDecimal.valueOf(summary.getTotalTicketsSold()), intStyle, textStyle);
+            addSummaryRow(sheet, rIdx++, "Doanh thu TB mỗi rạp", summary.getChainAverageRevenuePerCinema(), currencyStyle, textStyle);
+            addSummaryRow(sheet, rIdx++, "Tỷ lệ lấp đầy TB toàn chuỗi", summary.getChainAverageOccupancyRate().divide(BigDecimal.valueOf(100)), percentStyle, textStyle);
+            addSummaryTextRow(sheet, rIdx++, "Cụm rạp dẫn đầu", summary.getBestPerformerName() + " (" + CURRENCY_FMT.format(summary.getBestPerformerRevenue()) + ")", textStyle);
+            addSummaryTextRow(sheet, rIdx++, "Cụm rạp thấp nhất", summary.getWorstPerformerName() + " (" + CURRENCY_FMT.format(summary.getWorstPerformerRevenue()) + ")", textStyle);
+
+            rIdx++; // blank
+
+            // Data Table Headers
+            String[] headers = {
+                    "Hạng", "Mã Rạp", "Tên Cụm Rạp", "Thành Phố", "Trạng Thái",
+                    "Doanh Thu Kỳ Này", "Doanh Thu Kỳ So Sánh", "Tăng Trưởng", "Tỷ Trọng",
+                    "Số Đơn", "Vé Bán Ra", "Giá Vé TB", "Doanh Thu F&B",
+                    "Số Phòng", "Suất Chiếu", "Tỷ Lệ Lấp Đầy", "DT / Phòng", "DT / Suất",
+                    "Phim Dẫn Đầu", "Phân Tầng Hiệu Suất"
+            };
+
+            Row rHead = sheet.createRow(rIdx++);
+            for (int i = 0; i < headers.length; i++) {
+                Cell hCell = rHead.createCell(i);
+                hCell.setCellValue(headers[i]);
+                hCell.setCellStyle(headerStyle);
+            }
+
+            for (com.cinema.modules.infrastructure.dto.CinemaMetricDTO m : metrics) {
+                Row row = sheet.createRow(rIdx++);
+                createNumericCell(row, 0, BigDecimal.valueOf(m.getRank()), centerStyle);
+                createCell(row, 1, m.getCinemaCode(), centerStyle);
+                createCell(row, 2, m.getCinemaName(), textStyle);
+                createCell(row, 3, m.getCity() != null ? m.getCity() : "-", centerStyle);
+                createCell(row, 4, m.isActive() ? "Hoạt động" : "Tạm dừng", centerStyle);
+
+                createNumericCell(row, 5, m.getRevenue(), currencyStyle);
+                createNumericCell(row, 6, m.getComparisonRevenue(), currencyStyle);
+                createNumericCell(row, 7, m.getGrowthPercent().divide(BigDecimal.valueOf(100)), percentStyle);
+                createNumericCell(row, 8, m.getRevenueSharePercent().divide(BigDecimal.valueOf(100)), percentStyle);
+
+                createNumericCell(row, 9, BigDecimal.valueOf(m.getConfirmedBookings()), intStyle);
+                createNumericCell(row, 10, BigDecimal.valueOf(m.getTicketsSold()), intStyle);
+                createNumericCell(row, 11, m.getAverageTicketPrice(), currencyStyle);
+                createNumericCell(row, 12, m.getFnbRevenue(), currencyStyle);
+
+                createNumericCell(row, 13, BigDecimal.valueOf(m.getRoomsCount()), centerStyle);
+                createNumericCell(row, 14, BigDecimal.valueOf(m.getShowtimesCount()), centerStyle);
+                createNumericCell(row, 15, m.getOccupancyRate().divide(BigDecimal.valueOf(100)), percentStyle);
+                createNumericCell(row, 16, m.getRevenuePerRoom(), currencyStyle);
+                createNumericCell(row, 17, m.getRevenuePerShowtime(), currencyStyle);
+
+                createCell(row, 18, m.getTopMovieName(), textStyle);
+                createCell(row, 19, m.getPerformanceTier().name(), centerStyle);
+            }
+
+            for (int i = 0; i < headers.length; i++) {
+                sheet.autoSizeColumn(i);
+            }
+
+            wb.write(out);
+        }
+    }
+
+    private void addSummaryRow(Sheet sheet, int rIdx, String label, BigDecimal val, CellStyle valStyle, CellStyle lblStyle) {
+        Row row = sheet.createRow(rIdx);
+        createCell(row, 0, label, lblStyle);
+        createNumericCell(row, 1, val, valStyle);
+    }
+
+    private void addSummaryTextRow(Sheet sheet, int rIdx, String label, String val, CellStyle lblStyle) {
+        Row row = sheet.createRow(rIdx);
+        createCell(row, 0, label, lblStyle);
+        createCell(row, 1, val, lblStyle);
+    }
+
+    @Override
+    public void exportComparisonPdf(List<com.cinema.modules.infrastructure.dto.CinemaMetricDTO> metrics,
+                                    com.cinema.modules.infrastructure.dto.ChainSummaryDTO summary,
+                                    com.cinema.modules.infrastructure.dto.ComparisonFilterDTO filter,
+                                    OutputStream out) throws Exception {
+        Document document = new Document(PageSize.A4.rotate(), 20, 20, 20, 20);
+        PdfWriter.getInstance(document, out);
+        document.open();
+
+        Font titleFont = getUnicodeFont(15, Font.BOLD, new Color(229, 9, 20));
+        Font subtitleFont = getUnicodeFont(9, Font.ITALIC, Color.DARK_GRAY);
+        Font sectionFont = getUnicodeFont(11, Font.BOLD, new Color(33, 37, 41));
+        Font headerFont = getUnicodeFont(8, Font.BOLD, Color.WHITE);
+        Font bodyFont = getUnicodeFont(8, Font.NORMAL, Color.BLACK);
+
+        Paragraph pTitle = new Paragraph("CINEMAX - BÁO CÁO SO SÁNH HIỆU SUẤT CỤM RẠP TOÀN HỆ THỐNG", titleFont);
+        pTitle.setAlignment(Element.ALIGN_CENTER);
+        document.add(pTitle);
+
+        Paragraph pSub = new Paragraph("Giai đoạn: " + filter.getFrom().format(DATE_FMT) + " đến " + filter.getTo().format(DATE_FMT)
+                + " | Chế độ so sánh: " + filter.getCompareMode()
+                + " | Thời điểm xuất: " + LocalDateTime.now().format(DATETIME_FMT), subtitleFont);
+        pSub.setAlignment(Element.ALIGN_CENTER);
+        pSub.setSpacingAfter(10);
+        document.add(pSub);
+
+        // Chain summary table
+        PdfPTable sumTable = new PdfPTable(4);
+        sumTable.setWidthPercentage(100);
+        sumTable.setSpacingAfter(12);
+
+        addPdfCell(sumTable, "Tổng Doanh Thu Chuỗi: " + CURRENCY_FMT.format(summary.getTotalRevenue()), bodyFont, Element.ALIGN_LEFT);
+        addPdfCell(sumTable, "Tăng Trưởng Toàn Chuỗi: " + formatGrowth(summary.getChainGrowthPercent().doubleValue()), bodyFont, Element.ALIGN_LEFT);
+        addPdfCell(sumTable, "Doanh Thu TB Mỗi Rạp: " + CURRENCY_FMT.format(summary.getChainAverageRevenuePerCinema()), bodyFont, Element.ALIGN_LEFT);
+        addPdfCell(sumTable, "Tỷ Lệ Lấp Đầy TB: " + summary.getChainAverageOccupancyRate() + "%", bodyFont, Element.ALIGN_LEFT);
+
+        addPdfCell(sumTable, "Số Rạp Hoạt Động: " + summary.getActiveCinemasCount() + " / " + summary.getTotalCinemasCount(), bodyFont, Element.ALIGN_LEFT);
+        addPdfCell(sumTable, "Tổng Suất Chiếu: " + summary.getTotalShowtimesCount(), bodyFont, Element.ALIGN_LEFT);
+        addPdfCell(sumTable, "Rạp Xuất Sắc Nhất: " + summary.getBestPerformerName(), bodyFont, Element.ALIGN_LEFT);
+        addPdfCell(sumTable, "Rạp Thấp Nhất: " + summary.getWorstPerformerName(), bodyFont, Element.ALIGN_LEFT);
+
+        document.add(sumTable);
+
+        // Comparison Table
+        float[] colWidths = {2f, 3.5f, 5.5f, 3.5f, 4.5f, 4.5f, 3f, 3f, 3.5f, 3f, 3f, 5f, 3.5f};
+        PdfPTable table = new PdfPTable(colWidths);
+        table.setWidthPercentage(100);
+
+        String[] headers = {
+                "Hạng", "Mã", "Tên Cụm Rạp", "T.Phố", "Doanh Thu", "DT Kỳ Trước",
+                "T.Trưởng", "Tỷ Trọng", "Vé Bán", "Lấp Đầy", "DT/Phòng", "Phim Top 1", "Phân Tầng"
+        };
+        for (String h : headers) {
+            addPdfHeaderCell(table, h, headerFont);
+        }
+
+        for (com.cinema.modules.infrastructure.dto.CinemaMetricDTO m : metrics) {
+            addPdfCell(table, String.valueOf(m.getRank()), bodyFont, Element.ALIGN_CENTER);
+            addPdfCell(table, m.getCinemaCode(), bodyFont, Element.ALIGN_CENTER);
+            addPdfCell(table, m.getCinemaName(), bodyFont, Element.ALIGN_LEFT);
+            addPdfCell(table, m.getCity() != null ? m.getCity() : "-", bodyFont, Element.ALIGN_CENTER);
+            addPdfCell(table, CURRENCY_FMT.format(m.getRevenue()), bodyFont, Element.ALIGN_RIGHT);
+            addPdfCell(table, CURRENCY_FMT.format(m.getComparisonRevenue()), bodyFont, Element.ALIGN_RIGHT);
+            addPdfCell(table, formatGrowth(m.getGrowthPercent().doubleValue()), bodyFont, Element.ALIGN_CENTER);
+            addPdfCell(table, m.getRevenueSharePercent() + "%", bodyFont, Element.ALIGN_RIGHT);
+            addPdfCell(table, String.valueOf(m.getTicketsSold()), bodyFont, Element.ALIGN_RIGHT);
+            addPdfCell(table, m.getOccupancyRate() + "%", bodyFont, Element.ALIGN_CENTER);
+            addPdfCell(table, CURRENCY_FMT.format(m.getRevenuePerRoom()), bodyFont, Element.ALIGN_RIGHT);
+            addPdfCell(table, m.getTopMovieName(), bodyFont, Element.ALIGN_LEFT);
+            addPdfCell(table, m.getPerformanceTier().name(), bodyFont, Element.ALIGN_CENTER);
+        }
+
+        document.add(table);
+        document.close();
+    }
+
     private void addPdfHeaderCell(PdfPTable table, String text, Font font) {
         PdfPCell cell = new PdfPCell(new Phrase(text, font));
         cell.setBackgroundColor(new Color(229, 9, 20));
