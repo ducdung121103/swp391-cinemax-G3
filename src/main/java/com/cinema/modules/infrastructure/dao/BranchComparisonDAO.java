@@ -127,12 +127,14 @@ public class BranchComparisonDAO {
             WITH BookingMetrics AS (
                 SELECT 
                     b.id AS booking_id,
-                    b.cinema_id,
+                    r.cinema_id,
                     p.amount AS payment_amount,
                     ISNULL((SELECT SUM(oi.subtotal) FROM order_items oi WHERE oi.booking_id = b.id), 0) AS fnb_amount,
                     (SELECT COUNT(t.id) FROM tickets t WHERE t.booking_id = b.id AND t.is_deleted = 0) AS ticket_count
                 FROM bookings b
                 INNER JOIN payments p ON p.booking_id = b.id AND p.status = 'SUCCESS'
+                INNER JOIN showtimes s ON s.id = b.showtime_id
+                INNER JOIN screening_rooms r ON r.id = s.screening_room_id
                 WHERE b.status = 'CONFIRMED'
                   AND b.is_deleted = 0
                   AND b.booking_time >= ? AND b.booking_time < ?
@@ -176,14 +178,16 @@ public class BranchComparisonDAO {
         Map<Long, BigDecimal> map = new HashMap<>();
         String sql = """
             SELECT 
-                b.cinema_id,
+                r.cinema_id,
                 SUM(p.amount) AS comp_revenue
             FROM bookings b
             INNER JOIN payments p ON p.booking_id = b.id AND p.status = 'SUCCESS'
+            INNER JOIN showtimes s ON s.id = b.showtime_id
+            INNER JOIN screening_rooms r ON r.id = s.screening_room_id
             WHERE b.status = 'CONFIRMED'
               AND b.is_deleted = 0
               AND b.booking_time >= ? AND b.booking_time < ?
-            GROUP BY b.cinema_id
+            GROUP BY r.cinema_id
         """;
 
         try (Connection conn = DBContext.getConnection();
@@ -265,18 +269,19 @@ public class BranchComparisonDAO {
         String sql = """
             WITH CinemaMovieRev AS (
                 SELECT 
-                    b.cinema_id,
+                    r.cinema_id,
                     m.title AS movie_title,
                     SUM(p.amount) AS movie_revenue,
-                    ROW_NUMBER() OVER (PARTITION BY b.cinema_id ORDER BY SUM(p.amount) DESC) AS rn
+                    ROW_NUMBER() OVER (PARTITION BY r.cinema_id ORDER BY SUM(p.amount) DESC) AS rn
                 FROM bookings b
                 INNER JOIN payments p ON p.booking_id = b.id AND p.status = 'SUCCESS'
                 INNER JOIN showtimes s ON s.id = b.showtime_id
+                INNER JOIN screening_rooms r ON r.id = s.screening_room_id
                 INNER JOIN movies m ON m.id = s.movie_id
                 WHERE b.status = 'CONFIRMED'
                   AND b.is_deleted = 0
                   AND b.booking_time >= ? AND b.booking_time < ?
-                GROUP BY b.cinema_id, m.title
+                GROUP BY r.cinema_id, m.title
             )
             SELECT cinema_id, movie_title FROM CinemaMovieRev WHERE rn = 1
         """;
