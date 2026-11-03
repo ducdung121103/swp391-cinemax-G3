@@ -27,6 +27,8 @@
         <gson.version>2.10.1</gson.version>
         <lombok.version>1.18.30</lombok.version>
         <slf4j.version>2.0.12</slf4j.version>
+        <poi.version>5.2.5</poi.version>
+        <openpdf.version>1.3.40</openpdf.version>
         <junit.jupiter.version>5.10.2</junit.jupiter.version>
         <mockito.version>5.11.0</mockito.version>
     </properties>
@@ -111,6 +113,20 @@
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>
             <version>${gson.version}</version>
+        </dependency>
+
+        <!-- Apache POI for Excel (.xlsx) Report Exports (M-10.1, M-10.2) -->
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi-ooxml</artifactId>
+            <version>${poi.version}</version>
+        </dependency>
+
+        <!-- OpenPDF (LGPL/MPL LibrePDF) for PDF Report Exports (M-10.1, M-10.2) -->
+        <dependency>
+            <groupId>com.github.librepdf</groupId>
+            <artifactId>openpdf</artifactId>
+            <version>${openpdf.version}</version>
         </dependency>
 
         <!-- Project Lombok (Boilerplate reduction) -->
