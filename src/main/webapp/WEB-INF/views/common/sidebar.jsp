@@ -32,6 +32,26 @@
                     </a>
                 </li>
 
+                <li class="menu-header">BÁO CÁO & PHÂN TÍCH BI</li>
+                <li class="${currentUri.contains('/reports/revenue') ? 'active' : ''}">
+                    <a href="${pageContext.request.contextPath}/admin/reports/revenue">
+                        <i class="fa-solid fa-sack-dollar"></i>
+                        <span>Báo Cáo Doanh Thu</span>
+                    </a>
+                </li>
+                <li class="${currentUri.contains('/reports/comparison') ? 'active' : ''}">
+                    <a href="${pageContext.request.contextPath}/admin/reports/comparison">
+                        <i class="fa-solid fa-code-compare"></i>
+                        <span>So Sánh Hiệu Suất Rạp</span>
+                    </a>
+                </li>
+                <li class="${currentUri.contains('/infrastructure/occupancy') || currentUri.contains('/reports/occupancy') ? 'active' : ''}">
+                    <a href="${pageContext.request.contextPath}/admin/infrastructure/occupancy">
+                        <i class="fa-solid fa-chart-pie"></i>
+                        <span>Báo Cáo Tỷ Lệ Lấp Đầy</span>
+                    </a>
+                </li>
+
                 <li class="menu-header">HẠ TẦNG & HỆ THỐNG</li>
                 <li class="${currentUri.contains('/infrastructure/cinemas') ? 'active' : ''}">
                     <a href="${pageContext.request.contextPath}/admin/infrastructure/cinemas">
@@ -49,12 +69,6 @@
                     <a href="${pageContext.request.contextPath}/admin/infrastructure/seats">
                         <i class="fa-solid fa-couch"></i>
                         <span>Thiết Kế Sơ Đồ Ghế</span>
-                    </a>
-                </li>
-                <li class="${currentUri.contains('/infrastructure/occupancy') || currentUri.contains('/reports/occupancy') ? 'active' : ''}">
-                    <a href="${pageContext.request.contextPath}/admin/infrastructure/occupancy">
-                        <i class="fa-solid fa-chart-pie"></i>
-                        <span>Báo Cáo Tỷ Lệ Lấp Đầy</span>
                     </a>
                 </li>
                 <li class="${currentUri.contains('/infrastructure/settings') ? 'active' : ''}">
@@ -100,6 +114,12 @@
                     <a href="${pageContext.request.contextPath}/admin/infrastructure/rooms">
                         <i class="fa-solid fa-video"></i>
                         <span>Quản lý Phòng Chiếu</span>
+                    </a>
+                </li>
+                <li class="${currentUri.contains('/infrastructure/occupancy') || currentUri.contains('/reports/occupancy') ? 'active' : ''}">
+                    <a href="${pageContext.request.contextPath}/admin/infrastructure/occupancy">
+                        <i class="fa-solid fa-chart-pie"></i>
+                        <span>Báo Cáo Tỷ Lệ Lấp Đầy</span>
                     </a>
                 </li>
                 <li class="${currentUri.contains('/operation/fnb') && !currentUri.contains('/fnb-catalog') ? 'active' : ''}">
