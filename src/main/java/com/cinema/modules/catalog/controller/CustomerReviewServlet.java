@@ -1,4 +1,4 @@
-package com.cinema.modules.catalog.controller;
+﻿package com.cinema.modules.catalog.controller;
 
 import com.cinema.common.constant.RoleConstant;
 import com.cinema.model.User;
@@ -17,7 +17,8 @@ import java.nio.charset.StandardCharsets;
 
 /**
  * Xu ly gui danh gia phim cua khach hang.
- */
+ 
+ * Refactor update: Lam ro trach nhiem lop cho de bao tri.*/
 @WebServlet(name = "CustomerReviewServlet", urlPatterns = {"/customer/reviews", "/customer/reviews/create"})
 public class CustomerReviewServlet extends HttpServlet {
     private final ReviewService reviewService = new ReviewServiceImpl();
@@ -81,4 +82,5 @@ public class CustomerReviewServlet extends HttpServlet {
                 + URLEncoder.encode(message != null ? message : "Da co loi xay ra.", StandardCharsets.UTF_8));
     }
 }
+
 
