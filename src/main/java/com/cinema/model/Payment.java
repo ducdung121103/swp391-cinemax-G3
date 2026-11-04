@@ -1,4 +1,4 @@
-package com.cinema.model;
+﻿package com.cinema.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,8 +11,9 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /**
- * Entity Lịch sử thanh toán giao dịch (Bảng payments - Zone 4)
- */
+ * Entity Lá»‹ch sá»­ thanh toÃ¡n giao dá»‹ch (Báº£ng payments - Zone 4)
+ 
+ * Refactor update: Lam ro trach nhiem lop cho de bao tri.*/
 @Getter
 @Setter
 @Builder
@@ -27,3 +28,4 @@ public class Payment extends BaseEntity {
     private LocalDateTime paymentTime;
     private String status; // SUCCESS, FAILED,
 }
+
