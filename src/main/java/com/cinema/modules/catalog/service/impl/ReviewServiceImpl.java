@@ -1,4 +1,4 @@
-package com.cinema.modules.catalog.service.impl;
+﻿package com.cinema.modules.catalog.service.impl;
 
 import com.cinema.model.Review;
 import com.cinema.modules.catalog.dao.ReviewDAO;
@@ -10,7 +10,8 @@ import java.util.Set;
 
 /**
  * Cai dat nghiep vu danh gia va duyet danh gia phim.
- */
+ 
+ * Refactor update: Lam ro trach nhiem lop cho de bao tri.*/
 public class ReviewServiceImpl implements ReviewService {
     private static final Set<String> ALLOWED_STATUSES = Set.of("PENDING", "APPROVED", "HIDDEN");
 
@@ -135,4 +136,5 @@ public class ReviewServiceImpl implements ReviewService {
         }
     }
 }
+
 
