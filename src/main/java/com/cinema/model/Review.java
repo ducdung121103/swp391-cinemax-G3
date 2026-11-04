@@ -1,4 +1,4 @@
-package com.cinema.model;
+﻿package com.cinema.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -8,8 +8,9 @@ import lombok.Setter;
 import lombok.ToString;
 
 /**
- * Entity Đánh giá và bình luận phim (Bảng reviews - Zone 3)
- */
+ * Entity ÄÃ¡nh giÃ¡ vÃ  bÃ¬nh luáº­n phim (Báº£ng reviews - Zone 3)
+ 
+ * Refactor update: Lam ro trach nhiem lop cho de bao tri.*/
 @Getter
 @Setter
 @Builder
@@ -25,6 +26,7 @@ public class Review extends BaseEntity {
     private String customerName;
     private String movieTitle;
 
-    // Quan hệ điều hướng
+    // Quan há»‡ Ä‘iá»u hÆ°á»›ng
     private User user;
 }
+
