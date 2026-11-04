@@ -1,4 +1,4 @@
-package com.cinema.modules.catalog.controller;
+﻿package com.cinema.modules.catalog.controller;
 
 import com.cinema.common.constant.RoleConstant;
 import com.cinema.model.Genre;
@@ -21,8 +21,9 @@ import java.io.IOException;
 import java.util.List;
 
 /**
- * Controller hiển thị Trang chủ, Danh mục phim, Bộ lọc tìm kiếm và Chi tiết phim cho Khách hàng (TV 3).
- */
+ * Controller hiá»ƒn thá»‹ Trang chá»§, Danh má»¥c phim, Bá»™ lá»c tÃ¬m kiáº¿m vÃ  Chi tiáº¿t phim cho KhÃ¡ch hÃ ng (TV 3).
+ 
+ * Refactor update: Lam ro trach nhiem lop cho de bao tri.*/
 @WebServlet(name = "MovieServlet", urlPatterns = {"/home", "/movies", "/movie/detail", "/browse"})
 public class MovieServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
@@ -35,19 +36,19 @@ public class MovieServlet extends HttpServlet {
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         String path = req.getServletPath();
 
-        // 1. Tuyến đường TRANG CHỦ (/home)
+        // 1. Tuyáº¿n Ä‘Æ°á»ng TRANG CHá»¦ (/home)
         if ("/home".equals(path)) {
             handleHome(req, resp);
             return;
         }
 
-        // 2. Tuyến đường CHI TIẾT PHIM (/movie/detail)
+        // 2. Tuyáº¿n Ä‘Æ°á»ng CHI TIáº¾T PHIM (/movie/detail)
         if ("/movie/detail".equals(path)) {
             handleMovieDetail(req, resp);
             return;
         }
 
-        // 3. Tuyến đường DANH SÁCH & TÌM KIẾM PHIM (/movies, /browse)
+        // 3. Tuyáº¿n Ä‘Æ°á»ng DANH SÃCH & TÃŒM KIáº¾M PHIM (/movies, /browse)
         handleBrowseMovies(req, resp);
     }
 
@@ -164,3 +165,4 @@ public class MovieServlet extends HttpServlet {
         req.getRequestDispatcher("/WEB-INF/views/customer/catalog/movies.jsp").forward(req, resp);
     }
 }
+
