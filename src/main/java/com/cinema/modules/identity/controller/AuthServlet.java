@@ -1,4 +1,4 @@
-package com.cinema.modules.identity.controller;
+﻿package com.cinema.modules.identity.controller;
 
 import com.cinema.common.constant.RoleConstant;
 import com.cinema.common.util.ValidationUtil;
@@ -15,22 +15,23 @@ import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 
 /**
- * Controller xử lý toàn bộ luồng Identity:
- * - /login      → Đăng nhập (BCrypt, phân quyền redirect)
- * - /logout     → Đăng xuất an toàn (hủy session)
- * - /register   → Đăng ký tài khoản (gửi OTP email)
- * - /verify-otp → Xác thực mã OTP 6 số để kích hoạt tài khoản
+ * Controller xá»­ lÃ½ toÃ n bá»™ luá»“ng Identity:
+ * - /login      â†’ ÄÄƒng nháº­p (BCrypt, phÃ¢n quyá»n redirect)
+ * - /logout     â†’ ÄÄƒng xuáº¥t an toÃ n (há»§y session)
+ * - /register   â†’ ÄÄƒng kÃ½ tÃ i khoáº£n (gá»­i OTP email)
+ * - /verify-otp â†’ XÃ¡c thá»±c mÃ£ OTP 6 sá»‘ Ä‘á»ƒ kÃ­ch hoáº¡t tÃ i khoáº£n
  *
- * Module Identity — TV 2 (Cường) — M-01.1, M-01.2
- */
+ * Module Identity â€” TV 2 (CÆ°á»ng) â€” M-01.1, M-01.2
+ 
+ * Refactor update: Lam ro trach nhiem lop cho de bao tri.*/
 @WebServlet(name = "AuthServlet", urlPatterns = {"/login", "/logout", "/register", "/verify-otp", "/forgot-password", "/reset-password"})
 public class AuthServlet extends HttpServlet {
 
     private final UserService userService = new UserServiceImpl();
 
-    // ────────────────────────────────────────────────────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     // GET HANDLERS
-    // ────────────────────────────────────────────────────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
@@ -38,7 +39,7 @@ public class AuthServlet extends HttpServlet {
 
         String path = req.getServletPath();
 
-        // --- /logout: Hủy session và redirect về login ---
+        // --- /logout: Há»§y session vÃ  redirect vá» login ---
         if ("/logout".equals(path)) {
             HttpSession session = req.getSession(false);
             if (session != null) {
@@ -48,9 +49,9 @@ public class AuthServlet extends HttpServlet {
             return;
         }
 
-        // --- /register: Hiển thị form đăng ký ---
+        // --- /register: Hiá»ƒn thá»‹ form Ä‘Äƒng kÃ½ ---
         if ("/register".equals(path)) {
-            // Nếu đã đăng nhập → về trang chủ
+            // Náº¿u Ä‘Ã£ Ä‘Äƒng nháº­p â†’ vá» trang chá»§
             if (isLoggedIn(req)) {
                 resp.sendRedirect(req.getContextPath() + "/");
                 return;
@@ -60,11 +61,11 @@ public class AuthServlet extends HttpServlet {
             return;
         }
 
-        // --- /verify-otp: Hiển thị form nhập OTP ---
+        // --- /verify-otp: Hiá»ƒn thá»‹ form nháº­p OTP ---
         if ("/verify-otp".equals(path)) {
             String email = req.getParameter("email");
             if (email == null || email.isBlank()) {
-                // Không có email → về trang đăng ký
+                // KhÃ´ng cÃ³ email â†’ vá» trang Ä‘Äƒng kÃ½
                 resp.sendRedirect(req.getContextPath() + "/register");
                 return;
             }
@@ -74,7 +75,7 @@ public class AuthServlet extends HttpServlet {
             return;
         }
 
-        // --- /forgot-password: Hiển thị form quên mật khẩu ---
+        // --- /forgot-password: Hiá»ƒn thá»‹ form quÃªn máº­t kháº©u ---
         if ("/forgot-password".equals(path)) {
             if (isLoggedIn(req)) {
                 resp.sendRedirect(req.getContextPath() + "/");
@@ -85,12 +86,12 @@ public class AuthServlet extends HttpServlet {
             return;
         }
 
-        // --- /reset-password: Hiển thị form đặt lại mật khẩu từ link email token ---
+        // --- /reset-password: Hiá»ƒn thá»‹ form Ä‘áº·t láº¡i máº­t kháº©u tá»« link email token ---
         if ("/reset-password".equals(path)) {
             String token = req.getParameter("token");
             if (isBlank(token)) {
                 req.setAttribute("tokenInvalid", true);
-                req.setAttribute("errorMessage", "Đường dẫn không hợp lệ hoặc thiếu mã token xác thực.");
+                req.setAttribute("errorMessage", "ÄÆ°á»ng dáº«n khÃ´ng há»£p lá»‡ hoáº·c thiáº¿u mÃ£ token xÃ¡c thá»±c.");
                 req.getRequestDispatcher("/WEB-INF/views/customer/account/reset-password.jsp")
                    .forward(req, resp);
                 return;
@@ -98,7 +99,7 @@ public class AuthServlet extends HttpServlet {
             User user = userService.getUserByResetToken(token.trim());
             if (user == null) {
                 req.setAttribute("tokenInvalid", true);
-                req.setAttribute("errorMessage", "Liên kết đặt lại mật khẩu không hợp lệ hoặc đã hết hạn (sau 15 phút). Vui lòng yêu cầu liên kết mới.");
+                req.setAttribute("errorMessage", "LiÃªn káº¿t Ä‘áº·t láº¡i máº­t kháº©u khÃ´ng há»£p lá»‡ hoáº·c Ä‘Ã£ háº¿t háº¡n (sau 15 phÃºt). Vui lÃ²ng yÃªu cáº§u liÃªn káº¿t má»›i.");
                 req.getRequestDispatcher("/WEB-INF/views/customer/account/reset-password.jsp")
                    .forward(req, resp);
                 return;
@@ -109,9 +110,9 @@ public class AuthServlet extends HttpServlet {
             return;
         }
 
-        // --- /login: Hiển thị form đăng nhập ---
+        // --- /login: Hiá»ƒn thá»‹ form Ä‘Äƒng nháº­p ---
         if (isLoggedIn(req)) {
-            // Đã đăng nhập → về trang chủ (hoặc redirect param nếu có)
+            // ÄÃ£ Ä‘Äƒng nháº­p â†’ vá» trang chá»§ (hoáº·c redirect param náº¿u cÃ³)
             String redirect = req.getParameter("redirect");
             resp.sendRedirect(redirect != null && !redirect.isBlank()
                     ? redirect
@@ -122,9 +123,9 @@ public class AuthServlet extends HttpServlet {
            .forward(req, resp);
     }
 
-    // ────────────────────────────────────────────────────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     // POST HANDLERS
-    // ────────────────────────────────────────────────────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp)
@@ -132,51 +133,51 @@ public class AuthServlet extends HttpServlet {
 
         String path = req.getServletPath();
 
-        // ── POST /login ──────────────────────────────────────────────────────────
+        // â”€â”€ POST /login â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         if ("/login".equals(path)) {
             handleLogin(req, resp);
             return;
         }
 
-        // ── POST /register ───────────────────────────────────────────────────────
+        // â”€â”€ POST /register â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         if ("/register".equals(path)) {
             handleRegister(req, resp);
             return;
         }
 
-        // ── POST /verify-otp ─────────────────────────────────────────────────────
+        // â”€â”€ POST /verify-otp â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         if ("/verify-otp".equals(path)) {
             handleVerifyOtp(req, resp);
             return;
         }
 
-        // ── POST /forgot-password ───────────────────────────────────────────────
+        // â”€â”€ POST /forgot-password â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         if ("/forgot-password".equals(path)) {
             handleForgotPassword(req, resp);
             return;
         }
 
-        // ── POST /reset-password ────────────────────────────────────────────────
+        // â”€â”€ POST /reset-password â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         if ("/reset-password".equals(path)) {
             handleResetPassword(req, resp);
             return;
         }
     }
 
-    // ────────────────────────────────────────────────────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     // PRIVATE BUSINESS HANDLERS
-    // ────────────────────────────────────────────────────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-    /** Xử lý đăng nhập: xác thực BCrypt, phân quyền redirect. */
+    /** Xá»­ lÃ½ Ä‘Äƒng nháº­p: xÃ¡c thá»±c BCrypt, phÃ¢n quyá»n redirect. */
     private void handleLogin(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
 
         String email    = req.getParameter("email");
         String password = req.getParameter("password");
 
-        // Validate input cơ bản
+        // Validate input cÆ¡ báº£n
         if (isBlank(email) || isBlank(password)) {
-            req.setAttribute("errorMessage", "Vui lòng nhập đầy đủ email và mật khẩu.");
+            req.setAttribute("errorMessage", "Vui lÃ²ng nháº­p Ä‘áº§y Ä‘á»§ email vÃ  máº­t kháº©u.");
             req.getRequestDispatcher("/WEB-INF/views/customer/account/login.jsp").forward(req, resp);
             return;
         }
@@ -184,12 +185,12 @@ public class AuthServlet extends HttpServlet {
         User user = userService.authenticate(email.trim(), password);
 
         if (user == null) {
-            req.setAttribute("errorMessage", "Email hoặc mật khẩu không chính xác!");
+            req.setAttribute("errorMessage", "Email hoáº·c máº­t kháº©u khÃ´ng chÃ­nh xÃ¡c!");
             req.getRequestDispatcher("/WEB-INF/views/customer/account/login.jsp").forward(req, resp);
             return;
         }
 
-        // Tài khoản chưa xác thực OTP → chuyển về trang verify
+        // TÃ i khoáº£n chÆ°a xÃ¡c thá»±c OTP â†’ chuyá»ƒn vá» trang verify
         if ("UNVERIFIED".equalsIgnoreCase(user.getStatus())) {
             resp.sendRedirect(req.getContextPath() + "/verify-otp?email="
                     + java.net.URLEncoder.encode(user.getEmail(), "UTF-8")
@@ -197,25 +198,25 @@ public class AuthServlet extends HttpServlet {
             return;
         }
 
-        // Tài khoản bị khóa (LOCKED)
+        // TÃ i khoáº£n bá»‹ khÃ³a (LOCKED)
         if ("LOCKED".equalsIgnoreCase(user.getStatus())) {
-            req.setAttribute("errorMessage", "Tài khoản của bạn đã bị khóa. Vui lòng liên hệ hỗ trợ.");
+            req.setAttribute("errorMessage", "TÃ i khoáº£n cá»§a báº¡n Ä‘Ã£ bá»‹ khÃ³a. Vui lÃ²ng liÃªn há»‡ há»— trá»£.");
             req.getRequestDispatcher("/WEB-INF/views/customer/account/login.jsp").forward(req, resp);
             return;
         }
 
-        // Đăng nhập thành công → tạo session
+        // ÄÄƒng nháº­p thÃ nh cÃ´ng â†’ táº¡o session
         HttpSession session = req.getSession(true);
         session.setAttribute("currentUser", user);
-        session.setMaxInactiveInterval(60 * 60); // Session timeout 1 giờ
+        session.setMaxInactiveInterval(60 * 60); // Session timeout 1 giá»
 
-        // Redirect theo redirect param hoặc theo role
+        // Redirect theo redirect param hoáº·c theo role
         String redirectParam = req.getParameter("redirect");
         String role = (user.getRole() != null) ? user.getRole().getRoleName() : RoleConstant.CUSTOMER;
 
         if (redirectParam != null && !redirectParam.isBlank()
                 && redirectParam.startsWith(req.getContextPath())) {
-            // Đối với STAFF, chỉ cho phép redirect đến URL mà STAFF có quyền (pos hoặc scanner)
+            // Äá»‘i vá»›i STAFF, chá»‰ cho phÃ©p redirect Ä‘áº¿n URL mÃ  STAFF cÃ³ quyá»n (pos hoáº·c scanner)
             if (!RoleConstant.STAFF.equalsIgnoreCase(role)
                     || redirectParam.contains("/admin/operation/pos")
                     || redirectParam.contains("/admin/operation/scanner")) {
@@ -234,7 +235,7 @@ public class AuthServlet extends HttpServlet {
         }
     }
 
-    /** Xử lý đăng ký: validate, tạo user UNVERIFIED, gửi OTP email. */
+    /** Xá»­ lÃ½ Ä‘Äƒng kÃ½: validate, táº¡o user UNVERIFIED, gá»­i OTP email. */
     private void handleRegister(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
 
@@ -244,14 +245,14 @@ public class AuthServlet extends HttpServlet {
         String password         = req.getParameter("password");
         String confirmPassword  = req.getParameter("confirmPassword");
 
-        // Validate phía server
+        // Validate phÃ­a server
         if (isBlank(fullName) || isBlank(email) || isBlank(password)) {
-            req.setAttribute("errorMessage", "Vui lòng nhập đầy đủ thông tin bắt buộc.");
+            req.setAttribute("errorMessage", "Vui lÃ²ng nháº­p Ä‘áº§y Ä‘á»§ thÃ´ng tin báº¯t buá»™c.");
             req.getRequestDispatcher("/WEB-INF/views/customer/account/register.jsp").forward(req, resp);
             return;
         }
         if (!ValidationUtil.isValidEmail(email)) {
-            req.setAttribute("errorMessage", "Định dạng email không hợp lệ (ví dụ: name@gmail.com).");
+            req.setAttribute("errorMessage", "Äá»‹nh dáº¡ng email khÃ´ng há»£p lá»‡ (vÃ­ dá»¥: name@gmail.com).");
             req.setAttribute("prevFullName", fullName);
             req.setAttribute("prevPhone", phone);
             req.setAttribute("prevEmail", email);
@@ -259,7 +260,7 @@ public class AuthServlet extends HttpServlet {
             return;
         }
         if (!isBlank(phone) && !ValidationUtil.isValidPhone(phone)) {
-            req.setAttribute("errorMessage", "Số điện thoại không hợp lệ. Phải là số di động VN gồm 10 số (bắt đầu bằng 03, 05, 07, 08, 09).");
+            req.setAttribute("errorMessage", "Sá»‘ Ä‘iá»‡n thoáº¡i khÃ´ng há»£p lá»‡. Pháº£i lÃ  sá»‘ di Ä‘á»™ng VN gá»“m 10 sá»‘ (báº¯t Ä‘áº§u báº±ng 03, 05, 07, 08, 09).");
             req.setAttribute("prevFullName", fullName);
             req.setAttribute("prevPhone", phone);
             req.setAttribute("prevEmail", email);
@@ -267,7 +268,7 @@ public class AuthServlet extends HttpServlet {
             return;
         }
         if (!password.equals(confirmPassword)) {
-            req.setAttribute("errorMessage", "Mật khẩu xác nhận không khớp!");
+            req.setAttribute("errorMessage", "Máº­t kháº©u xÃ¡c nháº­n khÃ´ng khá»›p!");
             req.setAttribute("prevFullName", fullName);
             req.setAttribute("prevPhone", phone);
             req.setAttribute("prevEmail", email);
@@ -275,7 +276,7 @@ public class AuthServlet extends HttpServlet {
             return;
         }
         if (!ValidationUtil.isValidPassword(password)) {
-            req.setAttribute("errorMessage", "Mật khẩu phải có ít nhất 8 ký tự, bao gồm ít nhất 1 chữ hoa, 1 chữ thường, 1 số và 1 ký tự đặc biệt (ví dụ: CineMax@2026).");
+            req.setAttribute("errorMessage", "Máº­t kháº©u pháº£i cÃ³ Ã­t nháº¥t 8 kÃ½ tá»±, bao gá»“m Ã­t nháº¥t 1 chá»¯ hoa, 1 chá»¯ thÆ°á»ng, 1 sá»‘ vÃ  1 kÃ½ tá»± Ä‘áº·c biá»‡t (vÃ­ dá»¥: CineMax@2026).");
             req.setAttribute("prevFullName", fullName);
             req.setAttribute("prevPhone", phone);
             req.setAttribute("prevEmail", email);
@@ -283,9 +284,9 @@ public class AuthServlet extends HttpServlet {
             return;
         }
 
-        // Kiểm tra email đã đăng ký
+        // Kiá»ƒm tra email Ä‘Ã£ Ä‘Äƒng kÃ½
         if (userService.isEmailTaken(email)) {
-            req.setAttribute("errorMessage", "Email này đã được đăng ký. Vui lòng dùng email khác hoặc đăng nhập.");
+            req.setAttribute("errorMessage", "Email nÃ y Ä‘Ã£ Ä‘Æ°á»£c Ä‘Äƒng kÃ½. Vui lÃ²ng dÃ¹ng email khÃ¡c hoáº·c Ä‘Äƒng nháº­p.");
             req.setAttribute("prevFullName", fullName);
             req.setAttribute("prevPhone", phone);
             req.setAttribute("prevEmail", email);
@@ -293,9 +294,9 @@ public class AuthServlet extends HttpServlet {
             return;
         }
 
-        // Kiểm tra số điện thoại đã đăng ký (nếu có nhập)
+        // Kiá»ƒm tra sá»‘ Ä‘iá»‡n thoáº¡i Ä‘Ã£ Ä‘Äƒng kÃ½ (náº¿u cÃ³ nháº­p)
         if (phone != null && !phone.isBlank() && userService.isPhoneTaken(phone)) {
-            req.setAttribute("errorMessage", "Số điện thoại này đã được sử dụng cho tài khoản khác. Vui lòng nhập số khác.");
+            req.setAttribute("errorMessage", "Sá»‘ Ä‘iá»‡n thoáº¡i nÃ y Ä‘Ã£ Ä‘Æ°á»£c sá»­ dá»¥ng cho tÃ i khoáº£n khÃ¡c. Vui lÃ²ng nháº­p sá»‘ khÃ¡c.");
             req.setAttribute("prevFullName", fullName);
             req.setAttribute("prevPhone", phone);
             req.setAttribute("prevEmail", email);
@@ -306,13 +307,13 @@ public class AuthServlet extends HttpServlet {
         User created = userService.registerCustomer(email.trim(), password, fullName.trim(), phone);
 
         if (created != null) {
-            // Thành công → chuyển đến trang nhập OTP
+            // ThÃ nh cÃ´ng â†’ chuyá»ƒn Ä‘áº¿n trang nháº­p OTP
             resp.sendRedirect(req.getContextPath() + "/verify-otp?email="
                     + java.net.URLEncoder.encode(created.getEmail(), "UTF-8")
                     + "&msg=otp_sent");
         } else {
-            // Thất bại do lỗi hệ thống
-            req.setAttribute("errorMessage", "Đăng ký không thành công. Vui lòng kiểm tra lại thông tin.");
+            // Tháº¥t báº¡i do lá»—i há»‡ thá»‘ng
+            req.setAttribute("errorMessage", "ÄÄƒng kÃ½ khÃ´ng thÃ nh cÃ´ng. Vui lÃ²ng kiá»ƒm tra láº¡i thÃ´ng tin.");
             req.setAttribute("prevFullName", fullName);
             req.setAttribute("prevPhone", phone);
             req.setAttribute("prevEmail", email);
@@ -320,35 +321,35 @@ public class AuthServlet extends HttpServlet {
         }
     }
 
-    /** Xử lý xác thực OTP: kiểm tra mã → kích hoạt tài khoản → redirect login. */
+    /** Xá»­ lÃ½ xÃ¡c thá»±c OTP: kiá»ƒm tra mÃ£ â†’ kÃ­ch hoáº¡t tÃ i khoáº£n â†’ redirect login. */
     private void handleVerifyOtp(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
 
         String email   = req.getParameter("email");
-        String action  = req.getParameter("action"); // "verify" hoặc "resend"
+        String action  = req.getParameter("action"); // "verify" hoáº·c "resend"
         String verifyEmail = (email != null) ? email.trim() : "";
 
-        // Gửi lại OTP
+        // Gá»­i láº¡i OTP
         if ("resend".equals(action)) {
             boolean sent = userService.resendOtp(verifyEmail);
             req.setAttribute("verifyEmail", verifyEmail);
             req.setAttribute("successMessage", sent
-                    ? "Đã gửi lại mã OTP mới về email của bạn!"
-                    : "Không thể gửi lại. Email không tồn tại hoặc đã được xác thực.");
+                    ? "ÄÃ£ gá»­i láº¡i mÃ£ OTP má»›i vá» email cá»§a báº¡n!"
+                    : "KhÃ´ng thá»ƒ gá»­i láº¡i. Email khÃ´ng tá»“n táº¡i hoáº·c Ä‘Ã£ Ä‘Æ°á»£c xÃ¡c thá»±c.");
             req.getRequestDispatcher("/WEB-INF/views/customer/account/verify-otp.jsp").forward(req, resp);
             return;
         }
 
-        // Xác thực OTP
+        // XÃ¡c thá»±c OTP
         String otpCode = req.getParameter("otpCode");
         if (isBlank(otpCode) || isBlank(verifyEmail)) {
-            req.setAttribute("errorMessage", "Thông tin không hợp lệ. Vui lòng thử lại.");
+            req.setAttribute("errorMessage", "ThÃ´ng tin khÃ´ng há»£p lá»‡. Vui lÃ²ng thá»­ láº¡i.");
             req.setAttribute("verifyEmail", verifyEmail);
             req.getRequestDispatcher("/WEB-INF/views/customer/account/verify-otp.jsp").forward(req, resp);
             return;
         }
 
-        // Ghép 6 ô input nếu client gửi từng ký tự riêng (digit1..digit6)
+        // GhÃ©p 6 Ã´ input náº¿u client gá»­i tá»«ng kÃ½ tá»± riÃªng (digit1..digit6)
         if (otpCode.isBlank()) {
             StringBuilder otp = new StringBuilder();
             for (int i = 1; i <= 6; i++) {
@@ -363,19 +364,19 @@ public class AuthServlet extends HttpServlet {
         if (verified) {
             resp.sendRedirect(req.getContextPath() + "/login?msg=verified");
         } else {
-            req.setAttribute("errorMessage", "Mã OTP không đúng hoặc đã hết hạn. Vui lòng thử lại hoặc gửi lại mã mới.");
+            req.setAttribute("errorMessage", "MÃ£ OTP khÃ´ng Ä‘Ãºng hoáº·c Ä‘Ã£ háº¿t háº¡n. Vui lÃ²ng thá»­ láº¡i hoáº·c gá»­i láº¡i mÃ£ má»›i.");
             req.setAttribute("verifyEmail", verifyEmail);
             req.getRequestDispatcher("/WEB-INF/views/customer/account/verify-otp.jsp").forward(req, resp);
         }
     }
 
-    /** Xử lý yêu cầu gửi link đặt lại mật khẩu qua email — M-01.2. */
+    /** Xá»­ lÃ½ yÃªu cáº§u gá»­i link Ä‘áº·t láº¡i máº­t kháº©u qua email â€” M-01.2. */
     private void handleForgotPassword(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
 
         String email = req.getParameter("email");
         if (isBlank(email) || !ValidationUtil.isValidEmail(email)) {
-            req.setAttribute("errorMessage", "Vui lòng nhập địa chỉ email hợp lệ.");
+            req.setAttribute("errorMessage", "Vui lÃ²ng nháº­p Ä‘á»‹a chá»‰ email há»£p lá»‡.");
             req.setAttribute("prevEmail", email);
             req.getRequestDispatcher("/WEB-INF/views/customer/account/forgot-password.jsp").forward(req, resp);
             return;
@@ -389,15 +390,15 @@ public class AuthServlet extends HttpServlet {
 
         boolean sent = userService.sendPasswordResetEmail(email.trim(), baseUrl);
         if (sent) {
-            req.setAttribute("successMessage", "Liên kết đặt lại mật khẩu đã được gửi đến " + email.trim() + ". Vui lòng kiểm tra hộp thư (thời hạn 15 phút).");
+            req.setAttribute("successMessage", "LiÃªn káº¿t Ä‘áº·t láº¡i máº­t kháº©u Ä‘Ã£ Ä‘Æ°á»£c gá»­i Ä‘áº¿n " + email.trim() + ". Vui lÃ²ng kiá»ƒm tra há»™p thÆ° (thá»i háº¡n 15 phÃºt).");
         } else {
-            req.setAttribute("errorMessage", "Không tìm thấy tài khoản nào khớp với email này hoặc tài khoản chưa được kích hoạt.");
+            req.setAttribute("errorMessage", "KhÃ´ng tÃ¬m tháº¥y tÃ i khoáº£n nÃ o khá»›p vá»›i email nÃ y hoáº·c tÃ i khoáº£n chÆ°a Ä‘Æ°á»£c kÃ­ch hoáº¡t.");
             req.setAttribute("prevEmail", email);
         }
         req.getRequestDispatcher("/WEB-INF/views/customer/account/forgot-password.jsp").forward(req, resp);
     }
 
-    /** Xử lý đặt lại mật khẩu mới bằng token — M-01.2. */
+    /** Xá»­ lÃ½ Ä‘áº·t láº¡i máº­t kháº©u má»›i báº±ng token â€” M-01.2. */
     private void handleResetPassword(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
 
@@ -407,7 +408,7 @@ public class AuthServlet extends HttpServlet {
 
         if (isBlank(token)) {
             req.setAttribute("tokenInvalid", true);
-            req.setAttribute("errorMessage", "Mã token không hợp lệ hoặc đã hết hạn.");
+            req.setAttribute("errorMessage", "MÃ£ token khÃ´ng há»£p lá»‡ hoáº·c Ä‘Ã£ háº¿t háº¡n.");
             req.getRequestDispatcher("/WEB-INF/views/customer/account/reset-password.jsp").forward(req, resp);
             return;
         }
@@ -415,7 +416,7 @@ public class AuthServlet extends HttpServlet {
         User user = userService.getUserByResetToken(token.trim());
         if (user == null) {
             req.setAttribute("tokenInvalid", true);
-            req.setAttribute("errorMessage", "Liên kết đặt lại mật khẩu không hợp lệ hoặc đã hết hạn (sau 15 phút). Vui lòng yêu cầu lại.");
+            req.setAttribute("errorMessage", "LiÃªn káº¿t Ä‘áº·t láº¡i máº­t kháº©u khÃ´ng há»£p lá»‡ hoáº·c Ä‘Ã£ háº¿t háº¡n (sau 15 phÃºt). Vui lÃ²ng yÃªu cáº§u láº¡i.");
             req.getRequestDispatcher("/WEB-INF/views/customer/account/reset-password.jsp").forward(req, resp);
             return;
         }
@@ -423,19 +424,19 @@ public class AuthServlet extends HttpServlet {
         req.setAttribute("token", token.trim());
 
         if (isBlank(password) || isBlank(confirmPassword)) {
-            req.setAttribute("errorMessage", "Vui lòng nhập đầy đủ mật khẩu mới và xác nhận mật khẩu.");
+            req.setAttribute("errorMessage", "Vui lÃ²ng nháº­p Ä‘áº§y Ä‘á»§ máº­t kháº©u má»›i vÃ  xÃ¡c nháº­n máº­t kháº©u.");
             req.getRequestDispatcher("/WEB-INF/views/customer/account/reset-password.jsp").forward(req, resp);
             return;
         }
 
         if (!password.equals(confirmPassword)) {
-            req.setAttribute("errorMessage", "Mật khẩu xác nhận không khớp!");
+            req.setAttribute("errorMessage", "Máº­t kháº©u xÃ¡c nháº­n khÃ´ng khá»›p!");
             req.getRequestDispatcher("/WEB-INF/views/customer/account/reset-password.jsp").forward(req, resp);
             return;
         }
 
         if (!ValidationUtil.isValidPassword(password)) {
-            req.setAttribute("errorMessage", "Mật khẩu phải có ít nhất 8 ký tự, bao gồm ít nhất 1 chữ hoa, 1 chữ thường, 1 số và 1 ký tự đặc biệt (ví dụ: CineMax@2026).");
+            req.setAttribute("errorMessage", "Máº­t kháº©u pháº£i cÃ³ Ã­t nháº¥t 8 kÃ½ tá»±, bao gá»“m Ã­t nháº¥t 1 chá»¯ hoa, 1 chá»¯ thÆ°á»ng, 1 sá»‘ vÃ  1 kÃ½ tá»± Ä‘áº·c biá»‡t (vÃ­ dá»¥: CineMax@2026).");
             req.getRequestDispatcher("/WEB-INF/views/customer/account/reset-password.jsp").forward(req, resp);
             return;
         }
@@ -444,14 +445,14 @@ public class AuthServlet extends HttpServlet {
         if (reset) {
             resp.sendRedirect(req.getContextPath() + "/login?msg=reset_success");
         } else {
-            req.setAttribute("errorMessage", "Không thể đặt lại mật khẩu. Liên kết có thể đã hết hạn hoặc bị lỗi.");
+            req.setAttribute("errorMessage", "KhÃ´ng thá»ƒ Ä‘áº·t láº¡i máº­t kháº©u. LiÃªn káº¿t cÃ³ thá»ƒ Ä‘Ã£ háº¿t háº¡n hoáº·c bá»‹ lá»—i.");
             req.getRequestDispatcher("/WEB-INF/views/customer/account/reset-password.jsp").forward(req, resp);
         }
     }
 
-    // ────────────────────────────────────────────────────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     // PRIVATE UTILITY
-    // ────────────────────────────────────────────────────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     private boolean isLoggedIn(HttpServletRequest req) {
         HttpSession session = req.getSession(false);
@@ -462,3 +463,4 @@ public class AuthServlet extends HttpServlet {
         return s == null || s.isBlank();
     }
 }
+
