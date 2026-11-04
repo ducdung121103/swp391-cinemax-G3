@@ -1,4 +1,4 @@
-package com.cinema.model;
+﻿package com.cinema.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,8 +11,9 @@ import java.math.BigDecimal;
 import java.util.List;
 
 /**
- * Entity Đơn đặt chỗ Master / Hóa đơn chính (Bảng bookings - Zone 4)
- */
+ * Entity ÄÆ¡n Ä‘áº·t chá»— Master / HÃ³a Ä‘Æ¡n chÃ­nh (Báº£ng bookings - Zone 4)
+ 
+ * Refactor update: Lam ro trach nhiem lop cho de bao tri.*/
 @Getter
 @Setter
 @Builder
@@ -32,7 +33,7 @@ public class Booking extends BaseEntity {
     private BigDecimal finalAmount;
     private String status; // PENDING, CONFIRMED, CANCELLED, EXPIRED
 
-    // Quan hệ điều hướng
+    // Quan há»‡ Ä‘iá»u hÆ°á»›ng
     private User user;
     private User staff;
     private Showtime showtime;
@@ -41,3 +42,4 @@ public class Booking extends BaseEntity {
     private List<OrderItem> orderItems;
     private List<Payment> payments;
 }
+
