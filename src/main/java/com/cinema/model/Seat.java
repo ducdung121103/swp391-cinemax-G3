@@ -1,4 +1,4 @@
-package com.cinema.model;
+﻿package com.cinema.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -8,8 +8,9 @@ import lombok.Setter;
 import lombok.ToString;
 
 /**
- * Entity Ghế vật lý trong phòng chiếu (Bảng seats - Zone 1)
- */
+ * Entity Gháº¿ váº­t lÃ½ trong phÃ²ng chiáº¿u (Báº£ng seats - Zone 1)
+ 
+ * Refactor update: Lam ro trach nhiem lop cho de bao tri.*/
 @Getter
 @Setter
 @Builder
@@ -27,6 +28,7 @@ public class Seat extends BaseEntity {
     @Builder.Default
     private String status = "ACTIVE"; // ACTIVE, MAINTENANCE, BLOCKED
 
-    // Quan hệ điều hướng
+    // Quan há»‡ Ä‘iá»u hÆ°á»›ng
     private SeatType seatType;
 }
+
