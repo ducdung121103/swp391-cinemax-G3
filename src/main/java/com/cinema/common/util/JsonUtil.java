@@ -1,11 +1,12 @@
-package com.cinema.common.util;
+﻿package com.cinema.common.util;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 /**
- * Tiện ích chuyển đổi đối tượng Java <-> chuỗi JSON thông qua Google Gson.
- */
+ * Tiá»‡n Ã­ch chuyá»ƒn Ä‘á»•i Ä‘á»‘i tÆ°á»£ng Java <-> chuá»—i JSON thÃ´ng qua Google Gson.
+ 
+ * Refactor update: Lam ro trach nhiem lop cho de bao tri.*/
 public final class JsonUtil {
     private static final Gson gson = new GsonBuilder()
             .setDateFormat("yyyy-MM-dd HH:mm:ss")
@@ -22,3 +23,4 @@ public final class JsonUtil {
         return gson.fromJson(json, clazz);
     }
 }
+
