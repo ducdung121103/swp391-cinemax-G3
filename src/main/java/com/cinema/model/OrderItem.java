@@ -1,4 +1,4 @@
-package com.cinema.model;
+﻿package com.cinema.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -10,9 +10,10 @@ import lombok.ToString;
 import java.math.BigDecimal;
 
 /**
- * Entity Chi tiết các món Bắp Nước F&B mua kèm trong đơn hàng (Bảng order_items - Zone 4).
- * Chuẩn 3NF tinh giản: Vé xem phim được quản lý riêng tại bảng tickets.
- */
+ * Entity Chi tiáº¿t cÃ¡c mÃ³n Báº¯p NÆ°á»›c F&B mua kÃ¨m trong Ä‘Æ¡n hÃ ng (Báº£ng order_items - Zone 4).
+ * Chuáº©n 3NF tinh giáº£n: VÃ© xem phim Ä‘Æ°á»£c quáº£n lÃ½ riÃªng táº¡i báº£ng tickets.
+ 
+ * Refactor update: Lam ro trach nhiem lop cho de bao tri.*/
 @Getter
 @Setter
 @Builder
@@ -27,6 +28,7 @@ public class OrderItem extends BaseEntity {
     private BigDecimal unitPrice;
     private BigDecimal subtotal;
 
-    // Quan hệ điều hướng
+    // Quan há»‡ Ä‘iá»u hÆ°á»›ng
     private FnBItem fnbItem;
 }
+
