@@ -1,4 +1,4 @@
-package com.cinema.common.filter;
+﻿package com.cinema.common.filter;
 
 import jakarta.servlet.Filter;
 import jakarta.servlet.FilterChain;
@@ -12,9 +12,10 @@ import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 
 /**
- * AuthenticationFilter kiểm tra phiên đăng nhập của người dùng.
- * Nếu chưa đăng nhập mà truy cập tài nguyên bảo mật -> Chuyển hướng về trang /login.
- */
+ * AuthenticationFilter kiá»ƒm tra phiÃªn Ä‘Äƒng nháº­p cá»§a ngÆ°á»i dÃ¹ng.
+ * Náº¿u chÆ°a Ä‘Äƒng nháº­p mÃ  truy cáº­p tÃ i nguyÃªn báº£o máº­t -> Chuyá»ƒn hÆ°á»›ng vá» trang /login.
+ 
+ * Refactor update: Lam ro trach nhiem lop cho de bao tri.*/
 public class AuthenticationFilter implements Filter {
 
     @Override
@@ -39,3 +40,4 @@ public class AuthenticationFilter implements Filter {
         chain.doFilter(request, response);
     }
 }
+
