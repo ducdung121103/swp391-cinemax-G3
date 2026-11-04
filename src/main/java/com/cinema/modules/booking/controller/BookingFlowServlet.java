@@ -1,4 +1,4 @@
-package com.cinema.modules.booking.controller;
+﻿package com.cinema.modules.booking.controller;
 
 import com.cinema.common.dto.ApiResponse;
 import com.cinema.common.util.JsonUtil;
@@ -28,8 +28,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Controller điều hướng luồng Giữ ghế & Thanh toán trực tuyến (TV 4).
- */
+ * Controller Ä‘iá»u hÆ°á»›ng luá»“ng Giá»¯ gháº¿ & Thanh toÃ¡n trá»±c tuyáº¿n (TV 4).
+ 
+ * Refactor update: Lam ro trach nhiem lop cho de bao tri.*/
 @WebServlet(name = "BookingFlowServlet", urlPatterns = {"/booking/hold", "/booking/checkout"})
 public class BookingFlowServlet extends HttpServlet {
     private final BookingEngineService bookingEngineService = new BookingEngineServiceImpl();
@@ -53,7 +54,7 @@ public class BookingFlowServlet extends HttpServlet {
         User currentUser = (User) session.getAttribute("currentUser");
 
         if ("/booking/hold".equals(path)) {
-            // Giữ ghế tạm thời 5 phút qua AJAX
+            // Giá»¯ gháº¿ táº¡m thá»i 5 phÃºt qua AJAX
             Long showtimeId = Long.parseLong(req.getParameter("showtimeId"));
             String[] seatIdArr = req.getParameterValues("seatIds");
             List<Long> seatIds = new ArrayList<>();
@@ -63,7 +64,7 @@ public class BookingFlowServlet extends HttpServlet {
 
             try {
                 boolean held = bookingEngineService.holdSeats(showtimeId, seatIds, session.getId());
-                resp.getWriter().write(JsonUtil.toJson(ApiResponse.success(held, "Giữ ghế thành công trong 5 phút")));
+                resp.getWriter().write(JsonUtil.toJson(ApiResponse.success(held, "Giá»¯ gháº¿ thÃ nh cÃ´ng trong 5 phÃºt")));
             } catch (Exception e) {
                 resp.getWriter().write(JsonUtil.toJson(ApiResponse.error("SEAT_ALREADY_RESERVED", e.getMessage())));
             }
@@ -71,7 +72,7 @@ public class BookingFlowServlet extends HttpServlet {
         }
 
         if ("/booking/checkout".equals(path)) {
-            // Thanh toán đơn hàng
+            // Thanh toÃ¡n Ä‘Æ¡n hÃ ng
             Long showtimeId = Long.parseLong(req.getParameter("showtimeId"));
             String[] seatIdArr = req.getParameterValues("seatIds");
             List<Long> seatIds = new ArrayList<>();
@@ -81,11 +82,11 @@ public class BookingFlowServlet extends HttpServlet {
 
             Showtime showtime = showtimeService.getShowtimeById(showtimeId);
             if (showtime == null) {
-                resp.getWriter().write(JsonUtil.toJson(ApiResponse.error("SHOWTIME_NOT_FOUND", "Không tìm thấy thông tin suất chiếu")));
+                resp.getWriter().write(JsonUtil.toJson(ApiResponse.error("SHOWTIME_NOT_FOUND", "KhÃ´ng tÃ¬m tháº¥y thÃ´ng tin suáº¥t chiáº¿u")));
                 return;
             }
 
-            // Tính giá vé động cho từng ghế dựa trên loại ghế (surcharge từ DB) và suất chiếu
+            // TÃ­nh giÃ¡ vÃ© Ä‘á»™ng cho tá»«ng gháº¿ dá»±a trÃªn loáº¡i gháº¿ (surcharge tá»« DB) vÃ  suáº¥t chiáº¿u
             List<BigDecimal> ticketPrices = new ArrayList<>();
             for (Long seatId : seatIds) {
                 Seat seat = screeningRoomService.getSeatById(seatId);
@@ -110,10 +111,11 @@ public class BookingFlowServlet extends HttpServlet {
 
             try {
                 BookingResult result = bookingEngineService.createBooking(dto);
-                resp.getWriter().write(JsonUtil.toJson(ApiResponse.success(result, "Đặt vé thành công!")));
+                resp.getWriter().write(JsonUtil.toJson(ApiResponse.success(result, "Äáº·t vÃ© thÃ nh cÃ´ng!")));
             } catch (Exception e) {
                 resp.getWriter().write(JsonUtil.toJson(ApiResponse.error("BOOKING_FAILED", e.getMessage())));
             }
         }
     }
 }
+
