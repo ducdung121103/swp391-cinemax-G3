@@ -1,4 +1,4 @@
-package com.cinema.model;
+﻿package com.cinema.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -14,8 +14,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * Entity Danh mục phim chiếu rạp (Bảng movies - Zone 3)
- */
+ * Entity Danh má»¥c phim chiáº¿u ráº¡p (Báº£ng movies - Zone 3)
+ 
+ * Refactor update: Lam ro trach nhiem lop cho de bao tri.*/
 @Getter
 @Setter
 @Builder
@@ -40,12 +41,12 @@ public class Movie extends BaseEntity {
     @Builder.Default
     private Double rating = 4.7;
 
-    // Quan hệ điều hướng
+    // Quan há»‡ Ä‘iá»u hÆ°á»›ng
     @Builder.Default
     private List<Genre> genres = new ArrayList<>();
 
     // =========================================================================
-    // Các Helper Getters tương thích 100% với giao diện UI & Hệ thống
+    // CÃ¡c Helper Getters tÆ°Æ¡ng thÃ­ch 100% vá»›i giao diá»‡n UI & Há»‡ thá»‘ng
     // =========================================================================
 
     public Long getMovieId() {
@@ -72,21 +73,21 @@ public class Movie extends BaseEntity {
     }
 
     /**
-     * Định dạng ngày phát hành: dd/MM/yyyy
+     * Äá»‹nh dáº¡ng ngÃ y phÃ¡t hÃ nh: dd/MM/yyyy
      */
     public String getFormattedReleaseDate() {
         if (releaseDate == null) {
-            return "Đang cập nhật";
+            return "Äang cáº­p nháº­t";
         }
         return releaseDate.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
     }
 
     /**
-     * Chuỗi thể loại cách nhau bởi dấu phẩy
+     * Chuá»—i thá»ƒ loáº¡i cÃ¡ch nhau bá»Ÿi dáº¥u pháº©y
      */
     public String getGenreString() {
         if (genres == null || genres.isEmpty()) {
-            return "Đang cập nhật";
+            return "Äang cáº­p nháº­t";
         }
         return genres.stream()
                 .map(Genre::getName)
@@ -95,7 +96,7 @@ public class Movie extends BaseEntity {
     }
 
     /**
-     * Kiểm tra phim có đang chiếu hôm nay không
+     * Kiá»ƒm tra phim cÃ³ Ä‘ang chiáº¿u hÃ´m nay khÃ´ng
      */
     public boolean isNowShowing() {
         if ("NOW_SHOWING".equalsIgnoreCase(status)) {
@@ -109,7 +110,7 @@ public class Movie extends BaseEntity {
     }
 
     /**
-     * Kiểm tra phim sắp chiếu
+     * Kiá»ƒm tra phim sáº¯p chiáº¿u
      */
     public boolean isComingSoon() {
         if ("COMING_SOON".equalsIgnoreCase(status)) {
@@ -120,7 +121,7 @@ public class Movie extends BaseEntity {
     }
 
     /**
-     * Đổi link Youtube thông thường thành link embed xem được trong modal
+     * Äá»•i link Youtube thÃ´ng thÆ°á»ng thÃ nh link embed xem Ä‘Æ°á»£c trong modal
      */
     public String getEmbedTrailerUrl() {
         if (trailerUrl == null || trailerUrl.trim().isEmpty()) {
@@ -149,7 +150,7 @@ public class Movie extends BaseEntity {
     }
 
     /**
-     * Lấy class CSS badge nhãn độ tuổi
+     * Láº¥y class CSS badge nhÃ£n Ä‘á»™ tuá»•i
      */
     public String getAgeBadgeClass() {
         if (ageRating == null) return "badge-p";
@@ -176,3 +177,4 @@ public class Movie extends BaseEntity {
         }
     }
 }
+
