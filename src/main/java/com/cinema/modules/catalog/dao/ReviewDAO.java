@@ -1,4 +1,4 @@
-package com.cinema.modules.catalog.dao;
+﻿package com.cinema.modules.catalog.dao;
 
 import com.cinema.common.context.DBContext;
 import com.cinema.model.Review;
@@ -13,7 +13,8 @@ import java.util.List;
 
 /**
  * DAO quan ly danh gia phim.
- */
+ 
+ * Refactor update: Lam ro trach nhiem lop cho de bao tri.*/
 public class ReviewDAO {
 
     public static class ReviewSummary {
@@ -271,4 +272,5 @@ public class ReviewDAO {
         return false;
     }
 }
+
 
