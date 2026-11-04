@@ -1,4 +1,4 @@
-package com.cinema.model;
+﻿package com.cinema.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -8,8 +8,9 @@ import lombok.Setter;
 import lombok.ToString;
 
 /**
- * Entity Cụm rạp chiếu (Bảng cinemas - Zone 1)
- */
+ * Entity Cá»¥m ráº¡p chiáº¿u (Báº£ng cinemas - Zone 1)
+ 
+ * Refactor update: Lam ro trach nhiem lop cho de bao tri.*/
 @Getter
 @Setter
 @Builder
@@ -25,3 +26,4 @@ public class Cinema extends BaseEntity {
     private String email;
     private Integer totalRooms;
 }
+
