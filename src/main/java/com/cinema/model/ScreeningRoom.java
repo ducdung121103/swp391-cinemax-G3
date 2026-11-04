@@ -1,4 +1,4 @@
-package com.cinema.model;
+﻿package com.cinema.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -8,8 +8,9 @@ import lombok.Setter;
 import lombok.ToString;
 
 /**
- * Entity Phòng chiếu phim (Bảng screening_rooms - Zone 1)
- */
+ * Entity PhÃ²ng chiáº¿u phim (Báº£ng screening_rooms - Zone 1)
+ 
+ * Refactor update: Lam ro trach nhiem lop cho de bao tri.*/
 @Getter
 @Setter
 @Builder
@@ -25,6 +26,7 @@ public class ScreeningRoom extends BaseEntity {
     private Integer totalCapacity;
     private String status; // ACTIVE, MAINTENANCE, CLOSED
 
-    // Quan hệ điều hướng
+    // Quan há»‡ Ä‘iá»u hÆ°á»›ng
     private Cinema cinema;
 }
+
