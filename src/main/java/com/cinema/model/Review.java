@@ -21,7 +21,9 @@ public class Review extends BaseEntity {
     private Long userId;
     private Integer ratingScore; // 1 -> 5 sao
     private String comment;
-    private String status; // PENDING, APPROVED, REJECTED
+    private String status; // PENDING, APPROVED, HIDDEN
+    private String customerName;
+    private String movieTitle;
 
     // Quan hệ điều hướng
     private User user;

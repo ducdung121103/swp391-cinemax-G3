@@ -385,14 +385,15 @@ CREATE TABLE reviews (
     id BIGINT IDENTITY(1,1) PRIMARY KEY,
     movie_id INT NOT NULL,
     user_id INT NOT NULL,
-    rating_score INT NOT NULL DEFAULT 5, -- 1 đến 5 sao
-    comment NVARCHAR(MAX) NULL,
-    status NVARCHAR(30) NOT NULL DEFAULT 'APPROVED', -- APPROVED, PENDING, HIDDEN, FLAGGED
+    rating_score INT NOT NULL DEFAULT 5 CHECK (rating_score BETWEEN 1 AND 5), -- 1 đến 5 sao
+    comment NVARCHAR(MAX) NOT NULL,
+    status NVARCHAR(30) NOT NULL DEFAULT 'PENDING', -- PENDING, APPROVED, HIDDEN
     is_deleted BIT NOT NULL DEFAULT 0,
     created_at DATETIME2 NOT NULL DEFAULT GETDATE(),
     updated_at DATETIME2 NOT NULL DEFAULT GETDATE(),
     CONSTRAINT fk_reviews_movie FOREIGN KEY (movie_id) REFERENCES movies (id) ON DELETE CASCADE ON UPDATE CASCADE,
-    CONSTRAINT fk_reviews_user FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE ON UPDATE CASCADE
+    CONSTRAINT fk_reviews_user FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT uk_reviews_user_movie UNIQUE (user_id, movie_id)
 );
 CREATE INDEX idx_reviews_movie ON reviews (movie_id, status);
 GO
