@@ -1,12 +1,13 @@
-package com.cinema.common.config;
+﻿package com.cinema.common.config;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 
 /**
- * Đọc cấu hình kết nối CSDL từ file db.properties (hoặc db.local.properties).
- */
+ * Äá»c cáº¥u hÃ¬nh káº¿t ná»‘i CSDL tá»« file db.properties (hoáº·c db.local.properties).
+ 
+ * Refactor update: Lam ro trach nhiem lop cho de bao tri.*/
 public class DatabaseConfig {
     private static final Properties properties = new Properties();
 
@@ -15,7 +16,7 @@ public class DatabaseConfig {
     }
 
     private static void loadProperties() {
-        // Ưu tiên đọc db.local.properties nếu có
+        // Æ¯u tiÃªn Ä‘á»c db.local.properties náº¿u cÃ³
         InputStream is = DatabaseConfig.class.getClassLoader().getResourceAsStream("db.local.properties");
         if (is == null) {
             is = DatabaseConfig.class.getClassLoader().getResourceAsStream("db.properties");
@@ -25,14 +26,14 @@ public class DatabaseConfig {
             try {
                 properties.load(is);
             } catch (IOException e) {
-                System.err.println("[DatabaseConfig] Lỗi nạp properties: " + e.getMessage());
+                System.err.println("[DatabaseConfig] Lá»—i náº¡p properties: " + e.getMessage());
             } finally {
                 try {
                     is.close();
                 } catch (IOException ignored) {}
             }
         } else {
-            System.err.println("[DatabaseConfig] Không tìm thấy db.properties trong classpath!");
+            System.err.println("[DatabaseConfig] KhÃ´ng tÃ¬m tháº¥y db.properties trong classpath!");
         }
     }
 
@@ -56,3 +57,4 @@ public class DatabaseConfig {
         }
     }
 }
+
