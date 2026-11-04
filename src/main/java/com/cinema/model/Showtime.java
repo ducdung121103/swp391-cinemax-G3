@@ -1,4 +1,4 @@
-package com.cinema.model;
+﻿package com.cinema.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -10,8 +10,9 @@ import lombok.ToString;
 import java.time.LocalDateTime;
 
 /**
- * Entity Lịch chiếu phim chi tiết (Bảng showtimes - Zone 3)
- */
+ * Entity Lá»‹ch chiáº¿u phim chi tiáº¿t (Báº£ng showtimes - Zone 3)
+ 
+ * Refactor update: Lam ro trach nhiem lop cho de bao tri.*/
 @Getter
 @Setter
 @Builder
@@ -26,7 +27,8 @@ public class Showtime extends BaseEntity {
     private String experienceFormat; // 2D, 3D, IMAX
     private String status; // SCHEDULED, OPENING, FINISHED, CANCELLED
 
-    // Quan hệ điều hướng
+    // Quan há»‡ Ä‘iá»u hÆ°á»›ng
     private Movie movie;
     private ScreeningRoom screeningRoom;
 }
+
