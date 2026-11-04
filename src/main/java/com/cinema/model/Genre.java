@@ -1,4 +1,4 @@
-package com.cinema.model;
+﻿package com.cinema.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -8,8 +8,9 @@ import lombok.Setter;
 import lombok.ToString;
 
 /**
- * Entity Danh mục thể loại phim (Bảng genres - Zone 3)
- */
+ * Entity Danh má»¥c thá»ƒ loáº¡i phim (Báº£ng genres - Zone 3)
+ 
+ * Refactor update: Lam ro trach nhiem lop cho de bao tri.*/
 @Getter
 @Setter
 @Builder
@@ -20,7 +21,7 @@ public class Genre extends BaseEntity {
     private String name;
     private String description;
 
-    // Helper getters cho tương thích JSTL UI
+    // Helper getters cho tÆ°Æ¡ng thÃ­ch JSTL UI
     public Long getGenreId() {
         return getId();
     }
@@ -29,3 +30,4 @@ public class Genre extends BaseEntity {
         return name;
     }
 }
+
