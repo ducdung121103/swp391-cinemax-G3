@@ -1,4 +1,4 @@
-﻿package com.cinema.common.transaction;
+package com.cinema.common.transaction;
 
 import com.cinema.common.context.DBContext;
 

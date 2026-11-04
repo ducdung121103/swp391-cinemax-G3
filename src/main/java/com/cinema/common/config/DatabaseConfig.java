@@ -1,4 +1,4 @@
-﻿package com.cinema.common.config;
+package com.cinema.common.config;
 
 import java.io.IOException;
 import java.io.InputStream;

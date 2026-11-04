@@ -1,4 +1,4 @@
-﻿package com.cinema.modules.catalog.service.impl;
+package com.cinema.modules.catalog.service.impl;
 
 import com.cinema.model.Review;
 import com.cinema.modules.catalog.dao.ReviewDAO;

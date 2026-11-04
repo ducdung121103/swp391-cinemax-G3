@@ -1,4 +1,4 @@
-﻿package com.cinema.common.util;
+package com.cinema.common.util;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;

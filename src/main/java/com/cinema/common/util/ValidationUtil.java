@@ -1,4 +1,4 @@
-﻿package com.cinema.common.util;
+package com.cinema.common.util;
 
 import java.util.regex.Pattern;
 

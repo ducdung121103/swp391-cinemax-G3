@@ -1,4 +1,4 @@
-﻿package com.cinema.modules.identity.controller;
+package com.cinema.modules.identity.controller;
 
 import com.cinema.common.constant.RoleConstant;
 import com.cinema.common.util.ValidationUtil;

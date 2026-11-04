@@ -1,4 +1,4 @@
-﻿package com.cinema.common.filter;
+package com.cinema.common.filter;
 
 import com.cinema.common.constant.RoleConstant;
 import com.cinema.model.User;

@@ -1,4 +1,4 @@
-﻿package com.cinema.modules.catalog.controller;
+package com.cinema.modules.catalog.controller;
 
 import com.cinema.common.constant.RoleConstant;
 import com.cinema.model.Review;

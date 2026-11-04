@@ -1,4 +1,4 @@
-﻿package com.cinema.modules.catalog.dao;
+package com.cinema.modules.catalog.dao;
 
 import com.cinema.common.context.DBContext;
 import com.cinema.model.Review;

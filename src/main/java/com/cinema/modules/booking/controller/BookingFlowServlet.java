@@ -1,4 +1,4 @@
-﻿package com.cinema.modules.booking.controller;
+package com.cinema.modules.booking.controller;
 
 import com.cinema.common.dto.ApiResponse;
 import com.cinema.common.util.JsonUtil;

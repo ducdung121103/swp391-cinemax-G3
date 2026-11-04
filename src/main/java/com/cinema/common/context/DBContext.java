@@ -1,4 +1,4 @@
-﻿package com.cinema.common.context;
+package com.cinema.common.context;
 
 import com.cinema.common.config.DatabaseConfig;
 import com.zaxxer.hikari.HikariConfig;
