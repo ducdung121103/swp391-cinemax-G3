@@ -1,4 +1,4 @@
-package com.cinema.modules.catalog.controller;
+﻿package com.cinema.modules.catalog.controller;
 
 import com.cinema.common.constant.RoleConstant;
 import com.cinema.model.Review;
@@ -19,7 +19,8 @@ import java.util.List;
 
 /**
  * Quan ly duyet danh gia phim cho Admin.
- */
+ 
+ * Refactor update: Lam ro trach nhiem lop cho de bao tri.*/
 @WebServlet(name = "AdminReviewServlet", urlPatterns = {
         "/admin/reviews",
         "/admin/reviews/approve",
@@ -113,4 +114,5 @@ public class AdminReviewServlet extends HttpServlet {
         return true;
     }
 }
+
 
