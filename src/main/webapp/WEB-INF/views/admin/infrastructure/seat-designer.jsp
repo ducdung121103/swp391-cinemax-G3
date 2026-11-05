@@ -240,7 +240,15 @@
                         <button onclick="this.parentElement.style.display='none'" style="background:none; border:none; cursor:pointer; font-size: 1.2rem;">&times;</button>
                     </div>
                 </c:if>
-                <c:if test="${not empty error}">
+                                <!-- Dynamic Client-Side Error Alert Toast (Thanh bÃ¡o lá»—i mÃ u Ä‘á») -->
+                <div id="clientAlertError" class="alert-toast alert-error" style="display: none;">
+                    <span>
+                        <i class="fa-solid fa-triangle-exclamation" style="margin-right: 6px;"></i>
+                        <span id="clientAlertErrorText"></span>
+                    </span>
+                    <button type="button" onclick="document.getElementById('clientAlertError').style.display='none'" style="background:none; border:none; cursor:pointer; font-size: 1.2rem; color: #742a2a;">&times;</button>
+                </div>
+<c:if test="${not empty error}">
                     <div class="alert-toast alert-error">
                         <span>
                             <i class="fa-solid fa-triangle-exclamation" style="margin-right: 6px;"></i>
@@ -707,7 +715,7 @@
 
         function quickToggleMaint(underMaintenance) {
             if (selectedSeatIds.size === 0) {
-                alert('Vui lòng chọn ít nhất một ghế trên sơ đồ!');
+                showSeatError('Vui lòng chọn ít nhất một ghế trên sơ đồ!');
                 return;
             }
             const form = document.createElement('form');
@@ -753,6 +761,154 @@
             const endInput = document.getElementById('schedEndTime');
             if (startInput && !startInput.value) startInput.value = formatDT(now);
             if (endInput && !endInput.value) endInput.value = formatDT(tomorrow);
+
+
+            // HÀM HIỂN THỊ THANH BÁO LỖI MÀU ĐỎ (ĐỒNG BỘ VỚI THANH MÀU XANH THÀNH CÔNG)
+            function showSeatError(message) {
+                // Ẩn thanh thông báo màu xanh thành công
+                document.querySelectorAll('.alert-toast.alert-success').forEach(el => el.style.display = 'none');
+                // Ẩn thanh lỗi server cũ nếu có
+                document.querySelectorAll('.alert-toast.alert-error').forEach(el => {
+                    if (el.id !== 'clientAlertError') el.style.display = 'none';
+                });
+                const errBox = document.getElementById('clientAlertError');
+                const errText = document.getElementById('clientAlertErrorText');
+                if (errBox && errText) {
+                    errText.innerText = message;
+                    errBox.style.display = 'flex';
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                }
+            }
+
+            function hideSeatError() {
+                const errBox = document.getElementById('clientAlertError');
+                if (errBox) errBox.style.display = 'none';
+            }
+
+            // RÀNG BUỘC NGHIỆP VỤ GHẾ ĐÔI SWEETBOX (COUPLE SEATS)
+            const batchForm = document.getElementById('batchUpdateForm');
+            if (batchForm) {
+                batchForm.addEventListener('submit', function (e) {
+                    const typeSelect = batchForm.querySelector('select[name="seatTypeId"]');
+                    const selectedTypeVal = typeSelect ? typeSelect.value : '';
+                    const selectedTypeText = (typeSelect && typeSelect.selectedIndex >= 0) ? typeSelect.options[typeSelect.selectedIndex].text : '';
+                    const isCouple = selectedTypeVal === '3' || selectedTypeText.toUpperCase().includes('COUPLE') || selectedTypeText.toUpperCase().includes('ĐÔI');
+
+                    // Trường hợp 1: Chuyển ghế sang loại COUPLE (Sweetbox)
+                    if (isCouple) {
+                        const count = selectedSeatIds.size;
+                        if (count === 0) {
+                            showSeatError('Vui lòng chọn ít nhất một cặp ghế đôi trên sơ đồ trước khi áp dụng!');
+                            e.preventDefault();
+                            return;
+                        }
+                        if (count % 2 !== 0) {
+                            showSeatError('Ghế đôi Sweetbox bắt buộc phải chọn theo số lượng chẵn (2, 4, 6... ghế)! Hiện tại bạn đang chọn ' + count + ' ghế (số lẻ), không thể tạo thành cặp.');
+                            e.preventDefault();
+                            return;
+                        }
+
+                        // Gom nhóm ghế theo hàng
+                        const seatsByRow = {};
+                        selectedSeatIds.forEach(id => {
+                            const cell = document.getElementById('seat-' + id);
+                            if (cell) {
+                                const row = cell.getAttribute('data-row');
+                                const num = parseInt(cell.getAttribute('data-number') || '0', 10);
+                                const code = cell.getAttribute('data-code');
+                                if (!seatsByRow[row]) seatsByRow[row] = [];
+                                seatsByRow[row].push({ id, row, num, code });
+                            }
+                        });
+
+                        for (const row in seatsByRow) {
+                            const rowSeats = seatsByRow[row];
+                            if (rowSeats.length % 2 !== 0) {
+                                showSeatError('Ghế đôi Sweetbox phải đi theo cặp trong cùng một hàng! Hàng ' + row + ' đang có ' + rowSeats.length + ' ghế lẻ được chọn, không thể ghép cặp.');
+                                e.preventDefault();
+                                return;
+                            }
+                            rowSeats.sort((a, b) => a.num - b.num);
+                            for (let i = 0; i < rowSeats.length; i += 2) {
+                                const s1 = rowSeats[i];
+                                const s2 = rowSeats[i + 1];
+                                const diff = Math.abs(s2.num - s1.num);
+                                if (diff !== 1) {
+                                    showSeatError('Hai ghế trong mỗi cặp ghế đôi bắt buộc phải nằm LIỀN KỀ NHAU trong cùng một hàng! Cặp ghế ' + s1.code + ' và ' + s2.code + ' đang bị cách quãng ' + (diff - 1) + ' ghế, không hợp lệ.');
+                                    e.preventDefault();
+                                    return;
+                                }
+                            }
+                        }
+                    }
+
+                    // Trường hợp 2: Chuyển ghế đôi hiện có sang loại khác -> Không được làm lẻ cặp ghế đôi còn lại
+                    if (!isCouple) {
+                        let hasExistingCouple = false;
+                        selectedSeatIds.forEach(id => {
+                            const cell = document.getElementById('seat-' + id);
+                            if (cell && (cell.getAttribute('data-type-id') === '3' || (cell.getAttribute('data-type-code') || '').toUpperCase() === 'COUPLE')) {
+                                hasExistingCouple = true;
+                            }
+                        });
+
+                        if (hasExistingCouple) {
+                            const remainingCoupleByRow = {};
+                            document.querySelectorAll('.seat-cell').forEach(cell => {
+                                const id = cell.getAttribute('data-id');
+                                const isCurrentCouple = cell.getAttribute('data-type-id') === '3' || (cell.getAttribute('data-type-code') || '').toUpperCase() === 'COUPLE';
+                                if (isCurrentCouple && !selectedSeatIds.has(id)) {
+                                    const row = cell.getAttribute('data-row');
+                                    const num = parseInt(cell.getAttribute('data-number') || '0', 10);
+                                    const code = cell.getAttribute('data-code');
+                                    if (!remainingCoupleByRow[row]) remainingCoupleByRow[row] = [];
+                                    remainingCoupleByRow[row].push({ id, row, num, code });
+                                }
+                            });
+
+                            for (const row in remainingCoupleByRow) {
+                                const rowCouples = remainingCoupleByRow[row];
+                                if (rowCouples.length % 2 !== 0) {
+                                    showSeatError('Thao tác này sẽ làm rách/lẻ một cặp ghế đôi hiện có ở hàng ' + row + '! Vui lòng chọn trọn vẹn cả cặp ghế đôi để chuyển đổi loại ghế.');
+                                    e.preventDefault();
+                                    return;
+                                }
+                                rowCouples.sort((a, b) => a.num - b.num);
+                                for (let i = 0; i < rowCouples.length; i += 2) {
+                                    if (Math.abs(rowCouples[i + 1].num - rowCouples[i].num) !== 1) {
+                                        showSeatError('Thao tác này làm tách rời cặp ghế đôi còn lại (' + rowCouples[i].code + ' và ' + rowCouples[i + 1].code + ')! Vui lòng chọn trọn vẹn cả cặp ghế đôi để chuyển đổi loại ghế.');
+                                        e.preventDefault();
+                                        return;
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    hideSeatError();
+                });
+            }
+
+            // Validate form Đổi Nhanh Theo Hàng
+            const rowForm = document.querySelector('form input[value="applyRowType"]')?.closest('form');
+            if (rowForm) {
+                rowForm.addEventListener('submit', function (e) {
+                    const typeSelect = rowForm.querySelector('select[name="seatTypeId"]');
+                    const rowInput = rowForm.querySelector('input[name="seatRow"]');
+                    if (!typeSelect || !rowInput) return;
+                    const isCouple = typeSelect.value === '3' || typeSelect.options[typeSelect.selectedIndex].text.toUpperCase().includes('COUPLE') || typeSelect.options[typeSelect.selectedIndex].text.toUpperCase().includes('ĐÔI');
+                    if (isCouple) {
+                        const rowLetter = rowInput.value.trim().toUpperCase();
+                        const cellsInRow = document.querySelectorAll('.seat-row-wrapper[data-row-letter="' + rowLetter + '"] .seat-cell');
+                        if (cellsInRow.length > 0 && cellsInRow.length % 2 !== 0) {
+                            showSeatError('Hàng ' + rowLetter + ' có ' + cellsInRow.length + ' ghế (số lẻ), không thể chuyển toàn bộ thành ghế đôi Sweetbox!');
+                            e.preventDefault();
+                            return;
+                        }
+                    }
+                    hideSeatError();
+                });
+            }
         });
     </script>
 </body>
