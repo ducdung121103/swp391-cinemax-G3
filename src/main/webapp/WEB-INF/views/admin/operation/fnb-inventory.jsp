@@ -3,7 +3,6 @@
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <fmt:setLocale value="en_US" />
-<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <!doctype html>
 <html lang="vi">
 <head>
@@ -47,7 +46,7 @@
                 </div>
                 <c:choose>
                     <c:when test="${not empty cinemas}">
-                        <form class="inventory-branch-form" method="get" action="${pageContext.request.contextPath}/admin/operation/fnb">
+                        <form class="inventory-branch-form" method="get" action="${pageContext.request.contextPath}${fnbInventoryUrl}">
                             <label class="field-group">Chi nhánh
                                 <select name="cinemaId" onchange="this.form.submit()">
                                     <c:forEach items="${cinemas}" var="cinema">
@@ -114,7 +113,7 @@
                                             </c:choose>
                                         </td>
                                         <td>
-                                            <form class="inventory-edit-form" method="post" action="${pageContext.request.contextPath}/admin/operation/fnb">
+                                            <form class="inventory-edit-form" method="post" action="${pageContext.request.contextPath}${fnbInventoryUrl}">
                                                 <input type="hidden" name="cinemaId" value="${cinemaId}">
                                                 <input type="hidden" name="itemId" value="${row.id}">
                                                 <label><span class="sr-only">Số lượng tồn</span><input type="number" min="0" name="quantity" value="${row.stock}" required></label>

@@ -1,115 +1,204 @@
 package com.cinema.modules.operation.controller;
 
-import com.cinema.model.FnBItem;
-import com.cinema.modules.operation.dao.FnBItemDAO;
+import com.cinema.model.User;
+import com.cinema.modules.operation.dto.PosQuoteResult;
+import com.cinema.modules.operation.dto.PosCheckoutCommand;
+import com.cinema.modules.operation.dto.PosCheckoutResult;
+import com.cinema.modules.operation.dto.PosCounterPageData;
+import com.cinema.modules.operation.service.CheckoutConfirmationRequiredException;
+import com.cinema.modules.operation.service.PosCounterService;
+import com.cinema.modules.operation.service.impl.PosCounterServiceImpl;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
+import com.google.gson.Gson;
 
 import java.io.IOException;
-import java.util.List;
-import com.cinema.model.User;
-import com.cinema.model.Showtime;
-import com.cinema.model.Seat;
-import com.cinema.common.dao.SystemSettingDAO;
-import com.cinema.modules.catalog.service.ShowtimeService;
-import com.cinema.modules.catalog.service.impl.ShowtimeServiceImpl;
-import com.cinema.modules.catalog.service.PricingService;
-import com.cinema.modules.catalog.service.impl.PricingServiceImpl;
-import com.cinema.modules.infrastructure.service.ScreeningRoomService;
-import com.cinema.modules.infrastructure.service.impl.ScreeningRoomServiceImpl;
-import com.cinema.modules.infrastructure.dao.CinemaDAO;
-import com.cinema.modules.booking.dto.CreateBookingDTO;
-import com.cinema.modules.booking.dto.BookingResult;
-import com.cinema.modules.operation.service.PosOrderService;
-import com.cinema.modules.operation.service.impl.PosOrderServiceImpl;
-import com.cinema.modules.operation.dao.PosSeatDAO;
-import jakarta.servlet.http.HttpSession;
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.util.*;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.sql.SQLException;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
-/**
- * Controller quầy bán vé & bắp nước POS cảm ứng tại rạp (TV 5).
- */
-@WebServlet(name = "PosCounterServlet", urlPatterns = {"/admin/operation/pos"})
+@WebServlet(name = "PosCounterServlet", urlPatterns = {"/operation/pos"})
 public class PosCounterServlet extends HttpServlet {
-    private final FnBItemDAO fnbItemDAO = new FnBItemDAO();
-    private final ShowtimeService showtimeService = new ShowtimeServiceImpl();
-    private final ScreeningRoomService roomService = new ScreeningRoomServiceImpl();
-    private final PricingService pricingService = new PricingServiceImpl();
-    private final SystemSettingDAO settings = new SystemSettingDAO();
-    private final PosOrderService posOrderService = new PosOrderServiceImpl();
-    private final PosSeatDAO posSeatDAO = new PosSeatDAO();
+    private static final String VIEW = "/WEB-INF/views/admin/operation/pos-counter.jsp";
+    private final PosCounterService posCounterService = new PosCounterServiceImpl();
 
     @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        User staff = (User) req.getSession().getAttribute("currentUser");
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        User staff = currentUser(request);
         if (staff == null) {
-            resp.sendRedirect(req.getContextPath() + "/login?msg=login_required");
+            response.sendRedirect(request.getContextPath() + "/login?msg=login_required");
             return;
         }
-        req.setAttribute("staff", staff);
-        Long cinemaId = staff.getCinemaId();
-        if(cinemaId==null){String selected=req.getParameter("cinemaId");List<com.cinema.model.Cinema> cinemas=new CinemaDAO().findAll();req.setAttribute("cinemas",cinemas);if(selected!=null&&!selected.isBlank())cinemaId=Long.valueOf(selected);else if(!cinemas.isEmpty())cinemaId=cinemas.get(0).getId();if(cinemaId==null)req.setAttribute("posSetupMessage","Chưa có chi nhánh. Hãy tạo chi nhánh và phòng chiếu trước khi bán vé.");}
-        if(cinemaId!=null){req.setAttribute("cinemaId",cinemaId);req.setAttribute("showtimes",showtimeService.getShowtimesByCinemaAndDate(cinemaId,LocalDate.now()));req.setAttribute("fnbItems",fnbItemDAO.findAllActiveForCinema(cinemaId));}
-        String selectedShowtime=req.getParameter("showtimeId");
-        if(selectedShowtime!=null&&!selectedShowtime.isBlank()&&cinemaId!=null){
-            try{
-                Showtime st=showtimeService.getShowtimeById(Long.parseLong(selectedShowtime));
-                com.cinema.model.ScreeningRoom room=st==null?null:roomService.getRoomById(st.getScreeningRoomId());
-                if(st!=null&&room!=null&&Objects.equals(room.getCinemaId(),cinemaId)){
-                    req.setAttribute("selectedShowtime",st.getId());
-                    req.setAttribute("availableSeats",posSeatDAO.findAvailable(st.getId(),room.getId()));
-                }
-            }catch(NumberFormatException e){
-                req.setAttribute("posError","Mã suất chiếu không hợp lệ. Hãy chọn lại suất chiếu.");
-            }catch(Exception e){
-                throw new ServletException("Không thể tải sơ đồ ghế của suất chiếu.",e);
+
+        try {
+            PosCounterPageData page = posCounterService.loadPage(staff, request.getParameter("cinemaId"),
+                    request.getParameter("date"), request.getParameter("showtimeId"), request.getSession().getId());
+            request.setAttribute("staff", staff);
+            request.setAttribute("today", page.getToday());
+            request.setAttribute("selectedDate", page.getSelectedDate());
+            request.setAttribute("cinemaId", page.getCinemaId());
+            request.setAttribute("cinemas", page.getCinemas());
+            request.setAttribute("showtimes", page.getShowtimes());
+            request.setAttribute("fnbItems", page.getFnbItems());
+            request.setAttribute("selectedShowtime", page.getSelectedShowtimeId());
+            request.setAttribute("selectedShowtimeDetails", page.getSelectedShowtime());
+            request.setAttribute("seatMap", page.getSeatMap());
+            request.setAttribute("seatPrices", page.getSeatPrices());
+            request.setAttribute("availableSeatCount", page.getAvailableSeatCount());
+            request.setAttribute("seatColumnCount", page.getSeatColumnCount());
+            request.setAttribute("studentDiscount", page.getStudentDiscount());
+            request.setAttribute("seniorDiscount", page.getSeniorDiscount());
+            request.setAttribute("posSetupMessage", page.getSetupMessage());
+            request.setAttribute("posError", page.getErrorMessage());
+
+            HttpSession session = request.getSession();
+            Object flashError = session.getAttribute("posError");
+            if (flashError != null) {
+                request.setAttribute("posError", flashError);
             }
+            session.removeAttribute("posError");
+            request.setAttribute("checkoutResult", session.getAttribute("posCheckoutResult"));
+            session.removeAttribute("posCheckoutResult");
+            request.setAttribute("checkoutShowtime", session.getAttribute("posCheckoutShowtime"));
+            session.removeAttribute("posCheckoutShowtime");
+            request.getRequestDispatcher(VIEW).forward(request, response);
+        } catch (SecurityException e) {
+            if (isQuoteRequest(request)) {
+                writeQuoteError(response, HttpServletResponse.SC_FORBIDDEN, e.getMessage());
+                return;
+            }
+            response.sendError(HttpServletResponse.SC_FORBIDDEN, e.getMessage());
+        } catch (SQLException e) {
+            throw new ServletException("Không thể tải dữ liệu quầy POS.", e);
         }
-        if(req.getAttribute("posError")==null){
-            req.setAttribute("posError",req.getSession().getAttribute("posError"));
-        }
-        req.getSession().removeAttribute("posError");
-        req.setAttribute("studentDiscount",discount("STUDENT_TICKET_DISCOUNT_PERCENT",15));
-        req.setAttribute("seniorDiscount",discount("SENIOR_TICKET_DISCOUNT_PERCENT",10));
-        req.setAttribute("checkoutResult",req.getSession().getAttribute("posCheckoutResult"));
-        req.getSession().removeAttribute("posCheckoutResult");
-        req.getRequestDispatcher("/WEB-INF/views/admin/operation/pos-counter.jsp").forward(req, resp);
     }
 
-    @Override protected void doPost(HttpServletRequest req,HttpServletResponse resp)throws ServletException,IOException{
-        req.setCharacterEncoding("UTF-8");
-        User staff=(User)req.getSession().getAttribute("currentUser");
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        request.setCharacterEncoding("UTF-8");
+        User staff = currentUser(request);
         if (staff == null) {
-            resp.sendRedirect(req.getContextPath() + "/login?msg=login_required");
+            response.sendRedirect(request.getContextPath() + "/login?msg=login_required");
             return;
         }
-        try{
-            long showtimeId=Long.parseLong(req.getParameter("showtimeId"));
-            Showtime showtime=showtimeService.getShowtimeById(showtimeId);
-            com.cinema.model.ScreeningRoom room=showtime==null?null:roomService.getRoomById(showtime.getScreeningRoomId());
-            long expectedCinema=staff.getCinemaId()!=null?staff.getCinemaId():Long.parseLong(req.getParameter("cinemaId"));
-            if(showtime==null||room==null||!Objects.equals(expectedCinema,room.getCinemaId()))throw new IllegalArgumentException("Suất chiếu không thuộc rạp đã chọn.");
-            if(showtime.getStartTime()==null||!showtime.getStartTime().isAfter(java.time.LocalDateTime.now())||"CANCELLED".equalsIgnoreCase(showtime.getStatus()))throw new IllegalArgumentException("Không thể bán vé cho suất chiếu đã qua hoặc đã hủy.");
-            String[] rawSeats=req.getParameterValues("seatIds");
-            if(rawSeats==null||rawSeats.length==0)throw new IllegalArgumentException("Chọn ít nhất một ghế.");
-            List<Long> seats=new ArrayList<>();List<BigDecimal> prices=new ArrayList<>();
-            String ticketClass=req.getParameter("ticketClass");BigDecimal multiplier=BigDecimal.ONE;
-            if("STUDENT".equals(ticketClass))multiplier=BigDecimal.ONE.subtract(discount("STUDENT_TICKET_DISCOUNT_PERCENT",15).movePointLeft(2));
-            else if("SENIOR".equals(ticketClass))multiplier=BigDecimal.ONE.subtract(discount("SENIOR_TICKET_DISCOUNT_PERCENT",10).movePointLeft(2));
-            else if(!"STANDARD".equals(ticketClass))throw new IllegalArgumentException("Loại giá vé không hợp lệ.");
-            for(String raw:rawSeats){long seatId=Long.parseLong(raw);Seat seat=roomService.getSeatById(seatId);if(seat==null||!Objects.equals(seat.getScreeningRoomId(),showtime.getScreeningRoomId()))throw new IllegalArgumentException("Ghế không thuộc phòng chiếu đã chọn.");seats.add(seatId);prices.add(pricingService.calculateTicketPrice(showtimeId,seat.getSeatTypeId(),showtime.getStartTime(),showtime.getExperienceFormat()).multiply(multiplier).setScale(2,java.math.RoundingMode.HALF_UP));}
-            if(new HashSet<>(seats).size()!=seats.size())throw new IllegalArgumentException("Danh sách ghế bị trùng.");
-            String paymentMethod=req.getParameter("paymentMethod");if(!"CASH".equals(paymentMethod)&&!"VNPAY_POS".equals(paymentMethod))throw new IllegalArgumentException("Phương thức thanh toán không hợp lệ.");
-            Map<Long,Integer> fnb=new LinkedHashMap<>();for(Map.Entry<String,String[]> e:req.getParameterMap().entrySet())if(e.getKey().startsWith("fnb_")){int qty=Integer.parseInt(e.getValue()[0]);if(qty>0)fnb.put(Long.parseLong(e.getKey().substring(4)),qty);}
-            CreateBookingDTO dto=CreateBookingDTO.builder().staffId(staff.getId()).showtimeId(showtimeId).seatIds(seats).ticketPrices(prices).fnbItems(fnb).channel("POS").paymentMethod(paymentMethod).sessionId(req.getSession().getId()).build();
-            BookingResult result=posOrderService.processCounterCheckout(dto);req.getSession().setAttribute("posCheckoutResult",result);
-            resp.sendRedirect(req.getContextPath()+"/admin/operation/pos?cinemaId="+expectedCinema);
-        }catch(IllegalArgumentException|IllegalStateException e){req.getSession().setAttribute("posError",e.getMessage());String selected=req.getParameter("showtimeId");String cinema=req.getParameter("cinemaId");resp.sendRedirect(req.getContextPath()+"/admin/operation/pos?cinemaId="+(cinema==null?"":cinema)+"&showtimeId="+selected);}catch(Exception e){throw new ServletException("Không thể tạo giao dịch POS",e);}
+
+        try {
+            if ("quote".equalsIgnoreCase(request.getParameter("mode"))) {
+                PosQuoteResult quote = posCounterService.quote(toCommand(request, staff));
+                response.setContentType("application/json;charset=UTF-8");
+                response.getWriter().write(new Gson().toJson(quote));
+                return;
+            }
+            PosCheckoutResult checkout = posCounterService.checkout(toCommand(request, staff));
+            HttpSession session = request.getSession();
+            session.setAttribute("posCheckoutResult", checkout.getBookingResult());
+            session.setAttribute("posCheckoutShowtime", checkout.getShowtime());
+            response.sendRedirect(posUrl(request, checkout.getCinemaId().toString(),
+                    checkout.getDate().toString(), null));
+        } catch (SecurityException e) {
+            if (isQuoteRequest(request)) {
+                writeQuoteError(response, HttpServletResponse.SC_FORBIDDEN, e.getMessage());
+                return;
+            }
+            response.sendError(HttpServletResponse.SC_FORBIDDEN, e.getMessage());
+        } catch (CheckoutConfirmationRequiredException e) {
+            redirectWithError(request, response, e.getMessage());
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            if (isQuoteRequest(request)) {
+                writeQuoteError(response, HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
+                return;
+            }
+            redirectWithError(request, response, e.getMessage());
+        } catch (Exception e) {
+            if (isQuoteRequest(request)) {
+                writeQuoteError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+                        "Không thể lấy báo giá POS.");
+                return;
+            }
+            throw new ServletException("Không thể tạo giao dịch POS.", e);
+        }
     }
-    private BigDecimal discount(String key,int fallback){int pct=settings.getIntSetting(key,fallback);return BigDecimal.valueOf(Math.max(0,Math.min(100,pct)));}
+
+    private PosCheckoutCommand toCommand(HttpServletRequest request, User staff) {
+        return PosCheckoutCommand.builder()
+                .staff(staff)
+                .requestedCinemaId(request.getParameter("cinemaId"))
+                .date(request.getParameter("date"))
+                .showtimeId(request.getParameter("showtimeId"))
+                .checkoutConfirmed(request.getParameter("checkoutConfirmed"))
+                .seatIds(request.getParameterValues("seatIds"))
+                .ticketClass(request.getParameter("ticketClass"))
+                .paymentMethod(request.getParameter("paymentMethod"))
+                .sessionId(request.getSession().getId())
+                .quotedTotal(request.getParameter("quotedTotal"))
+                .fnbQuantities(fnbQuantities(request.getParameterMap()))
+                .build();
+    }
+
+    private Map<String, String> fnbQuantities(Map<String, String[]> parameters) {
+        Map<String, String> quantities = new LinkedHashMap<>();
+        for (Map.Entry<String, String[]> entry : parameters.entrySet()) {
+            if (!entry.getKey().startsWith("fnb_")) {
+                continue;
+            }
+            String[] values = entry.getValue();
+            quantities.put(entry.getKey().substring(4), values == null || values.length == 0 ? null : values[0]);
+        }
+        return quantities;
+    }
+
+    private User currentUser(HttpServletRequest request) {
+        HttpSession session = request.getSession(false);
+        return session == null ? null : (User) session.getAttribute("currentUser");
+    }
+
+    private void redirectWithError(HttpServletRequest request, HttpServletResponse response, String message)
+            throws IOException {
+        request.getSession().setAttribute("posError", message);
+        response.sendRedirect(posUrl(request, request.getParameter("cinemaId"),
+                request.getParameter("date"), request.getParameter("showtimeId")));
+    }
+
+    private String posUrl(HttpServletRequest request, String cinemaId, String date, String showtimeId) {
+        StringBuilder url = new StringBuilder(request.getContextPath()).append("/operation/pos?");
+        appendParameter(url, "cinemaId", cinemaId);
+        appendParameter(url, "date", date);
+        appendParameter(url, "showtimeId", showtimeId);
+        if (url.charAt(url.length() - 1) == '&') {
+            url.setLength(url.length() - 1);
+        }
+        if (url.charAt(url.length() - 1) == '?') {
+            url.append("date=").append(java.time.LocalDate.now());
+        }
+        return url.toString();
+    }
+
+    private void appendParameter(StringBuilder url, String name, String value) {
+        if (value == null || value.isBlank()) {
+            return;
+        }
+        url.append(name).append('=')
+                .append(URLEncoder.encode(value, StandardCharsets.UTF_8))
+                .append('&');
+    }
+
+    private boolean isQuoteRequest(HttpServletRequest request) {
+        return "quote".equalsIgnoreCase(request.getParameter("mode"));
+    }
+
+    private void writeQuoteError(HttpServletResponse response, int status, String message)
+            throws IOException {
+        response.setStatus(status);
+        response.setContentType("application/json;charset=UTF-8");
+        response.getWriter().write(new Gson().toJson(Map.of(
+                "message", message == null ? "Không thể lấy báo giá POS." : message)));
+    }
 }

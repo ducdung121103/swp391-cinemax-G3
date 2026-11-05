@@ -43,8 +43,11 @@ public class SeatSelectionServlet extends HttpServlet {
         List<Seat> seats = screeningRoomService.getRoomSeatMatrix(showtime.getScreeningRoomId());
         Set<Long> availableIds = new HashSet<>();
         try {
-            for (Seat seat : posSeatDAO.findAvailable(showtime.getId(), showtime.getScreeningRoomId())) {
-                availableIds.add(seat.getId());
+            String sessionId = req.getSession().getId();
+            for (Seat seat : posSeatDAO.findForShowtime(showtime.getId(), showtime.getScreeningRoomId(), sessionId)) {
+                if ("AVAILABLE".equals(seat.getStatus())) {
+                    availableIds.add(seat.getId());
+                }
             }
         } catch (SQLException e) {
             req.setAttribute("seatError", "Không tải được ghế trống của suất này.");

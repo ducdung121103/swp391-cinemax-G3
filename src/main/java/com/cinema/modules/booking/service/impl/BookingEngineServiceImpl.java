@@ -1,9 +1,11 @@
 package com.cinema.modules.booking.service.impl;
 
 import com.cinema.common.transaction.TransactionManager;
+import com.cinema.common.util.ValidationUtil;
 import com.cinema.model.Booking;
 import com.cinema.model.Movie;
 import com.cinema.model.ScreeningRoom;
+import com.cinema.model.Seat;
 import com.cinema.model.Showtime;
 import com.cinema.model.Ticket;
 import com.cinema.model.User;
@@ -14,7 +16,9 @@ import com.cinema.modules.booking.dao.SeatHoldingDAO;
 import com.cinema.modules.booking.dao.TicketDAO;
 import com.cinema.modules.booking.dto.BookingResult;
 import com.cinema.modules.booking.dto.CreateBookingDTO;
+import com.cinema.modules.booking.dto.FnbReceipt;
 import com.cinema.modules.booking.dto.ShowtimeReminderDTO;
+import com.cinema.modules.booking.dto.TicketReceipt;
 import com.cinema.modules.booking.service.BookingEngineService;
 import com.cinema.modules.booking.service.VoucherService;
 import com.cinema.modules.catalog.service.MovieService;
@@ -25,10 +29,13 @@ import com.cinema.modules.identity.service.EmailService;
 import com.cinema.modules.identity.service.UserService;
 import com.cinema.modules.identity.service.impl.EmailServiceImpl;
 import com.cinema.modules.identity.service.impl.UserServiceImpl;
+import com.cinema.modules.infrastructure.dao.ScreeningRoomDAO;
 
 import java.math.BigDecimal;
 import java.sql.Connection;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -51,6 +58,7 @@ public class BookingEngineServiceImpl implements BookingEngineService {
     private final UserService userService;
     private final ShowtimeService showtimeService;
     private final MovieService movieService;
+    private final ScreeningRoomDAO screeningRoomDAO;
 
     public BookingEngineServiceImpl() {
         this.bookingDAO = new BookingDAO();
@@ -63,17 +71,25 @@ public class BookingEngineServiceImpl implements BookingEngineService {
         this.userService = new UserServiceImpl();
         this.showtimeService = new ShowtimeServiceImpl();
         this.movieService = new MovieServiceImpl();
+        this.screeningRoomDAO = new ScreeningRoomDAO();
     }
 
     public BookingEngineServiceImpl(BookingDAO bookingDAO, TicketDAO ticketDAO,
                                     OrderItemDAO orderItemDAO, PaymentDAO paymentDAO,
                                     SeatHoldingDAO seatHoldingDAO) {
-        this(bookingDAO, ticketDAO, orderItemDAO, paymentDAO, seatHoldingDAO, new VoucherServiceImpl());
+        this(bookingDAO, ticketDAO, orderItemDAO, paymentDAO, seatHoldingDAO, new VoucherServiceImpl(), null);
     }
 
     public BookingEngineServiceImpl(BookingDAO bookingDAO, TicketDAO ticketDAO,
                                     OrderItemDAO orderItemDAO, PaymentDAO paymentDAO,
                                     SeatHoldingDAO seatHoldingDAO, VoucherService voucherService) {
+        this(bookingDAO, ticketDAO, orderItemDAO, paymentDAO, seatHoldingDAO, voucherService, null);
+    }
+
+    public BookingEngineServiceImpl(BookingDAO bookingDAO, TicketDAO ticketDAO,
+                                    OrderItemDAO orderItemDAO, PaymentDAO paymentDAO,
+                                    SeatHoldingDAO seatHoldingDAO, VoucherService voucherService,
+                                    ScreeningRoomDAO screeningRoomDAO) {
         this.bookingDAO = bookingDAO;
         this.ticketDAO = ticketDAO;
         this.orderItemDAO = orderItemDAO;
@@ -84,10 +100,17 @@ public class BookingEngineServiceImpl implements BookingEngineService {
         this.userService = null;
         this.showtimeService = null;
         this.movieService = null;
+        this.screeningRoomDAO = screeningRoomDAO;
     }
 
     @Override
     public boolean holdSeats(Long showtimeId, List<Long> seatIds, String sessionId) {
+        if (screeningRoomDAO != null && seatIds != null && !seatIds.isEmpty()) {
+            List<Seat> seats = screeningRoomDAO.findSeatsByIds(seatIds);
+            if (!seats.isEmpty()) {
+                ValidationUtil.validateCoupleSeats(seats);
+            }
+        }
         return TransactionManager.executeInTransaction(conn -> {
             for (Long seatId : seatIds) {
                 seatHoldingDAO.holdSeat(conn, showtimeId, seatId, sessionId);
@@ -106,7 +129,35 @@ public class BookingEngineServiceImpl implements BookingEngineService {
 
     @Override
     public BookingResult createBooking(CreateBookingDTO dto) {
+        if (dto == null || dto.getShowtimeId() == null) {
+            throw new IllegalArgumentException("Thiếu thông tin suất chiếu.");
+        }
+        if (dto.getSeatIds() == null || dto.getSeatIds().isEmpty()) {
+            throw new IllegalArgumentException("Chọn ít nhất một ghế.");
+        }
+        if (dto.getSeatIds().stream().anyMatch(seatId -> seatId == null || seatId <= 0)) {
+            throw new IllegalArgumentException("Danh sách ghế không hợp lệ.");
+        }
+        if (dto.getTicketPrices() == null || dto.getTicketPrices().size() != dto.getSeatIds().size()
+                || dto.getTicketPrices().stream().anyMatch(price -> price == null || price.signum() < 0)) {
+            throw new IllegalArgumentException("Thông tin giá vé không hợp lệ.");
+        }
+        if (dto.hasFnb() && dto.getFnbItems().entrySet().stream()
+                .anyMatch(entry -> entry.getKey() == null || entry.getValue() == null || entry.getValue() <= 0)) {
+            throw new IllegalArgumentException("Số lượng sản phẩm F&B không hợp lệ.");
+        }
+
+        if (screeningRoomDAO != null && dto.getSeatIds() != null && !dto.getSeatIds().isEmpty()) {
+            List<Seat> seats = screeningRoomDAO.findSeatsByIds(dto.getSeatIds());
+            if (!seats.isEmpty()) {
+                ValidationUtil.validateCoupleSeats(seats);
+            }
+        }
         BookingResult result = TransactionManager.executeInTransaction(conn -> {
+            List<Long> lockOrder = new ArrayList<>(dto.getSeatIds());
+            lockOrder.sort(Comparator.naturalOrder());
+            ticketDAO.assertSeatsAvailable(conn, dto.getShowtimeId(), lockOrder, dto.getSessionId());
+
             // 1. Tính toán tiền vé (sử dụng bảng giá động, nghiêm cấm fallback giá cứng)
             BigDecimal ticketsTotal = BigDecimal.ZERO;
             if (dto.getSeatIds() != null && !dto.getSeatIds().isEmpty()) {
@@ -138,6 +189,11 @@ public class BookingEngineServiceImpl implements BookingEngineService {
             if (finalAmount.compareTo(BigDecimal.ZERO) < 0) {
                 finalAmount = BigDecimal.ZERO;
             }
+            if (dto.getExpectedFinalAmount() != null
+                    && dto.getExpectedFinalAmount().compareTo(finalAmount) != 0) {
+                throw new IllegalStateException(
+                        "Giá hoặc tồn kho đã thay đổi. Vui lòng lấy lại báo giá trước khi thanh toán.");
+            }
 
             // 4. Tạo Booking Master
             Booking b = Booking.builder()
@@ -155,13 +211,23 @@ public class BookingEngineServiceImpl implements BookingEngineService {
             Long bookingId = bookingDAO.insertBooking(conn, b);
 
             // 5. Tạo Tickets (Ràng buộc uk_showtime_seat ngăn chặn trùng ghế)
+            List<TicketReceipt> ticketReceipts = new ArrayList<>();
+            List<FnbReceipt> fnbReceipts = new ArrayList<>();
             if (dto.getSeatIds() != null && !dto.getSeatIds().isEmpty()) {
                 ticketDAO.insertTickets(conn, bookingId, dto.getShowtimeId(), dto.getSeatIds(), dto.getTicketPrices());
+                List<TicketReceipt> insertedTickets = ticketDAO.findReceiptItems(conn, bookingId);
+                if (insertedTickets != null) {
+                    ticketReceipts.addAll(insertedTickets);
+                }
             }
 
             // 6. Tạo OrderItems nếu mua kèm Bắp Nước (tự động kiểm tra và trừ tồn kho rạp)
             if (dto.hasFnb()) {
                 orderItemDAO.insertFnbOrderItems(conn, bookingId, dto.getFnbItems());
+                List<FnbReceipt> insertedItems = orderItemDAO.findReceiptItems(conn, bookingId);
+                if (insertedItems != null) {
+                    fnbReceipts.addAll(insertedItems);
+                }
             }
 
             // 7. Ghi nhận Thanh toán
@@ -183,6 +249,13 @@ public class BookingEngineServiceImpl implements BookingEngineService {
                     .finalAmount(finalAmount)
                     .status("SUCCESS")
                     .message("Đặt vé và thanh toán thành công!")
+                    .tickets(ticketReceipts)
+                    .totalTicketsAmount(ticketsTotal)
+                    .totalFnbAmount(fnbTotal)
+                    .discountAmount(discount)
+                    .ticketDiscountPercent(dto.getTicketDiscountPercent())
+                    .paymentMethod(dto.getPaymentMethod())
+                    .fnbItems(fnbReceipts)
                     .build();
         });
         sendConfirmationAfterCommit(dto, result);

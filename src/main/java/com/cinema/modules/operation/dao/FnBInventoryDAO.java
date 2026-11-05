@@ -42,9 +42,6 @@ public class FnBInventoryDAO {
     }
 
     public void save(long cinemaId, long itemId, int quantity, int threshold) throws SQLException {
-        if (quantity < 0 || threshold < 0) {
-            throw new IllegalArgumentException("Tồn kho và ngưỡng cảnh báo phải >= 0.");
-        }
         String sql = "MERGE cinema_inventories WITH (HOLDLOCK) AS target "
                 + "USING (SELECT ? cinema_id, ? fnb_item_id) AS source "
                 + "ON target.cinema_id = source.cinema_id AND target.fnb_item_id = source.fnb_item_id "

@@ -30,7 +30,7 @@
                     <div><h2>Sản phẩm và combo</h2>
                         <p>Thông tin bán hàng hiển thị tại quầy POS.</p></div>
                 </div>
-                <form method="post" action="${pageContext.request.contextPath}/admin/operation/fnb-catalog"
+                <form method="post" action="${pageContext.request.contextPath}${fnbCatalogUrl}"
                       class="fnb-form"><input type="hidden" name="action" value="saveItem"><label>Mã sản phẩm<input
                         name="itemCode" maxlength="30" required placeholder="VD: POPCORN-CARAMEL-L"></label><label>Tên
                     sản phẩm<input name="name" maxlength="150" required></label><label>Danh mục<select name="categoryId"
@@ -81,7 +81,7 @@
                                     <details>
                                         <summary>Sửa</summary>
                                         <form method="post"
-                                              action="${pageContext.request.contextPath}/admin/operation/fnb-catalog"
+                                              action="${pageContext.request.contextPath}${fnbCatalogUrl}"
                                               class="edit-form"><input type="hidden" name="action"
                                                                        value="saveItem"><input type="hidden" name="id"
                                                                                                value="${item.id}"><label>Mã<input
@@ -105,7 +105,7 @@
                                         </form>
                                     </details>
                                     <form method="post"
-                                          action="${pageContext.request.contextPath}/admin/operation/fnb-catalog"><input
+                                          action="${pageContext.request.contextPath}${fnbCatalogUrl}"><input
                                             type="hidden" name="action" value="toggleItem"><input type="hidden"
                                                                                                   name="id"
                                                                                                   value="${item.id}"><input
@@ -127,7 +127,7 @@
                     <div><h2>Danh mục</h2>
                         <p>Danh mục có sản phẩm tham chiếu có thể tạm ngừng sử dụng.</p></div>
                 </div>
-                <form method="post" action="${pageContext.request.contextPath}/admin/operation/fnb-catalog"
+                <form method="post" action="${pageContext.request.contextPath}${fnbCatalogUrl}"
                       class="category-add"><input type="hidden" name="action" value="saveCategory"><input name="name"
                                                                                                           maxlength="100"
                                                                                                           required
@@ -156,7 +156,7 @@
                                     <details>
                                         <summary>Sửa</summary>
                                         <form method="post"
-                                              action="${pageContext.request.contextPath}/admin/operation/fnb-catalog"
+                                              action="${pageContext.request.contextPath}${fnbCatalogUrl}"
                                               class="edit-form"><input type="hidden" name="action" value="saveCategory"><input
                                                 type="hidden" name="id" value="${cat.id}"><label>Tên<input name="name"
                                                                                                            value="<c:out value='${cat.name}'/>"
@@ -167,7 +167,7 @@
                                         </form>
                                     </details>
                                     <form method="post"
-                                          action="${pageContext.request.contextPath}/admin/operation/fnb-catalog"><input
+                                          action="${pageContext.request.contextPath}${fnbCatalogUrl}"><input
                                             type="hidden" name="action" value="toggleCategory"><input type="hidden"
                                                                                                       name="id"
                                                                                                       value="${cat.id}"><input

@@ -1,10 +1,14 @@
 package com.cinema.modules.booking.dao;
 
+import com.cinema.modules.booking.dto.FnbReceipt;
+
 import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -110,6 +114,26 @@ public class OrderItemDAO {
             psInsert.executeBatch();
         }
         return total;
+    }
+
+    public List<FnbReceipt> findReceiptItems(Connection conn, Long bookingId) throws SQLException {
+        String sql = "SELECT item_name, quantity, unit_price, subtotal FROM order_items " +
+                     "WHERE booking_id = ? ORDER BY id";
+        List<FnbReceipt> items = new ArrayList<>();
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setLong(1, bookingId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    items.add(FnbReceipt.builder()
+                            .itemName(rs.getString("item_name"))
+                            .quantity(rs.getInt("quantity"))
+                            .unitPrice(rs.getBigDecimal("unit_price"))
+                            .subtotal(rs.getBigDecimal("subtotal"))
+                            .build());
+                }
+            }
+        }
+        return items;
     }
 
     public Long findCinemaIdByBooking(Connection conn, Long bookingId) {

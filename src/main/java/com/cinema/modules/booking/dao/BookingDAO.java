@@ -20,8 +20,10 @@ import java.util.UUID;
 public class BookingDAO {
 
     public Long insertBooking(Connection conn, Booking b) throws SQLException {
-        String code = "BK-" + System.currentTimeMillis() + "-" + UUID.randomUUID().toString().substring(0, 4).toUpperCase();
-        b.setBookingCode(code);
+        if (b.getBookingCode() == null || b.getBookingCode().isBlank()) {
+            String code = "BK-" + System.currentTimeMillis() + "-" + UUID.randomUUID().toString().substring(0, 4).toUpperCase();
+            b.setBookingCode(code);
+        }
 
         String sql = "INSERT INTO bookings (booking_code, user_id, staff_id, showtime_id, voucher_id, channel, " +
                      "total_tickets_amount, total_fnb_amount, discount_amount, final_amount, status) " +
@@ -80,5 +82,39 @@ public class BookingDAO {
             e.printStackTrace();
         }
         return list;
+    }
+
+    public Booking findByCode(Connection conn, String bookingCode) throws SQLException {
+        String sql = "SELECT * FROM bookings WHERE booking_code = ? AND is_deleted = 0";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, bookingCode);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return Booking.builder()
+                            .bookingCode(rs.getString("booking_code"))
+                            .userId(rs.getObject("user_id") != null ? rs.getLong("user_id") : null)
+                            .staffId(rs.getObject("staff_id") != null ? rs.getLong("staff_id") : null)
+                            .showtimeId(rs.getLong("showtime_id"))
+                            .voucherId(rs.getObject("voucher_id") != null ? rs.getLong("voucher_id") : null)
+                            .channel(rs.getString("channel"))
+                            .totalTicketsAmount(rs.getBigDecimal("total_tickets_amount"))
+                            .totalFnbAmount(rs.getBigDecimal("total_fnb_amount"))
+                            .discountAmount(rs.getBigDecimal("discount_amount"))
+                            .finalAmount(rs.getBigDecimal("final_amount"))
+                            .status(rs.getString("status"))
+                            .build();
+                }
+            }
+        }
+        return null;
+    }
+
+    public boolean updateStatusByCode(Connection conn, String bookingCode, String status) throws SQLException {
+        String sql = "UPDATE bookings SET status = ?, updated_at = GETDATE() WHERE booking_code = ?";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, status);
+            ps.setString(2, bookingCode);
+            return ps.executeUpdate() > 0;
+        }
     }
 }
