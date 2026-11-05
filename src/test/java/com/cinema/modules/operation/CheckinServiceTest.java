@@ -51,6 +51,7 @@ class CheckinServiceTest {
         validTicket.setId(10L);
 
         when(bookingEngineService.getTicketByBarcode("TK-VALID-12345")).thenReturn(validTicket);
+        when(bookingEngineService.updateTicketStatus(10L, "USED")).thenReturn(true);
 
         TicketCheckinLog result = checkinService.checkinTicket("TK-VALID-12345", 3L);
 

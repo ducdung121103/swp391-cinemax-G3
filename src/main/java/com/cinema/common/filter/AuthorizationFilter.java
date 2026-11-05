@@ -47,6 +47,18 @@ public class AuthorizationFilter implements Filter {
 
         // 2. MANAGER được vào hạ tầng, catalog, hóa đơn, báo cáo của rạp mình
         if (RoleConstant.MANAGER.equalsIgnoreCase(role)) {
+            if (uri.contains("/admin/reports/revenue")) {
+                res.sendError(HttpServletResponse.SC_FORBIDDEN, "Báo cáo Doanh thu chỉ dành riêng cho Quản trị viên (Admin)!");
+                return;
+            }
+            if (uri.contains("/admin/catalog/movies") || uri.contains("/admin/movies")) {
+                res.sendError(HttpServletResponse.SC_FORBIDDEN, "Chỉ Admin hệ thống mới được quyền quản lý danh mục Phim!");
+                return;
+            }
+            if (uri.contains("/admin/operation/fnb-catalog")) {
+                res.sendError(HttpServletResponse.SC_FORBIDDEN, "Chỉ Admin được quản lý danh mục F&B!");
+                return;
+            }
             if (uri.contains("/admin/identity/users") && !uri.contains("/admin/identity/staff")) {
                 // Không được sửa tài khoản Admin
                 res.sendError(HttpServletResponse.SC_FORBIDDEN, "Bạn không có quyền quản lý tài khoản cấp cao!");

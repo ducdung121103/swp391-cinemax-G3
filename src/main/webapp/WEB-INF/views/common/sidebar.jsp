@@ -32,6 +32,20 @@
                     </a>
                 </li>
 
+                <li class="menu-header">BÁO CÁO & PHÂN TÍCH BI</li>
+                <li class="${currentUri.contains('/reports/revenue') ? 'active' : ''}">
+                    <a href="${pageContext.request.contextPath}/admin/reports/revenue">
+                        <i class="fa-solid fa-sack-dollar"></i>
+                        <span>Báo Cáo Doanh Thu</span>
+                    </a>
+                </li>
+                <li class="${currentUri.contains('/infrastructure/occupancy') || currentUri.contains('/reports/occupancy') ? 'active' : ''}">
+                    <a href="${pageContext.request.contextPath}/admin/infrastructure/occupancy">
+                        <i class="fa-solid fa-chart-pie"></i>
+                        <span>Báo Cáo Tỷ Lệ Lấp Đầy</span>
+                    </a>
+                </li>
+
                 <li class="menu-header">HẠ TẦNG & HỆ THỐNG</li>
                 <li class="${currentUri.contains('/infrastructure/cinemas') ? 'active' : ''}">
                     <a href="${pageContext.request.contextPath}/admin/infrastructure/cinemas">
@@ -51,12 +65,6 @@
                         <span>Thiết Kế Sơ Đồ Ghế</span>
                     </a>
                 </li>
-                <li class="${currentUri.contains('/infrastructure/occupancy') || currentUri.contains('/reports/occupancy') ? 'active' : ''}">
-                    <a href="${pageContext.request.contextPath}/admin/infrastructure/occupancy">
-                        <i class="fa-solid fa-chart-pie"></i>
-                        <span>Báo Cáo Tỷ Lệ Lấp Đầy</span>
-                    </a>
-                </li>
                 <li class="${currentUri.contains('/infrastructure/settings') ? 'active' : ''}">
                     <a href="${pageContext.request.contextPath}/admin/infrastructure/settings">
                         <i class="fa-solid fa-sliders"></i>
@@ -65,6 +73,18 @@
                 </li>
 
                 <li class="menu-header">DANH MỤC DỊCH VỤ</li>
+                <li class="${currentUri.contains('/catalog/movies') || currentUri.contains('/admin/movies') ? 'active' : ''}">
+                    <a href="${pageContext.request.contextPath}/admin/catalog/movies">
+                        <i class="fa-solid fa-film"></i>
+                        <span>Quản lý Danh Mục Phim</span>
+                    </a>
+                </li>
+                <li class="${currentUri.contains('/operation/fnb-catalog') ? 'active' : ''}">
+                    <a href="${pageContext.request.contextPath}/admin/operation/fnb-catalog">
+                        <i class="fa-solid fa-burger"></i>
+                        <span>Danh Mục F&B</span>
+                    </a>
+                </li>
             </c:if>
 
             <%-- ==================== 2. PHÂN HỆ MANAGER (QUẢN LÝ CỤM RẠP CHI NHÁNH) ==================== --%>
@@ -88,6 +108,12 @@
                     <a href="${pageContext.request.contextPath}/admin/infrastructure/rooms">
                         <i class="fa-solid fa-video"></i>
                         <span>Quản lý Phòng Chiếu</span>
+                    </a>
+                </li>
+                <li class="${currentUri.contains('/infrastructure/occupancy') || currentUri.contains('/reports/occupancy') ? 'active' : ''}">
+                    <a href="${pageContext.request.contextPath}/admin/infrastructure/occupancy">
+                        <i class="fa-solid fa-chart-pie"></i>
+                        <span>Báo Cáo Tỷ Lệ Lấp Đầy</span>
                     </a>
                 </li>
                 <li class="${currentUri.contains('/operation/fnb') && !currentUri.contains('/fnb-catalog') ? 'active' : ''}">

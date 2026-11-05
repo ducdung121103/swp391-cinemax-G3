@@ -72,18 +72,18 @@ Kế hoạch tái cơ cấu giải quyết dứt điểm 3 điểm nghẽn về 
 ### Ma Trận Phân Bổ Tổng Hợp
 | Thành viên | Iteration 1 <br> *(Nền tảng & Dữ liệu gốc)* | Iteration 2 <br> *(Lập lịch & Giao dịch lõi)* | Iteration 3 <br> *(Soát vé, Hậu mãi & BI)* | **Tổng Task** |
 | :--- | :---: | :---: | :---: | :---: |
-| **Dũng (Leader)** | **4** | **3** | **2** | **9** |
+| **Dũng (Leader)** | **4** | **3** | **1** | **8** |
 | **Thịnh** | **4** | **3** | **2** | **9** |
 | **Linh** | **2** | **4** | **3** | **9** |
 | **Cường** | **3** | **3** | **3** | **9** |
 | **Tuyển** | **2** | **3** | **3** | **8** |
-| **TỔNG CỘNG** | **15** | **16** | **13** | **44** |
+| **TỔNG CỘNG** | **15** | **16** | **12** | **43** |
 
 ---
 
 ### Danh Sách Chi Tiết 44 Tasks Theo Từng Thành Viên:
 
-#### 1. Dũng — Infrastructure, Seat Architect & BI Reports (9 tasks)
+#### 1. Dũng — Infrastructure, Seat Architect & BI Reports (8 tasks)
 * **Iteration 1 (4 tasks):**
   1. `Branch Management (CRUD)` (M-04.1) — Quản lý chi nhánh cụm rạp toàn quốc.
   2. `Screening Room Management (CRUD)` (M-04.2) — Quản lý phòng chiếu & định dạng 2D/3D/IMAX.
@@ -93,9 +93,9 @@ Kế hoạch tái cơ cấu giải quyết dứt điểm 3 điểm nghẽn về 
   5. `Admin Dashboard` (M-11) — Tổng quan vận hành hệ thống các rạp.
   6. `Seat Maintenance Toggle` (M-04.3) — Đóng/mở bảo trì ghế hỏng cho Admin & Manager.
   7. `Branch Occupancy Report` (M-10.3) — Báo cáo tỷ lệ lấp đầy phòng chiếu.
-* **Iteration 3 (2 tasks):**
-  8. `Revenue & Sales Reports` (M-10.1) — Báo cáo doanh thu vé, F&B, phương thức thanh toán.
-  9. `Enterprise BI & Comparison Reports` (M-10.2) — So sánh hiệu suất liên chi nhánh, xuất Excel/PDF.
+* **Iteration 3 (1 task - scope streamlined):**
+  8. `Revenue & Sales Reports` (M-10.1) — Báo cáo doanh thu vé, F&B, phương thức thanh toán, xuất Excel & PDF.
+  *(Task 9 - M-10.2 Enterprise BI & Comparison Reports đã được tinh giản để tối ưu hóa phạm vi đồ án).*
 
 #### 2. Thịnh — Movie Catalog, Showtime Scheduling & Reviews (9 tasks)
 * **Iteration 1 (4 tasks):**

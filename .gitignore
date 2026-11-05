@@ -1,41 +1,50 @@
-# Compiled class files & build directories
+# ----------------------------------------------------------------------------
+# Git Ignore Configuration - CineMax (SWP391-Gr3)
+# ----------------------------------------------------------------------------
+
+# Compiled Java class files & build directories
 target/
 *.class
+*.war
+*.ear
+*.jar
 
-# Log files
+# Temporary runtime & test directories
+.tmp_class/
+tmp/
 *.log
 
-# IntelliJ IDEA
+# IDE & Editor metadata
 .idea/
 *.iml
-*.iws
-
-# Eclipse
+.vscode/
 .settings/
 .project
 .classpath
 
-# VS Code
-.vscode/
+# Local properties & credentials
+*.local.properties
+db.local.properties
 
-# OS specific files
-.DS_Store
+# OS generated files
 Thumbs.db
-
-# Local database properties containing personal password
-src/main/resources/db.local.properties
-
-# Visual Studio
-.vs/
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+.DS_Store
 
 # Office temporary & lock files
 .~lock.*
 ~$*
 *.tmp
 
-# Documentation, spreadsheets & auxiliary files (Only source code + README.md kept in Git)
-*.xlsx
+# Documentation, spreadsheets & auxiliary files
 *.xls
-docs/
 cine-diagram/
 Feature_Tree*.md
+
+# Allow docs/testing/ for test deliverables while ignoring other docs
+!docs/
+docs/*
+!docs/testing/
+!docs/testing/**

@@ -25,6 +25,7 @@ public interface ScreeningRoomService {
     boolean isRoomAvailable(Long roomId, LocalDateTime startTime, LocalDateTime endTime);
     List<Seat> getRoomSeatMatrix(Long roomId);
     Seat getSeatById(Long seatId);
+    List<Seat> getSeatsByIds(List<Long> seatIds);
 
     // =========================================================================
     // CÁC PHƯƠNG THỨC MỚI PHỤC VỤ ITERATION 1 CỦA DŨNG
