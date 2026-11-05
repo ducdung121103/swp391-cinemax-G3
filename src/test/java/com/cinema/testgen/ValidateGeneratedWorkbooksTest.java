@@ -22,7 +22,7 @@ public class ValidateGeneratedWorkbooksTest {
     void testValidateIntegrationTestWorkbook() throws Exception {
         File file = new File("D:\\SWP\\SWP391-Gr3\\docs\\testing\\SE2056-JV_Group3_Integration-Test_DungBD.xlsx");
         assertTrue(file.exists());
-        validateWorkbook(file, 12); // Cover, Test Cases, Test Statistics, 9 screens
+        validateWorkbook(file, 11); // Cover, Test Cases, Test Statistics, 8 screens
     }
 
     private void validateWorkbook(File file, int expectedSheetCount) throws Exception {

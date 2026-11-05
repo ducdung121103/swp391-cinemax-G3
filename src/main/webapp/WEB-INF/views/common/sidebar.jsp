@@ -39,12 +39,6 @@
                         <span>Báo Cáo Doanh Thu</span>
                     </a>
                 </li>
-                <li class="${currentUri.contains('/reports/comparison') ? 'active' : ''}">
-                    <a href="${pageContext.request.contextPath}/admin/reports/comparison">
-                        <i class="fa-solid fa-code-compare"></i>
-                        <span>So Sánh Hiệu Suất Rạp</span>
-                    </a>
-                </li>
                 <li class="${currentUri.contains('/infrastructure/occupancy') || currentUri.contains('/reports/occupancy') ? 'active' : ''}">
                     <a href="${pageContext.request.contextPath}/admin/infrastructure/occupancy">
                         <i class="fa-solid fa-chart-pie"></i>

@@ -6,18 +6,13 @@ import com.cinema.model.Movie;
 import com.cinema.model.ScreeningRoom;
 import com.cinema.modules.infrastructure.dao.InfrastructureReportDAO;
 import com.cinema.modules.infrastructure.dto.BookingDetailDTO;
-import com.cinema.modules.infrastructure.dto.ChainSummaryDTO;
-import com.cinema.modules.infrastructure.dto.CinemaMetricDTO;
-import com.cinema.modules.infrastructure.dto.ComparisonFilterDTO;
 import com.cinema.modules.infrastructure.dto.RevenueBreakdownDTO;
 import com.cinema.modules.infrastructure.dto.RevenueFilterDTO;
 import com.cinema.modules.infrastructure.dto.RevenueKpiDTO;
 import com.cinema.modules.infrastructure.dto.RevenueTimeSeriesDTO;
-import com.cinema.modules.infrastructure.service.BranchComparisonService;
 import com.cinema.modules.infrastructure.service.ReportExportService;
 import com.cinema.modules.infrastructure.service.RevenueReportService;
 import com.cinema.modules.infrastructure.service.ScreeningRoomService;
-import com.cinema.modules.infrastructure.service.impl.BranchComparisonServiceImpl;
 import com.cinema.modules.infrastructure.service.impl.ReportExportServiceImpl;
 import com.cinema.modules.infrastructure.service.impl.RevenueReportServiceImpl;
 import com.cinema.modules.infrastructure.service.impl.ScreeningRoomServiceImpl;
@@ -45,9 +40,7 @@ import java.util.List;
         "/admin/reports/occupancy",
         "/admin/reports",
         "/admin/reports/revenue",
-        "/admin/reports/revenue/export",
-        "/admin/reports/comparison",
-        "/admin/reports/comparison/export"
+        "/admin/reports/revenue/export"
 })
 public class ReportAdminServlet extends HttpServlet {
 
@@ -56,18 +49,13 @@ public class ReportAdminServlet extends HttpServlet {
     private final InfrastructureReportDAO reportDAO = new InfrastructureReportDAO();
     private final ScreeningRoomService screeningRoomService = new ScreeningRoomServiceImpl();
     private final RevenueReportService revenueReportService = new RevenueReportServiceImpl();
-    private final BranchComparisonService branchComparisonService = new BranchComparisonServiceImpl();
     private final ReportExportService reportExportService = new ReportExportServiceImpl();
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         String servletPath = req.getServletPath();
 
-        if ("/admin/reports/comparison/export".equals(servletPath)) {
-            handleComparisonExport(req, resp);
-        } else if ("/admin/reports/comparison".equals(servletPath)) {
-            handleComparisonReport(req, resp);
-        } else if ("/admin/reports/revenue/export".equals(servletPath)) {
+        if ("/admin/reports/revenue/export".equals(servletPath)) {
             handleRevenueExport(req, resp);
         } else if ("/admin/reports/revenue".equals(servletPath)) {
             handleRevenueReport(req, resp);
@@ -253,58 +241,5 @@ public class ReportAdminServlet extends HttpServlet {
         req.setAttribute("totalShowtimesCount", showtimeDetails.size());
 
         req.getRequestDispatcher("/WEB-INF/views/admin/infrastructure/occupancy-report.jsp").forward(req, resp);
-    }
-
-    private void handleComparisonReport(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        String fromStr = req.getParameter("from");
-        String toStr = req.getParameter("to");
-        String modeStr = req.getParameter("compareMode");
-        String city = req.getParameter("city");
-        String includeInactiveStr = req.getParameter("includeInactive");
-
-        ComparisonFilterDTO filter = branchComparisonService.normalizeFilter(fromStr, toStr, modeStr, city, includeInactiveStr);
-        List<CinemaMetricDTO> metrics = branchComparisonService.compareBranches(filter);
-        ChainSummaryDTO summary = branchComparisonService.getChainSummary(metrics, filter);
-        List<String> cities = branchComparisonService.getAvailableCities();
-
-        req.setAttribute("filter", filter);
-        req.setAttribute("metrics", metrics);
-        req.setAttribute("summary", summary);
-        req.setAttribute("cities", cities);
-
-        req.getRequestDispatcher("/WEB-INF/views/admin/infrastructure/branch-comparison.jsp").forward(req, resp);
-    }
-
-    private void handleComparisonExport(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        String fromStr = req.getParameter("from");
-        String toStr = req.getParameter("to");
-        String modeStr = req.getParameter("compareMode");
-        String city = req.getParameter("city");
-        String includeInactiveStr = req.getParameter("includeInactive");
-        String format = req.getParameter("format");
-
-        ComparisonFilterDTO filter = branchComparisonService.normalizeFilter(fromStr, toStr, modeStr, city, includeInactiveStr);
-        List<CinemaMetricDTO> metrics = branchComparisonService.compareBranches(filter);
-        ChainSummaryDTO summary = branchComparisonService.getChainSummary(metrics, filter);
-
-        String baseFilename = "branch-comparison_" + filter.getFrom() + "_" + filter.getTo();
-
-        try {
-            if ("pdf".equalsIgnoreCase(format)) {
-                String filename = URLEncoder.encode(baseFilename + ".pdf", StandardCharsets.UTF_8).replaceAll("\\+", "%20");
-                resp.setContentType("application/pdf");
-                resp.setHeader("Content-Disposition", "attachment; filename=\"" + filename + "\"");
-                reportExportService.exportComparisonPdf(metrics, summary, filter, resp.getOutputStream());
-            } else {
-                String filename = URLEncoder.encode(baseFilename + ".xlsx", StandardCharsets.UTF_8).replaceAll("\\+", "%20");
-                resp.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-                resp.setHeader("Content-Disposition", "attachment; filename=\"" + filename + "\"");
-                reportExportService.exportComparisonExcel(metrics, summary, filter, resp.getOutputStream());
-            }
-            resp.flushBuffer();
-        } catch (Exception e) {
-            logger.error("Failed to export branch comparison report", e);
-            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Không thể xuất file báo cáo so sánh: " + e.getMessage());
-        }
     }
 }

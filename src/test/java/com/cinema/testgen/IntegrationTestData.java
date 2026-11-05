@@ -189,29 +189,6 @@ public class IntegrationTestData {
         rev.scenarios.add(rev_s3);
         list.add(rev);
 
-        // 9. IT-CMP: Enterprise BI & Comparison Reports
-        GenerateTestingDeliverables.SheetDef cmp = new GenerateTestingDeliverables.SheetDef(
-                "IT-CMP",
-                "So Sánh Hiệu Suất Cụm Rạp (Enterprise BI & Comparison Reports - M-10.2)",
-                "Kiểm thử tích hợp cho màn hình so sánh liên chi nhánh (/admin/reports/comparison): Xếp hạng doanh thu, tỷ trọng thị phần, tăng trưởng MoM/YoY, phân tầng hiệu suất, xuất Excel & PDF."
-        );
-        GenerateTestingDeliverables.ScenarioGroup cmp_s1 = new GenerateTestingDeliverables.ScenarioGroup("Scenario 1: Tính toán so sánh và phân tầng hiệu suất");
-        cmp_s1.add(new GenerateTestingDeliverables.TestCaseData("IT-CMP-001", "Tải trang So Sánh Hiệu Suất Cụm Rạp", "GET /admin/reports/comparison", "Trang tải thành công (HTTP 200), hiển thị 4 KPI chuỗi, 2 biểu đồ Chart.js và bảng xếp hạng", "Admin role", "Passed", "2026-11-03", "DungBD", "ReportAdminServlet comparison"));
-        cmp_s1.add(new GenerateTestingDeliverables.TestCaseData("IT-CMP-002", "Xếp hạng rạp theo doanh thu giảm dần", "Kiểm tra cột Hạng (#)", "Cụm rạp có doanh thu cao nhất đứng Hạng 1; các hạng tiếp theo giảm dần", "Data có nhiều rạp", "Passed", "2026-11-03", "DungBD", "BranchComparisonService ranking passed"));
-        cmp_s1.add(new GenerateTestingDeliverables.TestCaseData("IT-CMP-003", "Tính tỷ trọng thị phần doanh thu từng rạp (%)", "Kiểm tra cột Thị Phần (%)", "Thị phần = (Doanh thu rạp / Tổng doanh thu chuỗi) * 100; tổng các rạp = 100%", "Tổng doanh thu > 0", "Passed", "2026-11-03", "DungBD", "Market share math passed"));
-        cmp_s1.add(new GenerateTestingDeliverables.TestCaseData("IT-CMP-004", "Tính % tăng trưởng so với kỳ liền trước (MoM)", "Chọn compareMode='PREVIOUS_PERIOD'", "Cột tăng trưởng tính đúng công thức ((Kỳ này - Kỳ trước) / Kỳ trước) * 100", "Có dữ liệu 2 kỳ", "Passed", "2026-11-03", "DungBD", "BranchComparisonServiceTest passed"));
-        cmp_s1.add(new GenerateTestingDeliverables.TestCaseData("IT-CMP-005", "Tính % tăng trưởng so với cùng kỳ năm trước (YoY)", "Chọn compareMode='SAME_PERIOD_LAST_YEAR'", "Hệ thống lấy đúng kỳ so sánh là lùi 1 năm chính xác", "Có dữ liệu năm trước", "Passed", "2026-11-03", "DungBD", "YoY date resolution verified"));
-        cmp_s1.add(new GenerateTestingDeliverables.TestCaseData("IT-CMP-006", "Phân tầng Top Tier (>= 120% TB chuỗi)", "Quan sát badge phân tầng rạp dẫn đầu", "Hiển thị badge vàng 'Top Tier'", "Rạp doanh thu cao", "Passed", "2026-11-03", "DungBD", "Tier categorization passed"));
-        cmp_s1.add(new GenerateTestingDeliverables.TestCaseData("IT-CMP-007", "Phân tầng Cần Cải Thiện (< 70% TB chuỗi)", "Quan sát badge phân tầng rạp doanh thu thấp", "Hiển thị badge đỏ 'Cần Cải Thiện'", "Rạp doanh thu thấp", "Passed", "2026-11-03", "DungBD", "Tier categorization passed"));
-        cmp.scenarios.add(cmp_s1);
-
-        GenerateTestingDeliverables.ScenarioGroup cmp_s2 = new GenerateTestingDeliverables.ScenarioGroup("Scenario 2: Xuất file báo cáo so sánh & Phân quyền");
-        cmp_s2.add(new GenerateTestingDeliverables.TestCaseData("IT-CMP-008", "Xuất file Excel (.xlsx) So Sánh Cụm Rạp", "GET /admin/reports/comparison/export?format=xlsx", "Tải file .xlsx; có khối chỉ số toàn chuỗi, bảng so sánh đa chiều, định dạng số chuẩn", "Admin role", "Passed", "2026-11-03", "DungBD", "exportComparisonExcel verified"));
-        cmp_s2.add(new GenerateTestingDeliverables.TestCaseData("IT-CMP-009", "Xuất file PDF So Sánh Cụm Rạp khổ ngang", "GET /admin/reports/comparison/export?format=pdf", "Tải file .pdf A4 Landscape; font Arial tiếng Việt không lỗi", "Admin role", "Passed", "2026-11-03", "DungBD", "exportComparisonPdf verified"));
-        cmp_s2.add(new GenerateTestingDeliverables.TestCaseData("IT-CMP-010", "Bảo mật: Manager bị chặn 403 khi vào So Sánh Rạp", "Đăng nhập Manager và vào /admin/reports/comparison", "Trả về mã lỗi HTTP 403 Forbidden", "Manager role", "Passed", "2026-11-03", "DungBD", "AuthorizationFilter check"));
-        cmp.scenarios.add(cmp_s2);
-        list.add(cmp);
-
         return list;
     }
 }

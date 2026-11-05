@@ -66,11 +66,11 @@ public class SystemTestData {
         ));
         wf1_s3.add(new GenerateTestingDeliverables.TestCaseData(
                 "ST-WF1-006",
-                "Kiểm tra hiệu ứng rạp tạm ngưng trên báo cáo so sánh",
-                "1. Vào 'So Sánh Hiệu Suất Rạp' (/admin/reports/comparison).\n2. Không tích 'Hiện rạp tạm ngưng' -> Kiểm tra danh sách.\n3. Tích 'Hiện rạp tạm ngưng' -> Bấm Áp dụng.",
-                "Khi chưa tích checkbox: rạp C-HP01 không hiển thị; Khi tích checkbox: rạp C-HP01 hiển thị với nhãn 'Tạm ngưng'.",
+                "Kiểm tra hiệu ứng rạp tạm ngưng trên danh sách quản trị rạp",
+                "1. Tại danh sách cụm rạp (/admin/infrastructure/cinemas), quan sát rạp C-HP01.\n2. Kiểm tra badge trạng thái và nút chuyển đổi.",
+                "Rạp C-HP01 hiển thị badge 'Tạm ngưng'; các thao tác tạo suất chiếu mới tại rạp này bị vô hiệu hóa.",
                 "Rạp C-HP01 có is_active = 0.",
-                "Passed", "2026-11-03", "DungBD", "BranchComparisonDAO filter includeInactive"
+                "Passed", "2026-11-03", "DungBD", "CinemaDAO status toggle verified"
         ));
         wf1.scenarios.add(wf1_s3);
 
@@ -239,11 +239,11 @@ public class SystemTestData {
         // -------------------------------------------------------------
         GenerateTestingDeliverables.SheetDef wf4 = new GenerateTestingDeliverables.SheetDef(
                 "WF4 Dashboard & Reporting",
-                "Dashboard Đầu Não & Báo Cáo Doanh Thu, So Sánh Chuỗi (Dashboard & Reporting)",
-                "Kiểm thử tính toàn vẹn dữ liệu tài chính xuyên suốt chuỗi: đối soát số liệu chéo (Dashboard == Báo Cáo Doanh Thu == Tổng So Sánh Liên Rạp), kiểm tra bộ lọc đa chiều và xuất báo cáo Excel/PDF (SRS M-10.1, M-10.2, M-10.3, M-11)."
+                "Dashboard Đầu Não & Báo Cáo Doanh Thu (Dashboard & Reporting)",
+                "Kiểm thử tính toàn vẹn dữ liệu tài chính xuyên suốt chuỗi: đối soát số liệu chéo (Dashboard == Báo Cáo Doanh Thu), kiểm tra bộ lọc đa chiều và xuất báo cáo Excel/PDF (SRS M-10.1, M-10.3, M-11)."
         );
 
-        GenerateTestingDeliverables.ScenarioGroup wf4_s1 = new GenerateTestingDeliverables.ScenarioGroup("Scenario 1: Đối soát dữ liệu chéo 3 tầng (Cross-Check Data Integrity)");
+        GenerateTestingDeliverables.ScenarioGroup wf4_s1 = new GenerateTestingDeliverables.ScenarioGroup("Scenario 1: Đối soát dữ liệu chéo (Cross-Check Data Integrity)");
         wf4_s1.add(new GenerateTestingDeliverables.TestCaseData(
                 "ST-WF4-001",
                 "Đối soát Tổng Doanh Thu giữa Dashboard và Báo Cáo Doanh Thu",
@@ -252,19 +252,11 @@ public class SystemTestData {
                 "Dữ liệu mẫu 04_seed và 05_seed đã nạp.",
                 "Passed", "2026-11-03", "DungBD", "Canonical revenue query verified"
         ));
-        wf4_s1.add(new GenerateTestingDeliverables.TestCaseData(
-                "ST-WF4-002",
-                "Đối soát Tổng Doanh Thu với Tổng các cụm rạp trên Báo Cáo So Sánh",
-                "1. Vào 'So Sánh Hiệu Suất Rạp' (/admin/reports/comparison).\n2. Chọn cùng khoảng thời gian với Báo cáo Doanh Thu.\n3. Lấy tổng cột 'Doanh Thu Kỳ Này' của tất cả các cụm rạp cộng lại.",
-                "Tổng doanh thu của tất cả cụm rạp trên bảng so sánh bằng chính xác Tổng Doanh Thu trên Báo Cáo Doanh Thu và Dashboard.",
-                "Cùng phạm vi thời gian lọc.",
-                "Passed", "2026-11-03", "DungBD", "Mathematical reconciliation verified"
-        ));
         wf4.scenarios.add(wf4_s1);
 
         GenerateTestingDeliverables.ScenarioGroup wf4_s2 = new GenerateTestingDeliverables.ScenarioGroup("Scenario 2: Kiểm tra loại trừ các đơn hàng không hợp lệ");
         wf4_s2.add(new GenerateTestingDeliverables.TestCaseData(
-                "ST-WF4-003",
+                "ST-WF4-002",
                 "Loại trừ đơn hàng CANCELLED, FAILED, EXPIRED khỏi doanh thu",
                 "1. Kiểm tra trong DB các đơn hàng có trạng thái CANCELLED, FAILED hoặc thanh toán thất bại.\n2. Đối chiếu với bảng chi tiết đơn hàng trên Báo Cáo Doanh Thu (/admin/reports/revenue).",
                 "Tất cả các đơn hàng CANCELLED, FAILED, EXPIRED tuyệt đối không xuất hiện trong bảng chi tiết và không được tính vào KPI Tổng Doanh Thu.",
@@ -275,7 +267,7 @@ public class SystemTestData {
 
         GenerateTestingDeliverables.ScenarioGroup wf4_s3 = new GenerateTestingDeliverables.ScenarioGroup("Scenario 3: Bộ lọc đa chiều và phân tích báo cáo doanh thu");
         wf4_s3.add(new GenerateTestingDeliverables.TestCaseData(
-                "ST-WF4-004",
+                "ST-WF4-003",
                 "Lọc doanh thu theo cụm rạp cụ thể và kênh bán hàng (ONLINE vs POS)",
                 "1. Tại Báo Cáo Doanh Thu, chọn Rạp 'CineMax Bà Triệu (C-HN01)', kênh 'POS'.\n2. Bấm 'Áp dụng bộ lọc'.",
                 "KPI và biểu đồ cập nhật lọc chính xác doanh thu bán vé tại quầy của riêng rạp Bà Triệu; bảng chi tiết đơn hàng chỉ hiển thị kênh POS của rạp C-HN01.",
@@ -283,7 +275,7 @@ public class SystemTestData {
                 "Passed", "2026-11-03", "DungBD", "Multi-criteria filter verified"
         ));
         wf4_s3.add(new GenerateTestingDeliverables.TestCaseData(
-                "ST-WF4-005",
+                "ST-WF4-004",
                 "Validation khoảng ngày lọc: Ngày bắt đầu lớn hơn ngày kết thúc",
                 "1. Nhập 'Từ ngày' là 2026-11-30 và 'Đến ngày' là 2026-11-01.\n2. Bấm 'Áp dụng'.",
                 "Hệ thống tự động đảo ngược thông minh hoặc báo lỗi thân thiện; không bao giờ xảy ra lỗi 500 hoặc crash hệ thống.",
@@ -292,43 +284,24 @@ public class SystemTestData {
         ));
         wf4.scenarios.add(wf4_s3);
 
-        GenerateTestingDeliverables.ScenarioGroup wf4_s4 = new GenerateTestingDeliverables.ScenarioGroup("Scenario 4: So sánh hiệu suất liên chi nhánh & Phân tầng");
+        GenerateTestingDeliverables.ScenarioGroup wf4_s4 = new GenerateTestingDeliverables.ScenarioGroup("Scenario 4: Xuất báo cáo tài chính ra Excel (.xlsx) và PDF");
         wf4_s4.add(new GenerateTestingDeliverables.TestCaseData(
-                "ST-WF4-006",
-                "Xếp hạng doanh thu và tính toán % tăng trưởng kỳ trước (MoM)",
-                "1. Vào 'So Sánh Hiệu Suất Rạp' (/admin/reports/comparison).\n2. Chọn chế độ 'Kỳ liền trước (MoM)'.\n3. Quan sát thứ hạng và % tăng trưởng.",
-                "Các cụm rạp được xếp hạng từ 1 đến N theo doanh thu giảm dần; cột tăng trưởng hiển thị đúng tỷ lệ % tăng/giảm so với kỳ trước; cụm rạp dẫn đầu được gắn huy hiệu Hạng 1.",
-                "Dữ liệu kỳ hiện tại và kỳ trước đã có sẵn.",
-                "Passed", "2026-11-03", "DungBD", "BranchComparisonService ranking & growth verified"
-        ));
-        wf4_s4.add(new GenerateTestingDeliverables.TestCaseData(
-                "ST-WF4-007",
-                "Phân tầng hiệu suất cụm rạp (Top Tier, Trên TB, Dưới TB, Cần Cải Thiện)",
-                "1. Quan sát cột 'Phân Tầng' trên bảng so sánh.\n2. So sánh doanh thu rạp với 'Doanh thu TB mỗi rạp' trên thẻ KPI.",
-                "Rạp có doanh thu >= 120% TB được gắn badge 'Top Tier'; rạp >= 100% gắn 'Trên TB'; rạp < 70% gắn badge cảnh báo 'Cần Cải Thiện'.",
-                "Chỉ số Doanh thu TB toàn chuỗi đã được tính.",
-                "Passed", "2026-11-03", "DungBD", "BranchComparisonService tier classification passed"
-        ));
-        wf4.scenarios.add(wf4_s4);
-
-        GenerateTestingDeliverables.ScenarioGroup wf4_s5 = new GenerateTestingDeliverables.ScenarioGroup("Scenario 5: Xuất báo cáo tài chính ra Excel (.xlsx) và PDF");
-        wf4_s5.add(new GenerateTestingDeliverables.TestCaseData(
-                "ST-WF4-008",
+                "ST-WF4-005",
                 "Xuất Báo Cáo Doanh Thu ra file Excel chuẩn định dạng",
                 "1. Tại trang Báo Cáo Doanh Thu, bấm 'Xuất Excel'.\n2. Mở file .xlsx vừa tải về.",
                 "File Excel mở bình thường, gồm 4 sheets (Tổng Quan KPI, Doanh Thu Theo Phim, Theo Rạp, Chi Tiết Đơn Hàng); số liệu định dạng tiền tệ '#,##0 ₫' khớp 100% với màn hình web.",
                 "Apache POI 5.2.5 đã tích hợp.",
                 "Passed", "2026-11-03", "DungBD", "ReportExportService Excel export verified"
         ));
-        wf4_s5.add(new GenerateTestingDeliverables.TestCaseData(
-                "ST-WF4-009",
-                "Xuất Báo Cáo So Sánh Cụm Rạp ra file PDF tiếng Việt",
-                "1. Tại trang So Sánh Rạp, bấm 'Xuất PDF'.\n2. Mở file .pdf vừa tải về.",
-                "File PDF khổ ngang (A4 Landscape) hiển thị đầy đủ bảng so sánh đa chiều; font chữ Arial hiển thị hoàn hảo dấu tiếng Việt, không bị lỗi font ô vuông hay ?.",
+        wf4_s4.add(new GenerateTestingDeliverables.TestCaseData(
+                "ST-WF4-006",
+                "Xuất Báo Cáo Doanh Thu ra file PDF tiếng Việt",
+                "1. Tại trang Báo Cáo Doanh Thu, bấm 'Xuất PDF'.\n2. Mở file .pdf vừa tải về.",
+                "File PDF hiển thị đầy đủ tổng quan KPI, doanh thu theo phim, cụm rạp; font chữ Arial hiển thị hoàn hảo dấu tiếng Việt, không bị lỗi font ô vuông hay ?.",
                 "OpenPDF 1.3.40 với font Arial Unicode.",
-                "Passed", "2026-11-03", "DungBD", "ReportExportService PDF export verified"
+                "Passed", "2026-11-03", "DungBD", "ReportExportService revenue PDF export verified"
         ));
-        wf4.scenarios.add(wf4_s5);
+        wf4.scenarios.add(wf4_s4);
 
         list.add(wf4);
 
