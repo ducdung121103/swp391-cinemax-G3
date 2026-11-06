@@ -176,23 +176,6 @@ public class SeatGridServlet extends HttpServlet {
                 screeningRoomService.updateSeatTypeSurcharge(seatTypeId, surcharge, colorHex);
                 resp.sendRedirect(req.getContextPath() + "/admin/infrastructure/seats?roomId=" + roomId + "&msg=type_updated");
                 return;
-
-            } else if ("quickToggleMaintenance".equalsIgnoreCase(action)) {
-                String seatIdsRaw = req.getParameter("seatIds");
-                String underMaintStr = req.getParameter("underMaintenance");
-                boolean underMaintenance = underMaintStr == null || Boolean.parseBoolean(underMaintStr);
-
-                List<Long> seatIds = parseSeatIds(seatIdsRaw);
-                if (!seatIds.isEmpty()) {
-                    screeningRoomService.toggleSeatsMaintenance(roomId, seatIds, underMaintenance);
-                }
-                resp.sendRedirect(req.getContextPath() + "/admin/infrastructure/seats?roomId=" + roomId + "&msg=maintenance_toggled");
-                return;
-
-            } else if ("restoreAllRoomSeats".equalsIgnoreCase(action)) {
-                screeningRoomService.restoreAllMaintenanceSeatsInRoom(roomId);
-                resp.sendRedirect(req.getContextPath() + "/admin/infrastructure/seats?roomId=" + roomId + "&msg=all_seats_restored");
-                return;
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -202,19 +185,5 @@ public class SeatGridServlet extends HttpServlet {
         }
 
         resp.sendRedirect(req.getContextPath() + "/admin/infrastructure/seats?roomId=" + roomId);
-    }
-
-    private List<Long> parseSeatIds(String seatIdsRaw) {
-        List<Long> list = new ArrayList<>();
-        if (seatIdsRaw != null && !seatIdsRaw.trim().isEmpty()) {
-            for (String p : seatIdsRaw.split(",")) {
-                if (!p.trim().isEmpty()) {
-                    try {
-                        list.add(Long.parseLong(p.trim()));
-                    } catch (NumberFormatException ignored) {}
-                }
-            }
-        }
-        return list;
     }
 }
