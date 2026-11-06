@@ -24,6 +24,12 @@ import java.util.List;
 public class CinemaAdminServlet extends HttpServlet {
     private final ScreeningRoomService screeningRoomService = new ScreeningRoomServiceImpl();
 
+    // LUỒNG DỮ LIỆU (SWP391 Architecture Tracing):
+    // 1. HTTP Request: GET /admin/infrastructure/cinemas
+    // 2. Controller: CinemaAdminServlet.doGet -> lọc keyword, city, status
+    // 3. Service: ScreeningRoomService.getAllCinemasForAdmin -> CinemaDAO.findAllCinemas
+    // 4. Database: Bảng cinemas -> Map ResultSet sang List<Cinema>
+    // 5. Response: req.setAttribute("cinemas") -> Forward /WEB-INF/views/admin/infrastructure/cinemas.jsp
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         String keyword = req.getParameter("keyword");
@@ -56,6 +62,12 @@ public class CinemaAdminServlet extends HttpServlet {
         req.getRequestDispatcher("/WEB-INF/views/admin/infrastructure/cinemas.jsp").forward(req, resp);
     }
 
+    // LUỒNG DỮ LIỆU (SWP391 Architecture Tracing):
+    // 1. HTTP Request: POST /admin/infrastructure/cinemas (action: create, update, toggleStatus, delete)
+    // 2. Controller: CinemaAdminServlet.doPost -> RBAC Admin Guard -> dispatch action
+    // 3. Service: ScreeningRoomService (createCinema, updateCinema, toggleCinemaStatus, deleteCinema)
+    // 4. Database: Bảng cinemas, screening_rooms (soft-delete is_deleted=1, audit cascade)
+    // 5. Response: resp.sendRedirect -> /admin/infrastructure/cinemas?msg={action_result}
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         req.setCharacterEncoding("UTF-8");

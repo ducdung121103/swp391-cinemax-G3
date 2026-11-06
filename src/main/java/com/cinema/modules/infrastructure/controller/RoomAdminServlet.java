@@ -25,6 +25,12 @@ import java.util.List;
 public class RoomAdminServlet extends HttpServlet {
     private final ScreeningRoomService screeningRoomService = new ScreeningRoomServiceImpl();
 
+    // LUỒNG DỮ LIỆU (SWP391 Architecture Tracing):
+    // 1. HTTP Request: GET /admin/infrastructure/rooms
+    // 2. Controller: RoomAdminServlet.doGet -> lọc cinemaId, roomType, status
+    // 3. Service: ScreeningRoomService.getAllRoomsWithCinema -> ScreeningRoomDAO.findAllRooms
+    // 4. Database: Bảng screening_rooms, cinemas -> Map ResultSet sang List<ScreeningRoom>
+    // 5. Response: req.setAttribute("rooms") -> Forward /WEB-INF/views/admin/infrastructure/rooms.jsp
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         String cinemaIdParam = req.getParameter("cinemaId");
@@ -55,6 +61,12 @@ public class RoomAdminServlet extends HttpServlet {
         req.getRequestDispatcher("/WEB-INF/views/admin/infrastructure/rooms.jsp").forward(req, resp);
     }
 
+    // LUỒNG DỮ LIỆU (SWP391 Architecture Tracing):
+    // 1. HTTP Request: POST /admin/infrastructure/rooms (action: create, update, toggleStatus, delete)
+    // 2. Controller: RoomAdminServlet.doPost -> RBAC Branch Guard (Manager chỉ sửa phòng rạp mình)
+    // 3. Service: ScreeningRoomService (createRoom + auto seats, updateRoom, deleteRoom)
+    // 4. Database: Bảng screening_rooms, seats (is_deleted=1, kiểm tra future showtimes)
+    // 5. Response: resp.sendRedirect -> /admin/infrastructure/rooms?msg={action_result}
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         req.setCharacterEncoding("UTF-8");

@@ -27,6 +27,12 @@ public class AdminDashboardServlet extends HttpServlet {
     private final ScreeningRoomService screeningRoomService = new ScreeningRoomServiceImpl();
     private final InfrastructureReportDAO reportDAO = new InfrastructureReportDAO();
 
+    // LUỒNG DỮ LIỆU (SWP391 Architecture Tracing - Dashboard Tổng Quan):
+    // 1. HTTP Request: GET /admin/dashboard
+    // 2. Controller: AdminDashboardServlet.doGet -> kiểm tra session actor
+    // 3. DAO: InfrastructureReportDAO (getTotalRevenue, getBranchPerformanceList, getRecentTransactions)
+    // 4. Database: Bảng payments, bookings, cinemas -> Tính tổng quan toàn chuỗi
+    // 5. Response: Forward /WEB-INF/views/admin/infrastructure/dashboard.jsp
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         HttpSession session = req.getSession(false);

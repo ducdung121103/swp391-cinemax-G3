@@ -62,6 +62,12 @@ public class ReportAdminServlet extends HttpServlet {
     /**
      * Handles Revenue & Sales Report screen (M-10.1).
      */
+    // LUỒNG DỮ LIỆU (SWP391 Architecture Tracing - Báo Cáo Doanh Thu M-10.1):
+    // 1. HTTP Request: GET /admin/reports/revenue?from={date}&to={date}&cinemaId={id}
+    // 2. Controller: ReportAdminServlet.handleRevenueReport -> resolveAndValidateFilter (366 ngày, from<=to)
+    // 3. Service: RevenueReportService (getRevenueKpis, getRevenueByMovie, getRevenueByCinema, getBookingDetailsPaged)
+    // 4. Database: SQL CTE (payments JOIN bookings b WHERE p.status='SUCCESS' AND b.status='CONFIRMED')
+    // 5. Response: Forward /WEB-INF/views/admin/infrastructure/revenue-report.jsp (in ấn window.print)
     private void handleRevenueReport(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         try {
             RevenueFilterDTO filter = revenueReportService.resolveAndValidateFilter(
@@ -113,6 +119,12 @@ public class ReportAdminServlet extends HttpServlet {
     /**
      * Handles Branch Occupancy Report (M-10.3) - existing implementation preserved.
      */
+    // LUỒNG DỮ LIỆU (SWP391 Architecture Tracing - Báo Cáo Lấp Đầy M-10.3):
+    // 1. HTTP Request: GET /admin/infrastructure/occupancy?cinemaId={id}&roomId={id}
+    // 2. Controller: ReportAdminServlet.handleOccupancyReport -> lọc rạp và phòng chiếu
+    // 3. DAO: InfrastructureReportDAO.getRoomOccupancySummaries + getShowtimeOccupancyDetails
+    // 4. Database: Bảng showtimes, tickets (tickets.status IN ('VALID','USED') / screening_rooms.total_capacity)
+    // 5. Response: Forward /WEB-INF/views/admin/infrastructure/occupancy-report.jsp
     private void handleOccupancyReport(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         String cinemaIdParam = req.getParameter("cinemaId");
         String roomIdParam = req.getParameter("roomId");

@@ -28,6 +28,12 @@ import java.util.List;
 public class SeatGridServlet extends HttpServlet {
     private final ScreeningRoomService screeningRoomService = new ScreeningRoomServiceImpl();
 
+    // LUỒNG DỮ LIỆU (SWP391 Architecture Tracing):
+    // 1. HTTP Request: GET /admin/infrastructure/seats?roomId={id}
+    // 2. Controller: SeatGridServlet.doGet -> load ma trận phòng chiếu
+    // 3. Service: ScreeningRoomService.getRoomSeatMatrix -> ScreeningRoomDAO.findSeatsByRoom
+    // 4. Database: Bảng seats, seat_types -> Thống kê Standard, VIP, Couple
+    // 5. Response: req.setAttribute("seats") -> Forward /WEB-INF/views/admin/infrastructure/seat-designer.jsp
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         jakarta.servlet.http.HttpSession session = req.getSession(false);
@@ -105,6 +111,12 @@ public class SeatGridServlet extends HttpServlet {
         req.getRequestDispatcher("/WEB-INF/views/admin/infrastructure/seat-designer.jsp").forward(req, resp);
     }
 
+    // LUỒNG DỮ LIỆU (SWP391 Architecture Tracing):
+    // 1. HTTP Request: POST /admin/infrastructure/seats (action: updateSelectedSeats, applyRowType, regenerateMatrix, updateSeatType)
+    // 2. Controller: SeatGridServlet.doPost -> RBAC Admin Guard -> dispatch action
+    // 3. Service: ScreeningRoomService -> ValidationUtil.validateCoupleSeats (ngăn xé lẻ cặp)
+    // 4. Database: Bảng seats, seat_types (cập nhật loại ghế, phụ thu, sinh ma trận)
+    // 5. Response: resp.sendRedirect -> /admin/infrastructure/seats?roomId={id}&msg={action_result}
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         jakarta.servlet.http.HttpSession session = req.getSession(false);
