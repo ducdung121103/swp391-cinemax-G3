@@ -156,19 +156,7 @@ public class RevenueReportServiceImpl implements RevenueReportService {
                 filter.getFrom(), filter.getTo(), filter.getCinemaId(), filter.getMovieId(), filter.getChannel());
     }
 
-    @Override
-    public List<RevenueBreakdownDTO> getRevenueByChannel(RevenueFilterDTO filter) {
-        return revenueReportDAO.getRevenueByChannel(
-                filter.getFrom(), filter.getTo(), filter.getCinemaId(), filter.getMovieId());
-    }
-
-    @Override
-    public List<RevenueBreakdownDTO> getRevenueByPaymentMethod(RevenueFilterDTO filter) {
-        return revenueReportDAO.getRevenueByPaymentMethod(
-                filter.getFrom(), filter.getTo(), filter.getCinemaId(), filter.getMovieId(), filter.getChannel());
-    }
-
-    @Override
+@Override
     public PageResult<BookingDetailDTO> getBookingDetailsPaged(RevenueFilterDTO filter) {
         return revenueReportDAO.getBookingDetailsPaged(filter);
     }

@@ -86,8 +86,6 @@ public class ReportAdminServlet extends HttpServlet {
             List<RevenueTimeSeriesDTO> timeSeries = revenueReportService.getTimeSeriesRevenue(filter);
             List<RevenueBreakdownDTO> byMovie = revenueReportService.getRevenueByMovie(filter, 10);
             List<RevenueBreakdownDTO> byCinema = revenueReportService.getRevenueByCinema(filter);
-            List<RevenueBreakdownDTO> byChannel = revenueReportService.getRevenueByChannel(filter);
-            List<RevenueBreakdownDTO> byPayment = revenueReportService.getRevenueByPaymentMethod(filter);
             PageResult<BookingDetailDTO> bookingsPaged = revenueReportService.getBookingDetailsPaged(filter);
 
             List<Movie> movies = revenueReportService.getAllMoviesForFilter();
@@ -98,8 +96,6 @@ public class ReportAdminServlet extends HttpServlet {
             req.setAttribute("timeSeries", timeSeries);
             req.setAttribute("byMovie", byMovie);
             req.setAttribute("byCinema", byCinema);
-            req.setAttribute("byChannel", byChannel);
-            req.setAttribute("byPayment", byPayment);
             req.setAttribute("bookingsPaged", bookingsPaged);
             req.setAttribute("movies", movies);
             req.setAttribute("cinemas", cinemas);
@@ -151,7 +147,6 @@ public class ReportAdminServlet extends HttpServlet {
             List<RevenueTimeSeriesDTO> timeSeries = revenueReportService.getTimeSeriesRevenue(filter);
             List<RevenueBreakdownDTO> byMovie = revenueReportService.getRevenueByMovie(filter, 20);
             List<RevenueBreakdownDTO> byCinema = revenueReportService.getRevenueByCinema(filter);
-            List<RevenueBreakdownDTO> byChannel = revenueReportService.getRevenueByChannel(filter);
             PageResult<BookingDetailDTO> bookingsPaged = revenueReportService.getBookingDetailsPaged(filter);
 
             String filename = String.format("revenue-report_%s_%s", filter.getFrom(), filter.getTo());
@@ -159,11 +154,11 @@ public class ReportAdminServlet extends HttpServlet {
             if ("pdf".equalsIgnoreCase(format)) {
                 resp.setContentType("application/pdf");
                 resp.setHeader("Content-Disposition", "attachment; filename=\"" + filename + ".pdf\"");
-                reportExportService.exportRevenuePdf(filter, kpi, byMovie, byCinema, byChannel, resp.getOutputStream());
+                reportExportService.exportRevenuePdf(filter, kpi, byMovie, byCinema, java.util.Collections.emptyList(), resp.getOutputStream());
             } else {
                 resp.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
                 resp.setHeader("Content-Disposition", "attachment; filename=\"" + filename + ".xlsx\"");
-                reportExportService.exportRevenueExcel(filter, kpi, timeSeries, byMovie, byCinema, byChannel, bookingsPaged.getContent(), resp.getOutputStream());
+                reportExportService.exportRevenueExcel(filter, kpi, timeSeries, byMovie, byCinema, java.util.Collections.emptyList(), bookingsPaged.getContent(), resp.getOutputStream());
             }
             resp.getOutputStream().flush();
 

@@ -386,25 +386,6 @@
                     </c:choose>
                 </div>
 
-                <%-- Breakdown Doughnut Charts --%>
-                <div class="chart-card">
-                    <h4>
-                        <span><i class="fa-solid fa-chart-pie" style="color:#3b82f6;"></i> Cơ Cấu Doanh Thu Theo Kênh</span>
-                    </h4>
-                    <c:choose>
-                        <c:when test="${not empty byChannel}">
-                            <div style="height: 320px; position: relative;">
-                                <canvas id="channelChart"></canvas>
-                            </div>
-                        </c:when>
-                        <c:otherwise>
-                            <div class="empty-state">
-                                <i class="fa-solid fa-circle-notch"></i>
-                                <p>Chưa có dữ liệu kênh bán.</p>
-                            </div>
-                        </c:otherwise>
-                    </c:choose>
-                </div>
             </div>
 
             <%-- Tables Section: Top Movies & Branch Performance --%>
@@ -642,48 +623,6 @@
                             ticks: {
                                 callback: function(value) {
                                     return new Intl.NumberFormat('vi-VN', { notation: 'compact' }).format(value) + ' ₫';
-                                }
-                            }
-                        }
-                    }
-                }
-            });
-        }
-
-        // 2. Channel Doughnut Chart
-        const chCtx = document.getElementById('channelChart');
-        if (chCtx) {
-            const chLabels = [
-                <c:forEach items="${byChannel}" var="ch" varStatus="loop">
-                "${ch.categoryName}"${!loop.last ? ',' : ''}
-                </c:forEach>
-            ];
-            const chData = [
-                <c:forEach items="${byChannel}" var="ch" varStatus="loop">
-                ${ch.revenue}${!loop.last ? ',' : ''}
-                </c:forEach>
-            ];
-
-            new Chart(chCtx, {
-                type: 'doughnut',
-                data: {
-                    labels: chLabels,
-                    datasets: [{
-                        data: chData,
-                        backgroundColor: ['#e50914', '#10b981', '#3b82f6', '#f59e0b'],
-                        borderWidth: 2
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { position: 'bottom' },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    const value = context.parsed;
-                                    return ' ' + context.label + ': ' + new Intl.NumberFormat('vi-VN').format(value) + ' ₫';
                                 }
                             }
                         }

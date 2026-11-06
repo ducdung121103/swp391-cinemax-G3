@@ -43,17 +43,7 @@ public interface RevenueReportService {
      */
     List<RevenueBreakdownDTO> getRevenueByCinema(RevenueFilterDTO filter);
 
-    /**
-     * Retrieves revenue breakdown by channel (ONLINE vs POS).
-     */
-    List<RevenueBreakdownDTO> getRevenueByChannel(RevenueFilterDTO filter);
-
-    /**
-     * Retrieves revenue breakdown by payment method.
-     */
-    List<RevenueBreakdownDTO> getRevenueByPaymentMethod(RevenueFilterDTO filter);
-
-    /**
+/**
      * Retrieves paginated booking drill-down details.
      */
     PageResult<BookingDetailDTO> getBookingDetailsPaged(RevenueFilterDTO filter);
