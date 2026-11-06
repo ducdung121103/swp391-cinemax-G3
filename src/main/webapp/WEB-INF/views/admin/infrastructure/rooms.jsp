@@ -162,7 +162,13 @@
                     <div class="alert-toast alert-error">
                         <span>
                             <i class="fa-solid fa-triangle-exclamation" style="margin-right: 6px;"></i>
-                            ${error}
+                            <c:choose>
+                                <c:when test="${error == 'active_showtimes'}">Không thể xóa phòng chiếu đang có suất chiếu sắp tới hoặc đang diễn ra! Vui lòng hủy các suất chiếu trước.</c:when>
+                                <c:when test="${error == 'forbidden_branch'}">Quản lý chỉ có quyền xóa phòng chiếu thuộc chi nhánh rạp của mình!</c:when>
+                                <c:when test="${error == 'forbidden'}">Bạn không có quyền thực hiện thao tác xóa phòng chiếu này!</c:when>
+                                <c:when test="${error == 'failed'}">Không thể xóa phòng chiếu. Vui lòng thử lại sau.</c:when>
+                                <c:otherwise>${error}</c:otherwise>
+                            </c:choose>
                         </span>
                         <button onclick="this.parentElement.style.display='none'" style="background:none; border:none; cursor:pointer; font-size: 1.2rem;">&times;</button>
                     </div>
@@ -305,6 +311,18 @@
                                                     </c:otherwise>
                                                 </c:choose>
                                             </form>
+
+                                            <c:set var="canDeleteRoom" value="${sessionScope.currentUser.role.roleName == 'ADMIN' || sessionScope.currentUser.roleId == 1 || (sessionScope.currentUser.role.roleName == 'MANAGER' && sessionScope.currentUser.cinemaId == r.cinemaId)}" />
+                                            <c:if test="${canDeleteRoom}">
+                                                <form method="POST" action="${pageContext.request.contextPath}/admin/infrastructure/rooms" style="display:inline;"
+                                                      onsubmit="return confirm('Bạn có chắc chắn muốn xóa mềm phòng chiếu [${r.name}] không?')">
+                                                    <input type="hidden" name="action" value="delete">
+                                                    <input type="hidden" name="id" value="${r.id}">
+                                                    <button type="submit" class="btn-sm btn-secondary" style="background:#dc2626;" title="Xóa mềm phòng chiếu">
+                                                        <i class="fa-solid fa-trash-can"></i> Xóa
+                                                    </button>
+                                                </form>
+                                            </c:if>
                                         </td>
                                     </tr>
                                 </c:forEach>

@@ -1,6 +1,8 @@
 package com.cinema.modules.infrastructure.controller;
 
+import com.cinema.common.constant.RoleConstant;
 import com.cinema.model.Cinema;
+import com.cinema.model.User;
 import com.cinema.model.ScreeningRoom;
 import com.cinema.modules.infrastructure.service.ScreeningRoomService;
 import com.cinema.modules.infrastructure.service.impl.ScreeningRoomServiceImpl;
@@ -23,6 +25,12 @@ import java.util.List;
 public class RoomAdminServlet extends HttpServlet {
     private final ScreeningRoomService screeningRoomService = new ScreeningRoomServiceImpl();
 
+    // LUỒNG DỮ LIỆU (SWP391 Architecture Tracing):
+    // 1. HTTP Request: GET /admin/infrastructure/rooms
+    // 2. Controller: RoomAdminServlet.doGet -> lọc cinemaId, roomType, status
+    // 3. Service: ScreeningRoomService.getAllRoomsWithCinema -> ScreeningRoomDAO.findAllRooms
+    // 4. Database: Bảng screening_rooms, cinemas -> Map ResultSet sang List<ScreeningRoom>
+    // 5. Response: req.setAttribute("rooms") -> Forward /WEB-INF/views/admin/infrastructure/rooms.jsp
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         String cinemaIdParam = req.getParameter("cinemaId");
@@ -42,6 +50,7 @@ public class RoomAdminServlet extends HttpServlet {
         req.setAttribute("selectedCinemaId", cinemaId);
         req.setAttribute("selectedRoomType", roomType);
         req.setAttribute("selectedStatus", status);
+        req.setAttribute("actor", currentUser(req));
 
         // Flash message
         String msg = req.getParameter("msg");
@@ -52,6 +61,12 @@ public class RoomAdminServlet extends HttpServlet {
         req.getRequestDispatcher("/WEB-INF/views/admin/infrastructure/rooms.jsp").forward(req, resp);
     }
 
+    // LUỒNG DỮ LIỆU (SWP391 Architecture Tracing):
+    // 1. HTTP Request: POST /admin/infrastructure/rooms (action: create, update, toggleStatus, delete)
+    // 2. Controller: RoomAdminServlet.doPost -> RBAC Branch Guard (Manager chỉ sửa phòng rạp mình)
+    // 3. Service: ScreeningRoomService (createRoom + auto seats, updateRoom, deleteRoom)
+    // 4. Database: Bảng screening_rooms, seats (is_deleted=1, kiểm tra future showtimes)
+    // 5. Response: resp.sendRedirect -> /admin/infrastructure/rooms?msg={action_result}
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         req.setCharacterEncoding("UTF-8");
@@ -113,9 +128,20 @@ public class RoomAdminServlet extends HttpServlet {
                 return;
 
             } else if ("delete".equalsIgnoreCase(action)) {
+                User actor = currentUser(req);
                 Long id = Long.parseLong(req.getParameter("id"));
-                screeningRoomService.deleteRoom(id);
-                resp.sendRedirect(req.getContextPath() + "/admin/infrastructure/rooms?msg=deleted");
+                String code = screeningRoomService.deleteRoom(actor, id);
+                if ("OK".equals(code)) {
+                    resp.sendRedirect(req.getContextPath() + "/admin/infrastructure/rooms?msg=deleted");
+                } else if ("ACTIVE_SHOWTIMES".equals(code)) {
+                    resp.sendRedirect(req.getContextPath() + "/admin/infrastructure/rooms?error=active_showtimes");
+                } else if ("FORBIDDEN_BRANCH".equals(code)) {
+                    resp.sendRedirect(req.getContextPath() + "/admin/infrastructure/rooms?error=forbidden_branch");
+                } else if ("UNAUTHORIZED".equals(code)) {
+                    resp.sendRedirect(req.getContextPath() + "/admin/infrastructure/rooms?error=forbidden");
+                } else {
+                    resp.sendRedirect(req.getContextPath() + "/admin/infrastructure/rooms?error=failed");
+                }
                 return;
             }
 
@@ -127,5 +153,11 @@ public class RoomAdminServlet extends HttpServlet {
         }
 
         resp.sendRedirect(req.getContextPath() + "/admin/infrastructure/rooms");
+    }
+    private User currentUser(HttpServletRequest req) {
+        jakarta.servlet.http.HttpSession session = req.getSession(false);
+        if (session == null) return null;
+        Object val = session.getAttribute("currentUser");
+        return val instanceof User ? (User) val : null;
     }
 }

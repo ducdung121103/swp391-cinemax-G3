@@ -10,6 +10,7 @@ import java.time.LocalDate;
 
 /**
  * Filter parameters for Revenue & Sales Reports (M-10.1).
+ * Simplified to core business filters: date range and cinema branch.
  */
 @Getter
 @Setter
@@ -20,9 +21,6 @@ public class RevenueFilterDTO {
     private LocalDate from;
     private LocalDate to;
     private Long cinemaId;
-    private Long movieId;
-    private String channel; // ALL, ONLINE, POS
-    private String groupBy; // DAY, WEEK, MONTH
     @Builder.Default
     private int page = 1;
     @Builder.Default

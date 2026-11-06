@@ -28,6 +28,12 @@ import java.util.List;
 public class SeatGridServlet extends HttpServlet {
     private final ScreeningRoomService screeningRoomService = new ScreeningRoomServiceImpl();
 
+    // LUỒNG DỮ LIỆU (SWP391 Architecture Tracing):
+    // 1. HTTP Request: GET /admin/infrastructure/seats?roomId={id}
+    // 2. Controller: SeatGridServlet.doGet -> load ma trận phòng chiếu
+    // 3. Service: ScreeningRoomService.getRoomSeatMatrix -> ScreeningRoomDAO.findSeatsByRoom
+    // 4. Database: Bảng seats, seat_types -> Thống kê Standard, VIP, Couple
+    // 5. Response: req.setAttribute("seats") -> Forward /WEB-INF/views/admin/infrastructure/seat-designer.jsp
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         jakarta.servlet.http.HttpSession session = req.getSession(false);
@@ -80,9 +86,7 @@ public class SeatGridServlet extends HttpServlet {
                 }
             }
 
-            List<com.cinema.model.MaintenanceSchedule> maintenanceSchedules = screeningRoomService.getMaintenanceSchedulesByRoom(roomId);
-            req.setAttribute("maintenanceSchedules", maintenanceSchedules);
-        }
+                                }
 
         req.setAttribute("cinemas", cinemas);
         req.setAttribute("allRooms", allRooms);
@@ -107,6 +111,12 @@ public class SeatGridServlet extends HttpServlet {
         req.getRequestDispatcher("/WEB-INF/views/admin/infrastructure/seat-designer.jsp").forward(req, resp);
     }
 
+    // LUỒNG DỮ LIỆU (SWP391 Architecture Tracing):
+    // 1. HTTP Request: POST /admin/infrastructure/seats (action: updateSelectedSeats, applyRowType, regenerateMatrix, updateSeatType)
+    // 2. Controller: SeatGridServlet.doPost -> RBAC Admin Guard -> dispatch action
+    // 3. Service: ScreeningRoomService -> ValidationUtil.validateCoupleSeats (ngăn xé lẻ cặp)
+    // 4. Database: Bảng seats, seat_types (cập nhật loại ghế, phụ thu, sinh ma trận)
+    // 5. Response: resp.sendRedirect -> /admin/infrastructure/seats?roomId={id}&msg={action_result}
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         jakarta.servlet.http.HttpSession session = req.getSession(false);
@@ -195,43 +205,7 @@ public class SeatGridServlet extends HttpServlet {
                 screeningRoomService.restoreAllMaintenanceSeatsInRoom(roomId);
                 resp.sendRedirect(req.getContextPath() + "/admin/infrastructure/seats?roomId=" + roomId + "&msg=all_seats_restored");
                 return;
-
-            } else if ("createMaintenanceSchedule".equalsIgnoreCase(action)) {
-                String startRaw = req.getParameter("startTime");
-                String endRaw = req.getParameter("endTime");
-                String reason = req.getParameter("reason");
-                String seatIdsRaw = req.getParameter("seatIds");
-
-                java.time.LocalDateTime startTime = (startRaw != null && !startRaw.isBlank())
-                        ? java.time.LocalDateTime.parse(startRaw) : java.time.LocalDateTime.now();
-                java.time.LocalDateTime endTime = (endRaw != null && !endRaw.isBlank())
-                        ? java.time.LocalDateTime.parse(endRaw) : startTime.plusDays(1);
-
-                Long userId = currentUser != null ? currentUser.getId() : null;
-
-                com.cinema.model.MaintenanceSchedule schedule = com.cinema.model.MaintenanceSchedule.builder()
-                        .screeningRoomId(roomId)
-                        .startTime(startTime)
-                        .endTime(endTime)
-                        .reason(reason != null && !reason.isBlank() ? reason : "Bảo trì định kỳ phòng chiếu")
-                        .createdBy(userId)
-                        .build();
-
-                List<Long> seatIds = parseSeatIds(seatIdsRaw);
-                screeningRoomService.createMaintenanceSchedule(schedule, seatIds);
-                resp.sendRedirect(req.getContextPath() + "/admin/infrastructure/seats?roomId=" + roomId + "&msg=schedule_created");
-                return;
-
-            } else if ("resolveMaintenanceSchedule".equalsIgnoreCase(action)) {
-                Long scheduleId = Long.parseLong(req.getParameter("scheduleId"));
-                String restoreSeatsStr = req.getParameter("restoreSeats");
-                boolean restoreSeats = restoreSeatsStr == null || Boolean.parseBoolean(restoreSeatsStr);
-
-                screeningRoomService.resolveMaintenanceSchedule(scheduleId, roomId, restoreSeats);
-                resp.sendRedirect(req.getContextPath() + "/admin/infrastructure/seats?roomId=" + roomId + "&msg=schedule_resolved");
-                return;
             }
-
         } catch (Exception e) {
             e.printStackTrace();
             String errorMsg = URLEncoder.encode(e.getMessage() != null ? e.getMessage() : "Đã có lỗi xảy ra", StandardCharsets.UTF_8);

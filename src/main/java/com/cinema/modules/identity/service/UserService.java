@@ -91,4 +91,17 @@ public interface UserService {
      * Trả về OK, ROLE, CINEMA, ADMIN, CUSTOMER, SELF, NOT_FOUND hoặc FAILED.
      */
     String assignRoleAndBranch(Long actorId, Long targetId, String roleName, Long cinemaId);
+
+    /**
+     * Admin tạo tài khoản nhân sự mới (STAFF hoặc MANAGER) gán về rạp chi nhánh.
+     * Trả về OK, hoặc mã lỗi: INVALID_NAME, INVALID_EMAIL, EMAIL_TAKEN, 
+     * INVALID_PHONE, PHONE_TAKEN, INVALID_PASSWORD, INVALID_ROLE, CINEMA_REQUIRED, UNAUTHORIZED, FAILED.
+     */
+    String createStaffOrManager(Long actorId, String fullName, String email, String phone, String roleName, Long cinemaId, String password);
+
+    /**
+     * Xóa mềm tài khoản người dùng (is_deleted = 1, status = 'DEACTIVATED').
+     * Trả về OK, hoặc mã lỗi: SELF, LAST_ADMIN, NOT_FOUND, FAILED.
+     */
+    String softDeleteUser(Long actorId, Long targetId);
 }

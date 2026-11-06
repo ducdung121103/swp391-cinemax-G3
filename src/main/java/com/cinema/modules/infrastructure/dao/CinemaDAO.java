@@ -1,6 +1,7 @@
 package com.cinema.modules.infrastructure.dao;
 
 import com.cinema.common.context.DBContext;
+import com.cinema.common.transaction.TransactionManager;
 import com.cinema.model.Cinema;
 
 import java.sql.Connection;
@@ -184,18 +185,47 @@ public class CinemaDAO {
     }
 
     /**
-     * Xóa mềm (Soft Delete) cụm rạp.
+     * Kiểm tra cụm rạp có suất chiếu tương lai chưa kết thúc hoặc đang diễn ra không.
      */
-    public boolean softDelete(Long id) {
-        String sql = "UPDATE cinemas SET is_deleted = 1, is_active = 0, updated_at = GETDATE() WHERE id = ?";
+    public boolean hasFutureShowtimes(Long cinemaId) {
+        if (cinemaId == null) return false;
+        String sql = "SELECT COUNT(*) FROM showtimes st " +
+                     "JOIN screening_rooms sr ON st.screening_room_id = sr.id " +
+                     "WHERE sr.cinema_id = ? AND st.is_deleted = 0 " +
+                     "AND st.status IN ('SCHEDULED', 'OPENING') AND st.end_time > GETDATE()";
         try (Connection conn = DBContext.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setLong(1, id);
-            return ps.executeUpdate() > 0;
+            ps.setLong(1, cinemaId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) return rs.getInt(1) > 0;
+            }
         } catch (SQLException e) {
             e.printStackTrace();
-            return false;
         }
+        return false;
+    }
+
+    /**
+     * Xóa mềm (Soft Delete) cụm rạp kèm theo đóng toàn bộ phòng chiếu thuộc rạp đó trong giao dịch.
+     */
+    public boolean softDelete(Long id) {
+        if (id == null) return false;
+        return TransactionManager.executeInTransaction(conn -> {
+            // 1. Xóa mềm cụm rạp
+            String sqlCinema = "UPDATE cinemas SET is_deleted = 1, is_active = 0, updated_at = GETDATE() WHERE id = ?";
+            try (PreparedStatement ps = conn.prepareStatement(sqlCinema)) {
+                ps.setLong(1, id);
+                ps.executeUpdate();
+            }
+
+            // 2. Cascading soft delete toàn bộ phòng chiếu thuộc rạp
+            String sqlRooms = "UPDATE screening_rooms SET is_deleted = 1, status = 'INACTIVE', updated_at = GETDATE() WHERE cinema_id = ? AND is_deleted = 0";
+            try (PreparedStatement ps = conn.prepareStatement(sqlRooms)) {
+                ps.setLong(1, id);
+                ps.executeUpdate();
+            }
+            return true;
+        });
     }
 
     public boolean existsByCode(String cinemaCode) {

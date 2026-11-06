@@ -16,7 +16,7 @@ import java.io.IOException;
 /**
  * Hồ sơ khách và đổi mật khẩu (M-01.3).
  */
-@WebServlet(name = "ProfileServlet", urlPatterns = {"/customer/account/profile"})
+@WebServlet(name = "ProfileServlet", urlPatterns = {"/customer/account/profile", "/account/profile"})
 public class ProfileServlet extends HttpServlet {
     private final UserService userService = new UserServiceImpl();
 

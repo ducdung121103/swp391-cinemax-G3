@@ -1,6 +1,9 @@
 package com.cinema.modules.infrastructure.service.impl;
 
+import com.cinema.common.util.ValidationUtil;
+import com.cinema.common.constant.RoleConstant;
 import com.cinema.model.Cinema;
+import com.cinema.model.User;
 import com.cinema.model.MaintenanceSchedule;
 import com.cinema.model.ScreeningRoom;
 import com.cinema.model.Seat;
@@ -13,6 +16,10 @@ import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Cài đặt nghiệp vụ Hạ tầng cụm rạp, phòng chiếu và sơ đồ ghế (TV 1 - Dũng).
@@ -125,6 +132,18 @@ public class ScreeningRoomServiceImpl implements ScreeningRoomService {
     }
 
     @Override
+    public String deleteCinema(User actor, Long cinemaId) {
+        if (actor == null || actor.getRole() == null || !RoleConstant.ADMIN.equalsIgnoreCase(actor.getRole().getRoleName())) {
+            return "UNAUTHORIZED";
+        }
+        if (cinemaId == null) return "NOT_FOUND";
+        if (cinemaDAO.hasFutureShowtimes(cinemaId)) {
+            return "ACTIVE_SHOWTIMES";
+        }
+        return cinemaDAO.softDelete(cinemaId) ? "OK" : "FAILED";
+    }
+
+    @Override
     public int getTotalCinemasCount() {
         return cinemaDAO.countTotalCinemas();
     }
@@ -165,6 +184,33 @@ public class ScreeningRoomServiceImpl implements ScreeningRoomService {
     }
 
     @Override
+    public String deleteRoom(User actor, Long roomId) {
+        if (actor == null || actor.getRole() == null) {
+            return "UNAUTHORIZED";
+        }
+        if (roomId == null) return "NOT_FOUND";
+        ScreeningRoom room = screeningRoomDAO.findById(roomId);
+        if (room == null) return "NOT_FOUND";
+
+        String role = actor.getRole().getRoleName();
+        if (RoleConstant.ADMIN.equalsIgnoreCase(role)) {
+            // Admin có quyền xóa mọi rạp
+        } else if (RoleConstant.MANAGER.equalsIgnoreCase(role)) {
+            // Manager chỉ được xóa phòng thuộc chi nhánh rạp của mình
+            if (actor.getCinemaId() == null || !actor.getCinemaId().equals(room.getCinemaId())) {
+                return "FORBIDDEN_BRANCH";
+            }
+        } else {
+            return "UNAUTHORIZED";
+        }
+
+        if (screeningRoomDAO.hasFutureShowtimes(roomId)) {
+            return "ACTIVE_SHOWTIMES";
+        }
+        return screeningRoomDAO.softDeleteRoom(roomId) ? "OK" : "FAILED";
+    }
+
+    @Override
     public int getTotalRoomsCount() {
         return screeningRoomDAO.countTotalRooms();
     }
@@ -195,17 +241,135 @@ public class ScreeningRoomServiceImpl implements ScreeningRoomService {
 
     @Override
     public boolean updateBatchSeats(Long roomId, List<Long> seatIds, Long seatTypeId, String status, Boolean isActive) {
+        if (seatIds == null || seatIds.isEmpty()) {
+            return false;
+        }
+
+        // 1. Kiểm tra nghiệp vụ ghế đôi Sweetbox
+        if (seatTypeId != null && seatTypeId == 3L) {
+            // Trường hợp 1: Chuyển các ghế được chọn thành COUPLE (Sweetbox)
+            if (seatIds.size() % 2 != 0) {
+                throw new IllegalArgumentException(
+                    "Ghế đôi Sweetbox bắt buộc phải chọn theo số lượng chẵn (2, 4, 6... ghế; bạn đang chọn " 
+                    + seatIds.size() + " ghế, không hợp lệ)!"
+                );
+            }
+
+            List<Seat> targetSeats = screeningRoomDAO.findSeatsByIds(seatIds);
+            if (targetSeats != null && !targetSeats.isEmpty()) {
+                for (Seat s : targetSeats) {
+                    s.setSeatTypeId(3L);
+                    SeatType st = new SeatType();
+                    st.setId(3L);
+                    st.setTypeCode("COUPLE");
+                    st.setName("Ghế Đôi Sweetbox");
+                    s.setSeatType(st);
+                }
+                ValidationUtil.validateCoupleSeats(targetSeats);
+            }
+        }
+
+        // Trường hợp 2: Kiểm tra toàn phòng sau khi áp dụng để đảm bảo không làm rách/lẻ các cặp ghế đôi hiện có
+        if (roomId != null) {
+            List<Seat> allSeats = screeningRoomDAO.findSeatsByRoom(roomId);
+            if (allSeats != null && !allSeats.isEmpty()) {
+                Set<Long> targetIdSet = new HashSet<>(seatIds);
+                List<Seat> simulatedCoupleSeats = new ArrayList<>();
+
+                for (Seat s : allSeats) {
+                    Long currentTypeId = targetIdSet.contains(s.getId()) && seatTypeId != null 
+                            ? seatTypeId 
+                            : s.getSeatTypeId();
+                    if (currentTypeId != null && currentTypeId == 3L) {
+                        Seat copy = new Seat();
+                        copy.setId(s.getId());
+                        copy.setSeatRow(s.getSeatRow());
+                        copy.setSeatNumber(s.getSeatNumber());
+                        copy.setSeatCode(s.getSeatCode());
+                        copy.setGridRowIndex(s.getGridRowIndex());
+                        copy.setGridColIndex(s.getGridColIndex());
+                        copy.setSeatTypeId(3L);
+                        SeatType st = new SeatType();
+                        st.setId(3L);
+                        st.setTypeCode("COUPLE");
+                        st.setName("Ghế Đôi Sweetbox");
+                        copy.setSeatType(st);
+                        simulatedCoupleSeats.add(copy);
+                    }
+                }
+
+                if (!simulatedCoupleSeats.isEmpty()) {
+                    try {
+                        ValidationUtil.validateCoupleSeats(simulatedCoupleSeats);
+                    } catch (IllegalArgumentException e) {
+                        throw new IllegalArgumentException("Vi phạm quy tắc sơ đồ ghế đôi: " + e.getMessage());
+                    }
+                }
+            }
+        }
+
         return screeningRoomDAO.updateBatchSeats(roomId, seatIds, seatTypeId, status, isActive);
     }
 
     @Override
     public boolean updateRowSeatType(Long roomId, String seatRow, Long seatTypeId) {
+        if (roomId == null || seatRow == null || seatRow.trim().isEmpty()) {
+            return false;
+        }
+
+        if (seatTypeId != null && seatTypeId == 3L) {
+            List<Seat> allSeats = screeningRoomDAO.findSeatsByRoom(roomId);
+            if (allSeats != null) {
+                List<Seat> rowSeats = allSeats.stream()
+                        .filter(s -> seatRow.trim().equalsIgnoreCase(s.getSeatRow()))
+                        .collect(Collectors.toList());
+                if (rowSeats.isEmpty()) {
+                    throw new IllegalArgumentException("Không tìm thấy hàng ghế " + seatRow + " trong phòng chiếu này!");
+                }
+                if (rowSeats.size() % 2 != 0) {
+                    throw new IllegalArgumentException(
+                        "Không thể chuyển toàn bộ hàng " + seatRow + " thành ghế đôi Sweetbox vì hàng này có " 
+                        + rowSeats.size() + " ghế (số lẻ), không thể chia đều thành các cặp đôi!"
+                    );
+                }
+                for (Seat s : rowSeats) {
+                    s.setSeatTypeId(3L);
+                    SeatType st = new SeatType();
+                    st.setId(3L);
+                    st.setTypeCode("COUPLE");
+                    st.setName("Ghế Đôi Sweetbox");
+                    s.setSeatType(st);
+                }
+                ValidationUtil.validateCoupleSeats(rowSeats);
+            }
+        }
+
         return screeningRoomDAO.updateRowSeatType(roomId, seatRow, seatTypeId);
     }
 
     // =========================================================================
     // ITERATION 2: SEAT MAINTENANCE & MAINTENANCE SCHEDULES
     // =========================================================================
+    /**
+     * Helper tạo bản sao ghế mô phỏng sang loại COUPLE (Sweetbox) phục vụ kiểm định nghiệp vụ.
+     */
+    private Seat createSimulatedCoupleSeat(Seat source) {
+        Seat copy = new Seat();
+        copy.setId(source.getId());
+        copy.setSeatRow(source.getSeatRow());
+        copy.setSeatNumber(source.getSeatNumber());
+        copy.setSeatCode(source.getSeatCode());
+        copy.setGridRowIndex(source.getGridRowIndex());
+        copy.setGridColIndex(source.getGridColIndex());
+        copy.setSeatTypeId(3L);
+        SeatType st = new SeatType();
+        st.setId(3L);
+        st.setTypeCode("COUPLE");
+        st.setName("Ghế Đôi Sweetbox");
+        copy.setSeatType(st);
+        return copy;
+    }
+
 
     @Override
     public boolean toggleSeatsMaintenance(Long roomId, List<Long> seatIds, boolean underMaintenance) {

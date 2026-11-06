@@ -35,7 +35,7 @@ public class AuthorizationFilter implements Filter {
         String role = (currentUser.getRole() != null) ? currentUser.getRole().getRoleName() : RoleConstant.CUSTOMER;
         String uri = req.getRequestURI();
 
-        // 1. ADMIN có toàn quyền
+        // 1. ADMIN có toàn quyền (trừ quầy POS trực tiếp)
         if (RoleConstant.ADMIN.equalsIgnoreCase(role)) {
             if (uri.contains("/operation/pos")) {
                 res.sendError(HttpServletResponse.SC_FORBIDDEN, "Admin không có quyền sử dụng quầy POS!");
@@ -51,8 +51,16 @@ public class AuthorizationFilter implements Filter {
                 res.sendError(HttpServletResponse.SC_FORBIDDEN, "Báo cáo Doanh thu chỉ dành riêng cho Quản trị viên (Admin)!");
                 return;
             }
+            if (uri.contains("/admin/reports/occupancy") || uri.contains("/admin/infrastructure/occupancy")) {
+                res.sendError(HttpServletResponse.SC_FORBIDDEN, "Báo cáo Tỷ lệ Lấp đầy chỉ dành riêng cho Quản trị viên (Admin)!");
+                return;
+            }
             if (uri.contains("/admin/catalog/movies") || uri.contains("/admin/movies")) {
                 res.sendError(HttpServletResponse.SC_FORBIDDEN, "Chỉ Admin hệ thống mới được quyền quản lý danh mục Phim!");
+                return;
+            }
+            if (uri.contains("/admin/reviews")) {
+                res.sendError(HttpServletResponse.SC_FORBIDDEN, "Chỉ Admin hệ thống mới được quyền kiểm duyệt đánh giá phim!");
                 return;
             }
             if (uri.contains("/admin/operation/fnb-catalog")) {

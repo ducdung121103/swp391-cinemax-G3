@@ -1,7 +1,9 @@
 package com.cinema.modules.infrastructure.controller;
 
 import com.cinema.common.dto.PageResult;
+import com.cinema.common.constant.RoleConstant;
 import com.cinema.model.Cinema;
+import com.cinema.model.User;
 import com.cinema.model.Movie;
 import com.cinema.model.ScreeningRoom;
 import com.cinema.modules.infrastructure.dao.InfrastructureReportDAO;
@@ -9,11 +11,8 @@ import com.cinema.modules.infrastructure.dto.BookingDetailDTO;
 import com.cinema.modules.infrastructure.dto.RevenueBreakdownDTO;
 import com.cinema.modules.infrastructure.dto.RevenueFilterDTO;
 import com.cinema.modules.infrastructure.dto.RevenueKpiDTO;
-import com.cinema.modules.infrastructure.dto.RevenueTimeSeriesDTO;
-import com.cinema.modules.infrastructure.service.ReportExportService;
 import com.cinema.modules.infrastructure.service.RevenueReportService;
 import com.cinema.modules.infrastructure.service.ScreeningRoomService;
-import com.cinema.modules.infrastructure.service.impl.ReportExportServiceImpl;
 import com.cinema.modules.infrastructure.service.impl.RevenueReportServiceImpl;
 import com.cinema.modules.infrastructure.service.impl.ScreeningRoomServiceImpl;
 import jakarta.servlet.ServletException;
@@ -39,8 +38,7 @@ import java.util.List;
         "/admin/infrastructure/occupancy",
         "/admin/reports/occupancy",
         "/admin/reports",
-        "/admin/reports/revenue",
-        "/admin/reports/revenue/export"
+        "/admin/reports/revenue"
 })
 public class ReportAdminServlet extends HttpServlet {
 
@@ -49,15 +47,12 @@ public class ReportAdminServlet extends HttpServlet {
     private final InfrastructureReportDAO reportDAO = new InfrastructureReportDAO();
     private final ScreeningRoomService screeningRoomService = new ScreeningRoomServiceImpl();
     private final RevenueReportService revenueReportService = new RevenueReportServiceImpl();
-    private final ReportExportService reportExportService = new ReportExportServiceImpl();
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         String servletPath = req.getServletPath();
 
-        if ("/admin/reports/revenue/export".equals(servletPath)) {
-            handleRevenueExport(req, resp);
-        } else if ("/admin/reports/revenue".equals(servletPath)) {
+        if ("/admin/reports/revenue".equals(servletPath)) {
             handleRevenueReport(req, resp);
         } else {
             handleOccupancyReport(req, resp);
@@ -67,39 +62,34 @@ public class ReportAdminServlet extends HttpServlet {
     /**
      * Handles Revenue & Sales Report screen (M-10.1).
      */
+    // LUỒNG DỮ LIỆU (SWP391 Architecture Tracing - Báo Cáo Doanh Thu M-10.1):
+    // 1. HTTP Request: GET /admin/reports/revenue?from={date}&to={date}&cinemaId={id}
+    // 2. Controller: ReportAdminServlet.handleRevenueReport -> resolveAndValidateFilter (366 ngày, from<=to)
+    // 3. Service: RevenueReportService (getRevenueKpis, getRevenueByMovie, getRevenueByCinema, getBookingDetailsPaged)
+    // 4. Database: SQL CTE (payments JOIN bookings b WHERE p.status='SUCCESS' AND b.status='CONFIRMED')
+    // 5. Response: Forward /WEB-INF/views/admin/infrastructure/revenue-report.jsp (in ấn window.print)
     private void handleRevenueReport(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         try {
             RevenueFilterDTO filter = revenueReportService.resolveAndValidateFilter(
                     req.getParameter("from"),
                     req.getParameter("to"),
                     req.getParameter("cinemaId"),
-                    req.getParameter("movieId"),
-                    req.getParameter("channel"),
-                    req.getParameter("groupBy"),
                     req.getParameter("page"),
                     req.getParameter("pageSize")
             );
 
             RevenueKpiDTO kpi = revenueReportService.getRevenueKpis(filter);
-            List<RevenueTimeSeriesDTO> timeSeries = revenueReportService.getTimeSeriesRevenue(filter);
             List<RevenueBreakdownDTO> byMovie = revenueReportService.getRevenueByMovie(filter, 10);
             List<RevenueBreakdownDTO> byCinema = revenueReportService.getRevenueByCinema(filter);
-            List<RevenueBreakdownDTO> byChannel = revenueReportService.getRevenueByChannel(filter);
-            List<RevenueBreakdownDTO> byPayment = revenueReportService.getRevenueByPaymentMethod(filter);
             PageResult<BookingDetailDTO> bookingsPaged = revenueReportService.getBookingDetailsPaged(filter);
 
-            List<Movie> movies = revenueReportService.getAllMoviesForFilter();
             List<Cinema> cinemas = revenueReportService.getAllCinemasForFilter();
 
             req.setAttribute("filter", filter);
             req.setAttribute("kpi", kpi);
-            req.setAttribute("timeSeries", timeSeries);
             req.setAttribute("byMovie", byMovie);
             req.setAttribute("byCinema", byCinema);
-            req.setAttribute("byChannel", byChannel);
-            req.setAttribute("byPayment", byPayment);
             req.setAttribute("bookingsPaged", bookingsPaged);
-            req.setAttribute("movies", movies);
             req.setAttribute("cinemas", cinemas);
 
             // Flash messages
@@ -112,10 +102,9 @@ public class ReportAdminServlet extends HttpServlet {
 
         } catch (IllegalArgumentException e) {
             req.setAttribute("error", e.getMessage());
-            RevenueFilterDTO safeFilter = revenueReportService.resolveAndValidateFilter(null, null, null, null, null, null, null, null);
+            RevenueFilterDTO safeFilter = revenueReportService.resolveAndValidateFilter(null, null, null, null, null);
             req.setAttribute("filter", safeFilter);
             req.setAttribute("kpi", revenueReportService.getRevenueKpis(safeFilter));
-            req.setAttribute("movies", revenueReportService.getAllMoviesForFilter());
             req.setAttribute("cinemas", revenueReportService.getAllCinemasForFilter());
             req.getRequestDispatcher("/WEB-INF/views/admin/infrastructure/revenue-report.jsp").forward(req, resp);
 
@@ -125,55 +114,17 @@ public class ReportAdminServlet extends HttpServlet {
         }
     }
 
-    /**
-     * Handles Revenue & Sales Report export to Excel (.xlsx) or PDF (.pdf).
-     */
-    private void handleRevenueExport(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        try {
-            RevenueFilterDTO filter = revenueReportService.resolveAndValidateFilter(
-                    req.getParameter("from"),
-                    req.getParameter("to"),
-                    req.getParameter("cinemaId"),
-                    req.getParameter("movieId"),
-                    req.getParameter("channel"),
-                    req.getParameter("groupBy"),
-                    "1", "1000" // Export up to 1000 drill-down detail rows
-            );
-
-            String format = req.getParameter("format");
-            if (format == null || format.isBlank()) {
-                format = "xlsx";
-            }
-
-            RevenueKpiDTO kpi = revenueReportService.getRevenueKpis(filter);
-            List<RevenueTimeSeriesDTO> timeSeries = revenueReportService.getTimeSeriesRevenue(filter);
-            List<RevenueBreakdownDTO> byMovie = revenueReportService.getRevenueByMovie(filter, 20);
-            List<RevenueBreakdownDTO> byCinema = revenueReportService.getRevenueByCinema(filter);
-            List<RevenueBreakdownDTO> byChannel = revenueReportService.getRevenueByChannel(filter);
-            PageResult<BookingDetailDTO> bookingsPaged = revenueReportService.getBookingDetailsPaged(filter);
-
-            String filename = String.format("revenue-report_%s_%s", filter.getFrom(), filter.getTo());
-
-            if ("pdf".equalsIgnoreCase(format)) {
-                resp.setContentType("application/pdf");
-                resp.setHeader("Content-Disposition", "attachment; filename=\"" + filename + ".pdf\"");
-                reportExportService.exportRevenuePdf(filter, kpi, byMovie, byCinema, byChannel, resp.getOutputStream());
-            } else {
-                resp.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-                resp.setHeader("Content-Disposition", "attachment; filename=\"" + filename + ".xlsx\"");
-                reportExportService.exportRevenueExcel(filter, kpi, timeSeries, byMovie, byCinema, byChannel, bookingsPaged.getContent(), resp.getOutputStream());
-            }
-            resp.getOutputStream().flush();
-
-        } catch (Exception e) {
-            logger.error("Error exporting revenue report", e);
-            resp.sendRedirect(req.getContextPath() + "/admin/reports/revenue?error=" + URLEncoder.encode("Lỗi xuất file: " + e.getMessage(), StandardCharsets.UTF_8));
-        }
-    }
+    
 
     /**
      * Handles Branch Occupancy Report (M-10.3) - existing implementation preserved.
      */
+    // LUỒNG DỮ LIỆU (SWP391 Architecture Tracing - Báo Cáo Lấp Đầy M-10.3):
+    // 1. HTTP Request: GET /admin/infrastructure/occupancy?cinemaId={id}&roomId={id}
+    // 2. Controller: ReportAdminServlet.handleOccupancyReport -> lọc rạp và phòng chiếu
+    // 3. DAO: InfrastructureReportDAO.getRoomOccupancySummaries + getShowtimeOccupancyDetails
+    // 4. Database: Bảng showtimes, tickets (tickets.status IN ('VALID','USED') / screening_rooms.total_capacity)
+    // 5. Response: Forward /WEB-INF/views/admin/infrastructure/occupancy-report.jsp
     private void handleOccupancyReport(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         String cinemaIdParam = req.getParameter("cinemaId");
         String roomIdParam = req.getParameter("roomId");

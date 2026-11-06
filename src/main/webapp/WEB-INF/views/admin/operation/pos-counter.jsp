@@ -32,7 +32,11 @@
                 </div>
             </header>
 
-            <c:if test="${not empty posError}">
+                        <div id="clientPosError" class="operation-alert alert-error" role="alert" style="display:none; margin-bottom: 16px;">
+                <span class="alert-icon">!</span>
+                <span id="clientPosErrorText"></span>
+            </div>
+<c:if test="${not empty posError}">
                 <div class="operation-alert alert-error" role="alert"><span class="alert-icon">!</span><c:out value="${posError}" /></div>
             </c:if>
             <c:if test="${not empty posSetupMessage}">
@@ -162,7 +166,7 @@
                                                         <c:when test="${seat.status eq 'AVAILABLE'}">
                                                             <input type="checkbox" name="seatIds" value="${seat.id}"
                                                                    aria-label="Ghế ${seat.seatCode}, còn trống"
-                                                                   data-seat-code="${seat.seatCode}" data-price="${seatPrices[seat.id]}">
+                                                                   data-seat-code="${seat.seatCode}" data-seat-row="${seat.seatRow}" data-seat-number="${seat.seatNumber}" data-seat-col="${seat.gridColIndex}" data-seat-type-id="${seat.seatTypeId}" data-price="${seatPrices[seat.id]}">
                                                         </c:when>
                                                         <c:otherwise>
                                                             <input type="checkbox" disabled aria-label="Ghế ${seat.seatCode}, ${seat.status}">
@@ -333,6 +337,10 @@
             let baseTicketTotal = 0;
             let discountedTicketTotal = 0;
             selectedSeatList.replaceChildren();
+                        // Clear previous error
+            hidePosError();
+
+
             if (selectedSeats.length === 0) {
                 appendEmptyMessage(selectedSeatList, 'Chưa chọn ghế.');
             }
@@ -452,6 +460,38 @@
             }
             event.preventDefault();
             const selectedSeats = form.querySelectorAll('input[name="seatIds"]:checked');
+                        // Validate quy tắc ghế đôi Sweetbox tại quầy POS
+            const coupleSeats = [...selectedSeats].filter(cb => cb.dataset.seatTypeId === '3');
+            if (coupleSeats.length > 0) {
+                if (coupleSeats.length % 2 !== 0) {
+                    showPosError('Ghế đôi Sweetbox bắt buộc phải chọn theo số lượng chẵn (2, 4, 6... ghế)! Bạn đang chọn ' + coupleSeats.length + ' ghế đôi, không hợp lệ.');
+                    return;
+                }
+                const byRow = {};
+                coupleSeats.forEach(cb => {
+                    const row = cb.dataset.seatRow || '';
+                    const num = parseInt(cb.dataset.seatNumber || cb.dataset.seatCol || '0', 10);
+                    const code = cb.dataset.seatCode || '';
+                    if (!byRow[row]) byRow[row] = [];
+                    byRow[row].push({ num, code });
+                });
+                for (const row in byRow) {
+                    const rowCouples = byRow[row];
+                    if (rowCouples.length % 2 !== 0) {
+                        showPosError('Ghế đôi Sweetbox phải đi theo cặp trong cùng một hàng! Hàng ' + row + ' đang có ' + rowCouples.length + ' ghế đôi lẻ, không thể ghép cặp.');
+                        return;
+                    }
+                    rowCouples.sort((a, b) => a.num - b.num);
+                    for (let i = 0; i < rowCouples.length; i += 2) {
+                        const diff = Math.abs(rowCouples[i + 1].num - rowCouples[i].num);
+                        if (diff !== 1) {
+                            showPosError('Hai ghế trong mỗi cặp ghế đôi bắt buộc phải nằm LIỀN KỀ NHAU trong cùng một hàng! Cặp ghế ' + rowCouples[i].code + ' và ' + rowCouples[i + 1].code + ' đang bị cách quãng ' + (diff - 1) + ' ghế, không hợp lệ.');
+                            return;
+                        }
+                    }
+                }
+            }
+
             if (selectedSeats.length === 0) {
                 const firstSeat = form.querySelector('input[name="seatIds"]');
                 if (firstSeat) {

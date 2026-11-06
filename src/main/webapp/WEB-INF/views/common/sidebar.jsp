@@ -97,6 +97,12 @@
                         <span>Bảng giá vé</span>
                     </a>
                 </li>
+                <li class="${currentUri.contains('/admin/reviews') ? 'active' : ''}">
+                    <a href="${pageContext.request.contextPath}/admin/reviews">
+                        <i class="fa-solid fa-comments"></i>
+                        <span>Kiểm duyệt Đánh giá</span>
+                    </a>
+                </li>
                 <li class="${currentUri.contains('/operation/fnb-catalog') ? 'active' : ''}">
                     <a href="${pageContext.request.contextPath}/admin/operation/fnb-catalog">
                         <i class="fa-solid fa-burger"></i>
@@ -134,12 +140,7 @@
                         <span>Quản lý Phòng Chiếu</span>
                     </a>
                 </li>
-                <li class="${currentUri.contains('/infrastructure/occupancy') || currentUri.contains('/reports/occupancy') ? 'active' : ''}">
-                    <a href="${pageContext.request.contextPath}/admin/infrastructure/occupancy">
-                        <i class="fa-solid fa-chart-pie"></i>
-                        <span>Báo Cáo Tỷ Lệ Lấp Đầy</span>
-                    </a>
-                </li>
+
                 <li class="${currentUri.contains('/operation/fnb') && !currentUri.contains('/fnb-catalog') ? 'active' : ''}">
                     <a href="${pageContext.request.contextPath}/manager/operation/fnb">
                         <i class="fa-solid fa-boxes-stacked"></i>

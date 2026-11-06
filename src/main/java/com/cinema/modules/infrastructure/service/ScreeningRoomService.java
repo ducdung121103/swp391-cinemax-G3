@@ -1,6 +1,7 @@
 package com.cinema.modules.infrastructure.service;
 
 import com.cinema.model.Cinema;
+import com.cinema.model.User;
 import com.cinema.model.MaintenanceSchedule;
 import com.cinema.model.ScreeningRoom;
 import com.cinema.model.Seat;
@@ -39,6 +40,7 @@ public interface ScreeningRoomService {
     boolean updateCinema(Cinema cinema) throws Exception;
     boolean toggleCinemaStatus(Long id, boolean isActive);
     boolean deleteCinema(Long id);
+    String deleteCinema(User actor, Long cinemaId);
     int getTotalCinemasCount();
 
     // --- 2. Screening Room Management (CRUD Phòng chiếu) ---
@@ -47,6 +49,7 @@ public interface ScreeningRoomService {
     boolean updateRoom(ScreeningRoom room);
     boolean updateRoomStatus(Long roomId, String status);
     boolean deleteRoom(Long roomId);
+    String deleteRoom(User actor, Long roomId);
     int getTotalRoomsCount();
     int getTotalSeatsCount();
 

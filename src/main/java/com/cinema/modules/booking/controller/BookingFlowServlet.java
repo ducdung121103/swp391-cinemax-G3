@@ -33,8 +33,9 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Controller điều hướng luồng Giữ ghế & Thanh toán trực tuyến (TV 4).
- */
+ * Controller Ä‘iá»u hÆ°á»›ng luá»“ng Giá»¯ gháº¿ & Thanh toÃ¡n trá»±c tuyáº¿n (TV 4).
+ 
+ * Refactor update: Lam ro trach nhiem lop cho de bao tri.*/
 @WebServlet(name = "BookingFlowServlet", urlPatterns = {"/booking/hold", "/booking/checkout"})
 public class BookingFlowServlet extends HttpServlet {
     private final BookingEngineService bookingEngineService = new BookingEngineServiceImpl();
@@ -75,7 +76,7 @@ public class BookingFlowServlet extends HttpServlet {
         User currentUser = (User) session.getAttribute("currentUser");
 
         if ("/booking/hold".equals(path)) {
-            // Giữ ghế tạm thời 5 phút qua AJAX
+            // Giá»¯ gháº¿ táº¡m thá»i 5 phÃºt qua AJAX
             Long showtimeId = Long.parseLong(req.getParameter("showtimeId"));
             String[] seatIdArr = req.getParameterValues("seatIds");
             List<Long> seatIds = new ArrayList<>();
@@ -99,7 +100,7 @@ public class BookingFlowServlet extends HttpServlet {
         }
 
         if ("/booking/checkout".equals(path)) {
-            // Thanh toán đơn hàng
+            // Thanh toÃ¡n Ä‘Æ¡n hÃ ng
             Long showtimeId = Long.parseLong(req.getParameter("showtimeId"));
             String[] seatIdArr = req.getParameterValues("seatIds");
             List<Long> seatIds = new ArrayList<>();
@@ -109,7 +110,7 @@ public class BookingFlowServlet extends HttpServlet {
 
             Showtime showtime = showtimeService.getShowtimeById(showtimeId);
             if (showtime == null) {
-                resp.getWriter().write(JsonUtil.toJson(ApiResponse.error("SHOWTIME_NOT_FOUND", "Không tìm thấy thông tin suất chiếu")));
+                resp.getWriter().write(JsonUtil.toJson(ApiResponse.error("SHOWTIME_NOT_FOUND", "KhÃ´ng tÃ¬m tháº¥y thÃ´ng tin suáº¥t chiáº¿u")));
                 return;
             }
 
@@ -170,3 +171,4 @@ public class BookingFlowServlet extends HttpServlet {
         }
     }
 }
+

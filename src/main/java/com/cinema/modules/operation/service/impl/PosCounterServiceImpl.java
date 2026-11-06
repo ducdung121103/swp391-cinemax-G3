@@ -1,6 +1,7 @@
 package com.cinema.modules.operation.service.impl;
 
 import com.cinema.common.constant.RoleConstant;
+import com.cinema.common.util.ValidationUtil;
 import com.cinema.common.dao.SystemSettingDAO;
 import com.cinema.model.Cinema;
 import com.cinema.model.FnBItem;
@@ -180,9 +181,6 @@ public class PosCounterServiceImpl implements PosCounterService {
                 || !showtime.getStartTime().isAfter(LocalDateTime.now())) {
             throw new IllegalStateException("Suất chiếu không còn nhận bán vé.");
         }
-        if (!"CASH".equals(command.getPaymentMethod()) && !"VNPAY".equals(command.getPaymentMethod()) && !"VNPAY_POS".equals(command.getPaymentMethod())) {
-            throw new IllegalArgumentException("Phương thức thanh toán không hợp lệ.");
-        }
 
         List<Long> seatIds = parseSeatIds(command.getSeatIds());
         String ticketClass = normalizedTicketClass(command.getTicketClass());
@@ -191,8 +189,10 @@ public class PosCounterServiceImpl implements PosCounterService {
                 BigDecimal.valueOf(discountPercent).movePointLeft(2));
         BigDecimal baseTicketTotal = BigDecimal.ZERO;
         BigDecimal ticketTotal = BigDecimal.ZERO;
+        List<Seat> selectedSeats = new ArrayList<>(seatIds.size());
         for (Long seatId : seatIds) {
             Seat seat = screeningRoomService.getSeatById(seatId);
+            selectedSeats.add(seat);
             if (seat == null || !Objects.equals(seat.getScreeningRoomId(), showtime.getScreeningRoomId())
                     || !Boolean.TRUE.equals(seat.getIsActive())
                     || !"ACTIVE".equalsIgnoreCase(seat.getStatus())) {
@@ -204,6 +204,7 @@ public class PosCounterServiceImpl implements PosCounterService {
             ticketTotal = ticketTotal.add(basePrice.multiply(multiplier).setScale(2, RoundingMode.HALF_UP));
         }
 
+        ValidationUtil.validateCoupleSeats(selectedSeats);
         Map<Long, Integer> fnbItems = parseFnbItems(command.getFnbQuantities());
         BigDecimal fnbTotal = calculateFnbQuote(cinemaId, fnbItems);
         return new PosQuoteResult(ticketTotal, fnbTotal,
@@ -236,8 +237,10 @@ public class PosCounterServiceImpl implements PosCounterService {
         BigDecimal multiplier = BigDecimal.ONE.subtract(BigDecimal.valueOf(ticketDiscountPercent).movePointLeft(2));
         BigDecimal baseTicketTotal = BigDecimal.ZERO;
         List<BigDecimal> ticketPrices = new ArrayList<>(seatIds.size());
+        List<Seat> selectedSeats = new ArrayList<>(seatIds.size());
         for (Long seatId : seatIds) {
             Seat seat = screeningRoomService.getSeatById(seatId);
+            selectedSeats.add(seat);
             if (seat == null || !Objects.equals(seat.getScreeningRoomId(), showtime.getScreeningRoomId())
                     || !Boolean.TRUE.equals(seat.getIsActive()) || !"ACTIVE".equalsIgnoreCase(seat.getStatus())) {
                 throw new IllegalArgumentException("Một trong các ghế đã bị khóa hoặc không thuộc phòng chiếu này.");
@@ -248,6 +251,7 @@ public class PosCounterServiceImpl implements PosCounterService {
             ticketPrices.add(basePrice.multiply(multiplier).setScale(2, RoundingMode.HALF_UP));
         }
 
+        ValidationUtil.validateCoupleSeats(selectedSeats);
         if (!"CASH".equals(command.getPaymentMethod()) && !"VNPAY".equals(command.getPaymentMethod()) && !"VNPAY_POS".equals(command.getPaymentMethod())) {
             throw new IllegalArgumentException("Phương thức thanh toán không hợp lệ.");
         }

@@ -214,6 +214,26 @@ public class ScreeningRoomDAO {
         }
     }
 
+    /**
+     * Kiểm tra phòng chiếu có suất chiếu tương lai chưa kết thúc hoặc đang diễn ra không.
+     */
+    public boolean hasFutureShowtimes(Long roomId) {
+        if (roomId == null) return false;
+        String sql = "SELECT COUNT(*) FROM showtimes " +
+                     "WHERE screening_room_id = ? AND is_deleted = 0 " +
+                     "AND status IN ('SCHEDULED', 'OPENING') AND end_time > GETDATE()";
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setLong(1, roomId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) return rs.getInt(1) > 0;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
     public boolean softDeleteRoom(Long roomId) {
         return TransactionManager.executeInTransaction(conn -> {
             Long cinemaId = null;

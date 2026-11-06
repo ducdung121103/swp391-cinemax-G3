@@ -11,7 +11,6 @@
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/base.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/admin-layout.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/modules/infrastructure.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
     <style>
         .filter-toolbar {
             background: #fff;
@@ -177,9 +176,20 @@
             margin-bottom: 12px;
         }
         @media print {
-            .admin-sidebar, .admin-navbar, .filter-toolbar, .pagination-box, .btn-export { display: none !important; }
-            .admin-main { margin: 0 !important; padding: 0 !important; }
-            .chart-card, .kpi-card-luxury { break-inside: avoid; box-shadow: none !important; border: 1px solid #ccc !important; }
+            * {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            @page {
+                size: A4 portrait;
+                margin: 10mm;
+            }
+            .admin-sidebar, .admin-navbar, .filter-toolbar, .filter-group, .pagination-box, .btn-export, .btn-back-dashboard, .breadcrumb, .btn-sidebar-toggle {
+                display: none !important;
+            }
+            .admin-main { margin: 0 !important; padding: 0 !important; width: 100% !important; }
+            .admin-content { padding: 0 !important; }
+            .chart-card, .kpi-card-luxury { break-inside: avoid; page-break-inside: avoid; box-shadow: none !important; border: 1px solid #cbd5e1 !important; }
         }
     </style>
 </head>
@@ -244,33 +254,6 @@
                             </c:forEach>
                         </select>
                     </div>
-                    <div>
-                        <label style="font-size:0.75rem; color:#64748b; font-weight:700; display:block; margin-bottom:2px;">PHIM CHIẾU</label>
-                        <select name="movieId" class="filter-select" style="max-width:200px;">
-                            <option value="ALL">-- Tất cả phim --</option>
-                            <c:forEach items="${movies}" var="m">
-                                <option value="${m.id}" ${filter.movieId == m.id ? 'selected' : ''}>
-                                    <c:out value="${m.title}" />
-                                </option>
-                            </c:forEach>
-                        </select>
-                    </div>
-                    <div>
-                        <label style="font-size:0.75rem; color:#64748b; font-weight:700; display:block; margin-bottom:2px;">KÊNH BÁN</label>
-                        <select name="channel" class="filter-select">
-                            <option value="ALL" ${filter.channel == 'ALL' ? 'selected' : ''}>Tất cả kênh</option>
-                            <option value="ONLINE" ${filter.channel == 'ONLINE' ? 'selected' : ''}>Trực tuyến (Web/App)</option>
-                            <option value="POS" ${filter.channel == 'POS' ? 'selected' : ''}>Quầy vé (POS)</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label style="font-size:0.75rem; color:#64748b; font-weight:700; display:block; margin-bottom:2px;">GOM THEO</label>
-                        <select name="groupBy" class="filter-select">
-                            <option value="DAY" ${filter.groupBy == 'DAY' ? 'selected' : ''}>Theo Ngày</option>
-                            <option value="WEEK" ${filter.groupBy == 'WEEK' ? 'selected' : ''}>Theo Tuần</option>
-                            <option value="MONTH" ${filter.groupBy == 'MONTH' ? 'selected' : ''}>Theo Tháng</option>
-                        </select>
-                    </div>
                     <div style="align-self:flex-end;">
                         <button type="submit" class="btn btn-primary" style="padding:8px 16px; border-radius:6px; font-size:0.85rem; font-weight:700; background:#e50914; border:none; color:#fff; cursor:pointer;">
                             <i class="fa-solid fa-filter"></i> Lọc
@@ -281,78 +264,21 @@
                     </div>
                 </form>
 
-                <%-- Export Actions --%>
+                <%-- Export Action --%>
                 <div class="filter-group" style="align-self:flex-end;">
-                    <c:url var="exportExcelUrl" value="/admin/reports/revenue/export">
-                        <c:param name="format" value="xlsx" />
-                        <c:param name="from" value="${filter.from}" />
-                        <c:param name="to" value="${filter.to}" />
-                        <c:param name="cinemaId" value="${filter.cinemaId}" />
-                        <c:param name="movieId" value="${filter.movieId}" />
-                        <c:param name="channel" value="${filter.channel}" />
-                        <c:param name="groupBy" value="${filter.groupBy}" />
-                    </c:url>
-                    <c:url var="exportPdfUrl" value="/admin/reports/revenue/export">
-                        <c:param name="format" value="pdf" />
-                        <c:param name="from" value="${filter.from}" />
-                        <c:param name="to" value="${filter.to}" />
-                        <c:param name="cinemaId" value="${filter.cinemaId}" />
-                        <c:param name="movieId" value="${filter.movieId}" />
-                        <c:param name="channel" value="${filter.channel}" />
-                        <c:param name="groupBy" value="${filter.groupBy}" />
-                    </c:url>
-                    <a href="${exportExcelUrl}" class="btn-export excel" title="Xuất dữ liệu ra file Excel (.xlsx)">
-                        <i class="fa-solid fa-file-excel"></i> Xuất Excel
-                    </a>
-                    <a href="${exportPdfUrl}" class="btn-export pdf" title="Xuất báo cáo PDF (.pdf)">
-                        <i class="fa-solid fa-file-pdf"></i> Xuất PDF
-                    </a>
-                    <button type="button" class="btn-export" onclick="window.print()" title="In trang báo cáo này">
-                        <i class="fa-solid fa-print"></i> In
+                    <button type="button" class="btn-export pdf" onclick="window.print()" title="Xuất báo cáo dưới dạng PDF hoặc in trực tiếp" style="background:#1e293b; color:#fff; border:none; cursor:pointer;">
+                        <i class="fa-solid fa-print"></i> Xuất Báo Cáo / In PDF
                     </button>
                 </div>
             </div>
 
-            <%-- KPI Cards Row 1: Revenue Metrics --%>
-            <div class="kpi-grid-4">
+            <%-- KPI Cards Row: 3 Core Metrics --%>
+            <div class="kpi-grid-4" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));">
                 <div class="kpi-card-luxury">
                     <div class="kpi-icon-box bg-red"><i class="fa-solid fa-sack-dollar"></i></div>
                     <div class="kpi-content">
                         <h3><fmt:formatNumber value="${kpi.totalRevenue}" pattern="#,##0"/> ₫</h3>
                         <p>Tổng Doanh Thu Toàn Hệ Thống</p>
-                        <c:choose>
-                            <c:when test="${kpi.revenueGrowthPercent != null && kpi.revenueGrowthPercent > 0}">
-                                <span class="growth-badge growth-pos"><i class="fa-solid fa-arrow-up"></i> +${kpi.revenueGrowthPercent}% vs kỳ trước</span>
-                            </c:when>
-                            <c:when test="${kpi.revenueGrowthPercent != null && kpi.revenueGrowthPercent < 0}">
-                                <span class="growth-badge growth-neg"><i class="fa-solid fa-arrow-down"></i> ${kpi.revenueGrowthPercent}% vs kỳ trước</span>
-                            </c:when>
-                            <c:otherwise>
-                                <span class="growth-badge growth-neutral"><i class="fa-solid fa-minus"></i> 0.0% vs kỳ trước</span>
-                            </c:otherwise>
-                        </c:choose>
-                    </div>
-                </div>
-
-                <div class="kpi-card-luxury">
-                    <div class="kpi-icon-box bg-blue"><i class="fa-solid fa-ticket"></i></div>
-                    <div class="kpi-content">
-                        <h3><fmt:formatNumber value="${kpi.ticketRevenue}" pattern="#,##0"/> ₫</h3>
-                        <p>Doanh Thu Vé Xem Phim</p>
-                        <span style="font-size:0.75rem; color:#64748b;">
-                            Trung bình: <fmt:formatNumber value="${kpi.averageTicketPrice}" pattern="#,##0"/> ₫/vé
-                        </span>
-                    </div>
-                </div>
-
-                <div class="kpi-card-luxury">
-                    <div class="kpi-icon-box bg-amber"><i class="fa-solid fa-popcorn"></i></div>
-                    <div class="kpi-content">
-                        <h3><fmt:formatNumber value="${kpi.fnbRevenue}" pattern="#,##0"/> ₫</h3>
-                        <p>Doanh Thu Bắp Nước & F&B</p>
-                        <span style="font-size:0.75rem; color:#64748b;">
-                            Chiết khấu: -<fmt:formatNumber value="${kpi.discountAmount}" pattern="#,##0"/> ₫
-                        </span>
                     </div>
                 </div>
 
@@ -360,63 +286,16 @@
                     <div class="kpi-icon-box bg-green"><i class="fa-solid fa-receipt"></i></div>
                     <div class="kpi-content">
                         <h3><fmt:formatNumber value="${kpi.totalConfirmedBookings}" pattern="#,##0"/></h3>
-                        <p>Số Đơn Hàng Thành Công</p>
-                        <c:choose>
-                            <c:when test="${kpi.bookingsGrowthPercent != null && kpi.bookingsGrowthPercent > 0}">
-                                <span class="growth-badge growth-pos"><i class="fa-solid fa-arrow-up"></i> +${kpi.bookingsGrowthPercent}%</span>
-                            </c:when>
-                            <c:when test="${kpi.bookingsGrowthPercent != null && kpi.bookingsGrowthPercent < 0}">
-                                <span class="growth-badge growth-neg"><i class="fa-solid fa-arrow-down"></i> ${kpi.bookingsGrowthPercent}%</span>
-                            </c:when>
-                            <c:otherwise>
-                                <span class="growth-badge growth-neutral"><i class="fa-solid fa-minus"></i> 0.0%</span>
-                            </c:otherwise>
-                        </c:choose>
+                        <p>Số Đơn Đặt Vé Xác Nhận</p>
                     </div>
                 </div>
-            </div>
 
-            <%-- Charts Section --%>
-            <div class="charts-grid-2">
-                <%-- Main Time-series Chart --%>
-                <div class="chart-card">
-                    <h4>
-                        <span><i class="fa-solid fa-chart-line" style="color:#e50914;"></i> Biểu Đồ Diễn Biến Doanh Thu (${filter.groupBy == 'MONTH' ? 'Theo Tháng' : (filter.groupBy == 'WEEK' ? 'Theo Tuần' : 'Theo Ngày')})</span>
-                        <span style="font-size:0.75rem; font-weight:normal; color:#64748b;">Đơn vị: VNĐ</span>
-                    </h4>
-                    <c:choose>
-                        <c:when test="${not empty timeSeries}">
-                            <div style="height: 320px; position: relative;">
-                                <canvas id="timeSeriesChart"></canvas>
-                            </div>
-                        </c:when>
-                        <c:otherwise>
-                            <div class="empty-state">
-                                <i class="fa-solid fa-chart-area"></i>
-                                <p>Không có dữ liệu chuỗi thời gian trong kỳ lọc này.</p>
-                            </div>
-                        </c:otherwise>
-                    </c:choose>
-                </div>
-
-                <%-- Breakdown Doughnut Charts --%>
-                <div class="chart-card">
-                    <h4>
-                        <span><i class="fa-solid fa-chart-pie" style="color:#3b82f6;"></i> Cơ Cấu Doanh Thu Theo Kênh</span>
-                    </h4>
-                    <c:choose>
-                        <c:when test="${not empty byChannel}">
-                            <div style="height: 320px; position: relative;">
-                                <canvas id="channelChart"></canvas>
-                            </div>
-                        </c:when>
-                        <c:otherwise>
-                            <div class="empty-state">
-                                <i class="fa-solid fa-circle-notch"></i>
-                                <p>Chưa có dữ liệu kênh bán.</p>
-                            </div>
-                        </c:otherwise>
-                    </c:choose>
+                <div class="kpi-card-luxury">
+                    <div class="kpi-icon-box bg-blue"><i class="fa-solid fa-ticket"></i></div>
+                    <div class="kpi-content">
+                        <h3><fmt:formatNumber value="${kpi.totalTicketsSold}" pattern="#,##0"/></h3>
+                        <p>Tổng Số Vé Đã Bán Ra</p>
+                    </div>
                 </div>
             </div>
 
@@ -577,134 +456,5 @@
 </div>
 
 <%-- Script Render Chart.js --%>
-<script>
-    document.addEventListener("DOMContentLoaded", function () {
-        // 1. Time Series Chart
-        const tsCtx = document.getElementById('timeSeriesChart');
-        if (tsCtx) {
-            const labels = [
-                <c:forEach items="${timeSeries}" var="ts" varStatus="loop">
-                "${ts.periodLabel}"${!loop.last ? ',' : ''}
-                </c:forEach>
-            ];
-            const totalData = [
-                <c:forEach items="${timeSeries}" var="ts" varStatus="loop">
-                ${ts.totalRevenue}${!loop.last ? ',' : ''}
-                </c:forEach>
-            ];
-            const ticketData = [
-                <c:forEach items="${timeSeries}" var="ts" varStatus="loop">
-                ${ts.ticketRevenue}${!loop.last ? ',' : ''}
-                </c:forEach>
-            ];
-            const fnbData = [
-                <c:forEach items="${timeSeries}" var="ts" varStatus="loop">
-                ${ts.fnbRevenue}${!loop.last ? ',' : ''}
-                </c:forEach>
-            ];
-
-            new Chart(tsCtx, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [
-                        {
-                            label: 'Tổng Doanh Thu',
-                            data: totalData,
-                            borderColor: '#e50914',
-                            backgroundColor: 'rgba(229, 9, 20, 0.08)',
-                            borderWidth: 2.5,
-                            fill: true,
-                            tension: 0.3
-                        },
-                        {
-                            label: 'Doanh Thu Vé',
-                            data: ticketData,
-                            borderColor: '#3b82f6',
-                            borderWidth: 2,
-                            borderDash: [5, 5],
-                            fill: false,
-                            tension: 0.3
-                        },
-                        {
-                            label: 'Doanh Thu F&B',
-                            data: fnbData,
-                            borderColor: '#f59e0b',
-                            borderWidth: 2,
-                            fill: false,
-                            tension: 0.3
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { position: 'top' },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    return context.dataset.label + ': ' + new Intl.NumberFormat('vi-VN').format(context.parsed.y) + ' ₫';
-                                }
-                            }
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                callback: function(value) {
-                                    return new Intl.NumberFormat('vi-VN', { notation: 'compact' }).format(value) + ' ₫';
-                                }
-                            }
-                        }
-                    }
-                }
-            });
-        }
-
-        // 2. Channel Doughnut Chart
-        const chCtx = document.getElementById('channelChart');
-        if (chCtx) {
-            const chLabels = [
-                <c:forEach items="${byChannel}" var="ch" varStatus="loop">
-                "${ch.categoryName}"${!loop.last ? ',' : ''}
-                </c:forEach>
-            ];
-            const chData = [
-                <c:forEach items="${byChannel}" var="ch" varStatus="loop">
-                ${ch.revenue}${!loop.last ? ',' : ''}
-                </c:forEach>
-            ];
-
-            new Chart(chCtx, {
-                type: 'doughnut',
-                data: {
-                    labels: chLabels,
-                    datasets: [{
-                        data: chData,
-                        backgroundColor: ['#e50914', '#10b981', '#3b82f6', '#f59e0b'],
-                        borderWidth: 2
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { position: 'bottom' },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    const value = context.parsed;
-                                    return ' ' + context.label + ': ' + new Intl.NumberFormat('vi-VN').format(value) + ' ₫';
-                                }
-                            }
-                        }
-                    }
-                }
-            });
-        }
-    });
-</script>
 </body>
 </html>

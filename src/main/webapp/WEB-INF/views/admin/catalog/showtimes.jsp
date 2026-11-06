@@ -116,7 +116,7 @@
                     <c:if test="${not empty error}"><div class="alert alert-danger">${error}</div></c:if>
 
                     <c:if test="${actor.role.roleName == 'ADMIN'}">
-                        <form method="get" action="${pageContext.request.contextPath}${pageContext.request.servletPath}" class="filter-bar">
+                        <form method="get" action="${pageContext.request.contextPath}${listPath}" class="filter-bar">
                             <label>Rạp</label>
                             <select class="filter-select" name="cinemaId" onchange="this.form.submit()">
                                 <c:forEach var="cinema" items="${cinemas}">

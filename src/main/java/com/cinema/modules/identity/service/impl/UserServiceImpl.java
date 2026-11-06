@@ -278,6 +278,52 @@ public class UserServiceImpl implements UserService {
         return updated ? "OK" : "FAILED";
     }
 
+    @Override
+    public String createStaffOrManager(Long actorId, String fullName, String email, String phone, String roleName, Long cinemaId, String password) {
+        if (actorId == null) return "UNAUTHORIZED";
+        if (fullName == null || fullName.trim().isEmpty()) return "INVALID_NAME";
+        if (!ValidationUtil.isValidEmail(email)) return "INVALID_EMAIL";
+        if (phone != null && !phone.isBlank() && !ValidationUtil.isValidPhone(phone)) return "INVALID_PHONE";
+        if (!ValidationUtil.isValidPassword(password)) return "INVALID_PASSWORD";
+
+        if (!RoleConstant.STAFF.equalsIgnoreCase(roleName) && !RoleConstant.MANAGER.equalsIgnoreCase(roleName)) {
+            return "INVALID_ROLE";
+        }
+        if (cinemaId == null || cinemaId <= 0) {
+            return "CINEMA_REQUIRED";
+        }
+
+        if (userDAO.existsByEmail(email.trim().toLowerCase())) {
+            return "EMAIL_TAKEN";
+        }
+        if (phone != null && !phone.isBlank() && userDAO.existsByPhone(phone.trim())) {
+            return "PHONE_TAKEN";
+        }
+
+        User newUser = User.builder()
+                .cinemaId(cinemaId)
+                .email(email.trim().toLowerCase())
+                .passwordHash(PasswordUtil.hashPassword(password.trim()))
+                .fullName(fullName.trim())
+                .phone(phone != null && !phone.isBlank() ? phone.trim() : null)
+                .status("ACTIVE")
+                .emailVerified(true)
+                .build();
+
+        Long id = userDAO.insertStaffOrManager(newUser, roleName.toUpperCase());
+        return id != null ? "OK" : "FAILED";
+    }
+
+    @Override
+    public String softDeleteUser(Long actorId, Long targetId) {
+        if (actorId == null || targetId == null) return "NOT_FOUND";
+        if (actorId.equals(targetId)) return "SELF";
+        User target = userDAO.findById(targetId);
+        if (target == null) return "NOT_FOUND";
+        if (isAdmin(target) && userDAO.countActiveAdmins() <= 1) return "LAST_ADMIN";
+        return userDAO.softDelete(targetId) ? "OK" : "FAILED";
+    }
+
     private boolean isAdmin(User user) {
         return user.getRole() != null && RoleConstant.ADMIN.equalsIgnoreCase(user.getRole().getRoleName());
     }

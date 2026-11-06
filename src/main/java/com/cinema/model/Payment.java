@@ -11,8 +11,9 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /**
- * Entity Lịch sử thanh toán giao dịch (Bảng payments - Zone 4)
- */
+ * Entity Lá»‹ch sá»­ thanh toÃ¡n giao dá»‹ch (Báº£ng payments - Zone 4)
+ 
+ * Refactor update: Lam ro trach nhiem lop cho de bao tri.*/
 @Getter
 @Setter
 @Builder
@@ -25,5 +26,6 @@ public class Payment extends BaseEntity {
     private BigDecimal amount;
     private String transactionNo;
     private LocalDateTime paymentTime;
-    private String status; // SUCCESS, FAILED, REFUNDED
+    private String status; // SUCCESS, FAILED,
 }
+
