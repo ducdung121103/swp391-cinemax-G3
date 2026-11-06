@@ -234,6 +234,8 @@
                                 <c:when test="${msg == 'row_updated'}">Đã cập nhật loại ghế cho cả hàng ghế!</c:when>
                                 <c:when test="${msg == 'matrix_regenerated'}">Đã khởi tạo lại toàn bộ ma trận ghế cho phòng chiếu!</c:when>
                                 <c:when test="${msg == 'type_updated'}">Đã cập nhật thông số phụ thu loại ghế!</c:when>
+                                <c:when test="${msg == 'maintenance_toggled'}">Đã cập nhật trạng thái bảo trì cho các ghế được chọn!</c:when>
+                                <c:when test="${msg == 'all_seats_restored'}">Đã mở lại toàn bộ ghế bảo trì trong phòng thành công!</c:when>
                                 <c:otherwise>Thao tác thành công!</c:otherwise>
                             </c:choose>
                         </span>
@@ -410,11 +412,26 @@
                                 </button>
                             </form>
 
-                            <!-- Chuyển hướng sang Màn hình Quản lý Bảo trì Ghế riêng biệt (M-04.4) -->
+                            <!-- Thao tác bảo trì nhanh -->
                             <div style="margin-top: 15px; padding-top: 15px; border-top: 1px dashed #e2e8f0;">
-                                <a href="${pageContext.request.contextPath}/admin/infrastructure/seat-maintenance?roomId=${selectedRoomId}" class="btn-action-secondary" style="display: flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none; background: #fffaf0; color: #dd6b20; border: 1px solid #fbd38d; padding: 10px; border-radius: 6px; font-weight: 700; font-size: 0.85rem;">
-                                    <i class="fa-solid fa-wrench"></i> Quản Lý Bảo Trì Ghế Phòng Này &rarr;
-                                </a>
+                                <div style="font-size: 0.8rem; font-weight: 700; color: #4a5568; margin-bottom: 8px;">
+                                    <i class="fa-solid fa-wrench" style="color: #ed8936;"></i> THAO TÁC BẢO TRÌ NHANH
+                                </div>
+                                <div style="display: flex; flex-direction: column; gap: 8px;">
+                                    <button type="button" class="btn-action-secondary" id="btnQuickMaintToggle" style="background: #ed8936; color: #fff; width: 100%; border: none;" onclick="quickToggleMaint(true)" disabled>
+                                        <i class="fa-solid fa-tools"></i> Chuyển Ghế Đang Chọn sang BẢO TRÌ
+                                    </button>
+                                    <button type="button" class="btn-action-secondary" id="btnQuickMaintRestore" style="background: #319795; color: #fff; width: 100%; border: none;" onclick="quickToggleMaint(false)" disabled>
+                                        <i class="fa-solid fa-check-circle"></i> Mở Lại Ghế Đang Chọn (ACTIVE)
+                                    </button>
+                                    <form method="POST" action="${pageContext.request.contextPath}/admin/infrastructure/seats" onsubmit="return confirm('Bạn có chắc chắn muốn mở lại TOÀN BỘ ghế bảo trì trong phòng này về trạng thái HOẠT ĐỘNG?')">
+                                        <input type="hidden" name="action" value="restoreAllRoomSeats">
+                                        <input type="hidden" name="roomId" value="${selectedRoomId}">
+                                        <button type="submit" class="btn-action-secondary" style="background: #4a5568; color: #fff; width: 100%; border: none;">
+                                            <i class="fa-solid fa-arrows-rotate"></i> Khôi Phục Toàn Bộ Ghế Phòng
+                                        </button>
+                                    </form>
+                                </div>
                             </div>
                         </div>
 

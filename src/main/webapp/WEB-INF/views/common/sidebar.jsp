@@ -59,16 +59,10 @@
                         <span>Quản lý Phòng Chiếu</span>
                     </a>
                 </li>
-                <li class="${(currentUri.contains('/infrastructure/seats') && !currentUri.contains('seat-maintenance')) ? 'active' : ''}">
+                <li class="${currentUri.contains('/infrastructure/seats') ? 'active' : ''}">
                     <a href="${pageContext.request.contextPath}/admin/infrastructure/seats">
                         <i class="fa-solid fa-couch"></i>
                         <span>Thiết Kế Sơ Đồ Ghế</span>
-                    </a>
-                </li>
-                <li class="${currentUri.contains('/infrastructure/seat-maintenance') || currentUri.contains('/seats/maintenance') ? 'active' : ''}">
-                    <a href="${pageContext.request.contextPath}/admin/infrastructure/seat-maintenance">
-                        <i class="fa-solid fa-wrench"></i>
-                        <span>Quản Lý Bảo Trì Ghế</span>
                     </a>
                 </li>
                 <li class="${currentUri.contains('/infrastructure/settings') ? 'active' : ''}">
