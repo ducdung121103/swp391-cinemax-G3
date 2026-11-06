@@ -43,16 +43,13 @@ class RevenueReportServiceTest {
     @Test
     @DisplayName("Should resolve default filter to current month when dates are omitted")
     void testResolveAndValidateFilterDefaults() {
-        RevenueFilterDTO filter = service.resolveAndValidateFilter(null, null, null, null, null, null, null, null);
+        RevenueFilterDTO filter = service.resolveAndValidateFilter(null, null, null, null, null);
 
         assertNotNull(filter);
         LocalDate now = LocalDate.now();
         assertEquals(now.withDayOfMonth(1), filter.getFrom());
         assertEquals(now, filter.getTo());
         assertNull(filter.getCinemaId());
-        assertNull(filter.getMovieId());
-        assertEquals("ALL", filter.getChannel());
-        assertEquals("DAY", filter.getGroupBy());
         assertEquals(1, filter.getPage());
         assertEquals(20, filter.getPageSize());
     }
@@ -60,16 +57,12 @@ class RevenueReportServiceTest {
     @Test
     @DisplayName("Should successfully parse valid custom date range and parameters")
     void testResolveAndValidateFilterCustomValid() {
-        RevenueFilterDTO filter = service.resolveAndValidateFilter(
-                "2026-10-01", "2026-10-31", "2", "5", "online", "week", "2", "50");
+        RevenueFilterDTO filter = service.resolveAndValidateFilter("2026-10-01", "2026-10-31", "2", "2", "50");
 
         assertNotNull(filter);
         assertEquals(LocalDate.of(2026, 10, 1), filter.getFrom());
         assertEquals(LocalDate.of(2026, 10, 31), filter.getTo());
         assertEquals(2L, filter.getCinemaId());
-        assertEquals(5L, filter.getMovieId());
-        assertEquals("ONLINE", filter.getChannel());
-        assertEquals("WEEK", filter.getGroupBy());
         assertEquals(2, filter.getPage());
         assertEquals(50, filter.getPageSize());
     }
@@ -78,7 +71,7 @@ class RevenueReportServiceTest {
     @DisplayName("Should throw IllegalArgumentException when from date is after to date")
     void testResolveAndValidateFilterFromAfterTo() {
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () ->
-                service.resolveAndValidateFilter("2026-11-15", "2026-11-01", null, null, null, null, null, null));
+                service.resolveAndValidateFilter("2026-11-15", "2026-11-01", null, null, null));
 
         assertTrue(ex.getMessage().contains("Ngày bắt đầu không được lớn hơn ngày kết thúc"));
     }
@@ -87,7 +80,7 @@ class RevenueReportServiceTest {
     @DisplayName("Should throw IllegalArgumentException when date range exceeds 366 days")
     void testResolveAndValidateFilterRangeTooLarge() {
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () ->
-                service.resolveAndValidateFilter("2025-01-01", "2026-01-15", null, null, null, null, null, null));
+                service.resolveAndValidateFilter("2025-01-01", "2026-01-15", null, null, null));
 
         assertTrue(ex.getMessage().contains("không được vượt quá 366 ngày"));
     }
@@ -100,7 +93,7 @@ class RevenueReportServiceTest {
         RevenueFilterDTO filter = RevenueFilterDTO.builder()
                 .from(from)
                 .to(to)
-                .channel("ALL")
+                .cinemaId(2L)
                 .build();
 
         RevenueKpiDTO expectedKpi = RevenueKpiDTO.builder()
@@ -109,7 +102,7 @@ class RevenueReportServiceTest {
                 .totalTicketsSold(24)
                 .build();
 
-        when(revenueReportDAO.getKpiMetrics(eq(from), eq(to), any(), any(), eq("ALL"))).thenReturn(expectedKpi);
+        when(revenueReportDAO.getKpiMetrics(eq(from), eq(to), eq(2L))).thenReturn(expectedKpi);
 
         RevenueKpiDTO result = service.getRevenueKpis(filter);
 
@@ -118,6 +111,6 @@ class RevenueReportServiceTest {
         assertEquals(12, result.getTotalConfirmedBookings());
         assertEquals(24, result.getTotalTicketsSold());
 
-        verify(revenueReportDAO).getKpiMetrics(eq(from), eq(to), any(), any(), eq("ALL"));
+        verify(revenueReportDAO).getKpiMetrics(eq(from), eq(to), eq(2L));
     }
 }

@@ -254,33 +254,6 @@
                             </c:forEach>
                         </select>
                     </div>
-                    <div>
-                        <label style="font-size:0.75rem; color:#64748b; font-weight:700; display:block; margin-bottom:2px;">PHIM CHIẾU</label>
-                        <select name="movieId" class="filter-select" style="max-width:200px;">
-                            <option value="ALL">-- Tất cả phim --</option>
-                            <c:forEach items="${movies}" var="m">
-                                <option value="${m.id}" ${filter.movieId == m.id ? 'selected' : ''}>
-                                    <c:out value="${m.title}" />
-                                </option>
-                            </c:forEach>
-                        </select>
-                    </div>
-                    <div>
-                        <label style="font-size:0.75rem; color:#64748b; font-weight:700; display:block; margin-bottom:2px;">KÊNH BÁN</label>
-                        <select name="channel" class="filter-select">
-                            <option value="ALL" ${filter.channel == 'ALL' ? 'selected' : ''}>Tất cả kênh</option>
-                            <option value="ONLINE" ${filter.channel == 'ONLINE' ? 'selected' : ''}>Trực tuyến (Web/App)</option>
-                            <option value="POS" ${filter.channel == 'POS' ? 'selected' : ''}>Quầy vé (POS)</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label style="font-size:0.75rem; color:#64748b; font-weight:700; display:block; margin-bottom:2px;">GOM THEO</label>
-                        <select name="groupBy" class="filter-select">
-                            <option value="DAY" ${filter.groupBy == 'DAY' ? 'selected' : ''}>Theo Ngày</option>
-                            <option value="WEEK" ${filter.groupBy == 'WEEK' ? 'selected' : ''}>Theo Tuần</option>
-                            <option value="MONTH" ${filter.groupBy == 'MONTH' ? 'selected' : ''}>Theo Tháng</option>
-                        </select>
-                    </div>
                     <div style="align-self:flex-end;">
                         <button type="submit" class="btn btn-primary" style="padding:8px 16px; border-radius:6px; font-size:0.85rem; font-weight:700; background:#e50914; border:none; color:#fff; cursor:pointer;">
                             <i class="fa-solid fa-filter"></i> Lọc
@@ -299,8 +272,8 @@
                 </div>
             </div>
 
-            <%-- KPI Cards Row 1: Revenue Metrics --%>
-            <div class="kpi-grid-4">
+            <%-- KPI Cards Row: 3 Core Metrics --%>
+            <div class="kpi-grid-4" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));">
                 <div class="kpi-card-luxury">
                     <div class="kpi-icon-box bg-red"><i class="fa-solid fa-sack-dollar"></i></div>
                     <div class="kpi-content">
@@ -310,35 +283,22 @@
                 </div>
 
                 <div class="kpi-card-luxury">
-                    <div class="kpi-icon-box bg-blue"><i class="fa-solid fa-ticket"></i></div>
-                    <div class="kpi-content">
-                        <h3><fmt:formatNumber value="${kpi.ticketRevenue}" pattern="#,##0"/> ₫</h3>
-                        <p>Doanh Thu Vé Xem Phim</p>
-                        <span style="font-size:0.75rem; color:#64748b;">
-                            Trung bình: <fmt:formatNumber value="${kpi.averageTicketPrice}" pattern="#,##0"/> ₫/vé
-                        </span>
-                    </div>
-                </div>
-
-                <div class="kpi-card-luxury">
-                    <div class="kpi-icon-box bg-amber"><i class="fa-solid fa-popcorn"></i></div>
-                    <div class="kpi-content">
-                        <h3><fmt:formatNumber value="${kpi.fnbRevenue}" pattern="#,##0"/> ₫</h3>
-                        <p>Doanh Thu Bắp Nước & F&B</p>
-                        <span style="font-size:0.75rem; color:#64748b;">
-                            Chiết khấu: -<fmt:formatNumber value="${kpi.discountAmount}" pattern="#,##0"/> ₫
-                        </span>
-                    </div>
-                </div>
-
-                <div class="kpi-card-luxury">
                     <div class="kpi-icon-box bg-green"><i class="fa-solid fa-receipt"></i></div>
                     <div class="kpi-content">
                         <h3><fmt:formatNumber value="${kpi.totalConfirmedBookings}" pattern="#,##0"/></h3>
-                        <p>Số Đơn Hàng Thành Công</p>
+                        <p>Số Đơn Đặt Vé Xác Nhận</p>
+                    </div>
+                </div>
+
+                <div class="kpi-card-luxury">
+                    <div class="kpi-icon-box bg-blue"><i class="fa-solid fa-ticket"></i></div>
+                    <div class="kpi-content">
+                        <h3><fmt:formatNumber value="${kpi.totalTicketsSold}" pattern="#,##0"/></h3>
+                        <p>Tổng Số Vé Đã Bán Ra</p>
                     </div>
                 </div>
             </div>
+
             <%-- Tables Section: Top Movies & Branch Performance --%>
             <div class="tables-grid-2">
                 <%-- Top Movies --%>

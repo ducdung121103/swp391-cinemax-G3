@@ -2,19 +2,15 @@ package com.cinema.modules.infrastructure.service.impl;
 
 import com.cinema.common.dto.PageResult;
 import com.cinema.model.Cinema;
-import com.cinema.model.Movie;
 import com.cinema.modules.infrastructure.dao.RevenueReportDAO;
 import com.cinema.modules.infrastructure.dto.BookingDetailDTO;
 import com.cinema.modules.infrastructure.dto.RevenueBreakdownDTO;
 import com.cinema.modules.infrastructure.dto.RevenueFilterDTO;
 import com.cinema.modules.infrastructure.dto.RevenueKpiDTO;
-import com.cinema.modules.infrastructure.dto.RevenueTimeSeriesDTO;
 import com.cinema.modules.infrastructure.service.RevenueReportService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -37,7 +33,6 @@ public class RevenueReportServiceImpl implements RevenueReportService {
 
     @Override
     public RevenueFilterDTO resolveAndValidateFilter(String fromStr, String toStr, String cinemaIdStr,
-                                                     String movieIdStr, String channel, String groupBy,
                                                      String pageStr, String pageSizeStr) {
         LocalDate now = LocalDate.now();
         LocalDate from;
@@ -71,23 +66,6 @@ public class RevenueReportServiceImpl implements RevenueReportService {
             } catch (NumberFormatException ignored) {}
         }
 
-        Long movieId = null;
-        if (movieIdStr != null && !movieIdStr.isBlank() && !"ALL".equalsIgnoreCase(movieIdStr)) {
-            try {
-                movieId = Long.parseLong(movieIdStr.trim());
-            } catch (NumberFormatException ignored) {}
-        }
-
-        String normalizedChannel = (channel != null && !channel.isBlank()) ? channel.trim().toUpperCase() : "ALL";
-        if (!"ALL".equals(normalizedChannel) && !"ONLINE".equals(normalizedChannel) && !"POS".equals(normalizedChannel)) {
-            normalizedChannel = "ALL";
-        }
-
-        String normalizedGroupBy = (groupBy != null && !groupBy.isBlank()) ? groupBy.trim().toUpperCase() : "DAY";
-        if (!"DAY".equals(normalizedGroupBy) && !"WEEK".equals(normalizedGroupBy) && !"MONTH".equals(normalizedGroupBy)) {
-            normalizedGroupBy = "DAY";
-        }
-
         int page = 1;
         if (pageStr != null && !pageStr.isBlank()) {
             try {
@@ -106,9 +84,6 @@ public class RevenueReportServiceImpl implements RevenueReportService {
                 .from(from)
                 .to(to)
                 .cinemaId(cinemaId)
-                .movieId(movieId)
-                .channel(normalizedChannel)
-                .groupBy(normalizedGroupBy)
                 .page(page)
                 .pageSize(pageSize)
                 .build();
@@ -116,35 +91,26 @@ public class RevenueReportServiceImpl implements RevenueReportService {
 
     @Override
     public RevenueKpiDTO getRevenueKpis(RevenueFilterDTO filter) {
-        return revenueReportDAO.getKpiMetrics(
-                filter.getFrom(), filter.getTo(), filter.getCinemaId(), filter.getMovieId(), filter.getChannel());
+        return revenueReportDAO.getKpiMetrics(filter.getFrom(), filter.getTo(), filter.getCinemaId());
     }
 
-@Override
+    @Override
     public List<RevenueBreakdownDTO> getRevenueByMovie(RevenueFilterDTO filter, int limit) {
-        return revenueReportDAO.getRevenueByMovie(
-                filter.getFrom(), filter.getTo(), filter.getCinemaId(), filter.getMovieId(), filter.getChannel(), limit);
+        return revenueReportDAO.getRevenueByMovie(filter.getFrom(), filter.getTo(), filter.getCinemaId(), limit);
     }
 
     @Override
     public List<RevenueBreakdownDTO> getRevenueByCinema(RevenueFilterDTO filter) {
-        return revenueReportDAO.getRevenueByCinema(
-                filter.getFrom(), filter.getTo(), filter.getCinemaId(), filter.getMovieId(), filter.getChannel());
-    }
-
-@Override
-    public PageResult<BookingDetailDTO> getBookingDetailsPaged(RevenueFilterDTO filter) {
-        return revenueReportDAO.getBookingDetailsPaged(filter);
+        return revenueReportDAO.getRevenueByCinema(filter.getFrom(), filter.getTo(), filter.getCinemaId());
     }
 
     @Override
-    public List<Movie> getAllMoviesForFilter() {
-        return revenueReportDAO.getAllMoviesForFilter();
+    public PageResult<BookingDetailDTO> getBookingDetailsPaged(RevenueFilterDTO filter) {
+        return revenueReportDAO.getBookingDetailsPaged(filter);
     }
 
     @Override
     public List<Cinema> getAllCinemasForFilter() {
         return revenueReportDAO.getAllCinemasForFilter();
     }
-
 }

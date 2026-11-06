@@ -36,16 +36,15 @@ public class RevenueReportDAO {
     /**
      * Aggregates key revenue KPIs for a given date range and filter criteria.
      */
-    public RevenueKpiDTO getKpiMetrics(LocalDate from, LocalDate to, Long cinemaId, Long movieId, String channel) {
+        public RevenueKpiDTO getKpiMetrics(LocalDate from, LocalDate to, Long cinemaId) {
         StringBuilder sql = new StringBuilder();
         sql.append("WITH BookingMetrics AS ( ");
-        sql.append("  SELECT b.id, p.amount, b.total_tickets_amount, b.total_fnb_amount, b.discount_amount ");
+        sql.append("  SELECT b.id, p.amount ");
         sql.append("  FROM payments p ");
         sql.append("  JOIN bookings b ON p.booking_id = b.id ");
         sql.append("  JOIN showtimes st ON b.showtime_id = st.id ");
         sql.append("  JOIN screening_rooms sr ON st.screening_room_id = sr.id ");
         sql.append("  JOIN cinemas c ON sr.cinema_id = c.id ");
-        sql.append("  JOIN movies m ON st.movie_id = m.id ");
         sql.append("  WHERE p.status = 'SUCCESS' AND b.status = 'CONFIRMED' AND b.is_deleted = 0 ");
         sql.append("    AND sr.is_deleted = 0 AND c.is_deleted = 0 ");
         sql.append("    AND p.payment_time >= ? AND p.payment_time <= ? ");
@@ -54,13 +53,10 @@ public class RevenueReportDAO {
         params.add(Timestamp.valueOf(from.atStartOfDay()));
         params.add(Timestamp.valueOf(to.atTime(23, 59, 59, 999999999)));
 
-        appendCommonFilters(sql, params, cinemaId, movieId, channel);
+        appendCommonFilters(sql, params, cinemaId);
         sql.append(") ");
         sql.append("SELECT ");
         sql.append("  COALESCE(SUM(amount), 0) AS total_revenue, ");
-        sql.append("  COALESCE(SUM(total_tickets_amount), 0) AS ticket_revenue, ");
-        sql.append("  COALESCE(SUM(total_fnb_amount), 0) AS fnb_revenue, ");
-        sql.append("  COALESCE(SUM(discount_amount), 0) AS discount_amount, ");
         sql.append("  COUNT(id) AS confirmed_bookings, ");
         sql.append("  COALESCE((SELECT COUNT(t.id) FROM tickets t WHERE t.booking_id IN (SELECT id FROM BookingMetrics) AND t.status IN ('VALID', 'USED') AND t.is_deleted = 0), 0) AS tickets_sold ");
         sql.append("FROM BookingMetrics");
@@ -71,24 +67,13 @@ public class RevenueReportDAO {
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     BigDecimal totalRev = rs.getBigDecimal("total_revenue").setScale(0, RoundingMode.HALF_UP);
-                    BigDecimal ticketRev = rs.getBigDecimal("ticket_revenue").setScale(0, RoundingMode.HALF_UP);
-                    BigDecimal fnbRev = rs.getBigDecimal("fnb_revenue").setScale(0, RoundingMode.HALF_UP);
-                    BigDecimal discAmt = rs.getBigDecimal("discount_amount").setScale(0, RoundingMode.HALF_UP);
                     int bookings = rs.getInt("confirmed_bookings");
                     int tickets = rs.getInt("tickets_sold");
 
-                    BigDecimal aov = bookings > 0 ? totalRev.divide(BigDecimal.valueOf(bookings), 0, RoundingMode.HALF_UP) : BigDecimal.ZERO;
-                    BigDecimal atp = tickets > 0 ? ticketRev.divide(BigDecimal.valueOf(tickets), 0, RoundingMode.HALF_UP) : BigDecimal.ZERO;
-
                     return RevenueKpiDTO.builder()
                             .totalRevenue(totalRev)
-                            .ticketRevenue(ticketRev)
-                            .fnbRevenue(fnbRev)
-                            .discountAmount(discAmt)
                             .totalConfirmedBookings(bookings)
                             .totalTicketsSold(tickets)
-                            .averageOrderValue(aov)
-                            .averageTicketPrice(atp)
                             .build();
                 }
             }
@@ -104,7 +89,7 @@ public class RevenueReportDAO {
     /**
      * Retrieves revenue breakdown by Movie (Top N).
      */
-    public List<RevenueBreakdownDTO> getRevenueByMovie(LocalDate from, LocalDate to, Long cinemaId, Long movieId, String channel, int limit) {
+    public List<RevenueBreakdownDTO> getRevenueByMovie(LocalDate from, LocalDate to, Long cinemaId, int limit) {
         StringBuilder sql = new StringBuilder();
         sql.append("WITH BookingMovie AS ( ");
         sql.append("  SELECT b.id AS booking_id, m.id AS movie_id, m.title AS movie_title, p.amount ");
@@ -122,7 +107,7 @@ public class RevenueReportDAO {
         params.add(Timestamp.valueOf(from.atStartOfDay()));
         params.add(Timestamp.valueOf(to.atTime(23, 59, 59, 999999999)));
 
-        appendCommonFilters(sql, params, cinemaId, movieId, channel);
+        appendCommonFilters(sql, params, cinemaId);
         sql.append(") ");
         sql.append("SELECT TOP (?) ");
         sql.append("  bm.movie_id, bm.movie_title, ");
@@ -140,7 +125,7 @@ public class RevenueReportDAO {
     /**
      * Retrieves revenue breakdown by Cinema.
      */
-    public List<RevenueBreakdownDTO> getRevenueByCinema(LocalDate from, LocalDate to, Long cinemaId, Long movieId, String channel) {
+    public List<RevenueBreakdownDTO> getRevenueByCinema(LocalDate from, LocalDate to, Long cinemaId) {
         StringBuilder sql = new StringBuilder();
         sql.append("WITH BookingCinema AS ( ");
         sql.append("  SELECT b.id AS booking_id, c.id AS cinema_id, c.name AS cinema_name, p.amount ");
@@ -158,7 +143,7 @@ public class RevenueReportDAO {
         params.add(Timestamp.valueOf(from.atStartOfDay()));
         params.add(Timestamp.valueOf(to.atTime(23, 59, 59, 999999999)));
 
-        appendCommonFilters(sql, params, cinemaId, movieId, channel);
+        appendCommonFilters(sql, params, cinemaId);
         sql.append(") ");
         sql.append("SELECT ");
         sql.append("  bc.cinema_id, bc.cinema_name, ");
@@ -191,7 +176,7 @@ public class RevenueReportDAO {
         params.add(Timestamp.valueOf(filter.getFrom().atStartOfDay()));
         params.add(Timestamp.valueOf(filter.getTo().atTime(23, 59, 59, 999999999)));
 
-        appendCommonFilters(whereClause, params, filter.getCinemaId(), filter.getMovieId(), filter.getChannel());
+        appendCommonFilters(whereClause, params, filter.getCinemaId());
 
         // 1. Count total elements
         String countSql = "SELECT COUNT(*) FROM payments p " +
@@ -324,18 +309,10 @@ public class RevenueReportDAO {
     // Private Helpers
     // =========================================================================
 
-    private void appendCommonFilters(StringBuilder sql, List<Object> params, Long cinemaId, Long movieId, String channel) {
+        private void appendCommonFilters(StringBuilder sql, List<Object> params, Long cinemaId) {
         if (cinemaId != null && cinemaId > 0) {
             sql.append(" AND c.id = ? ");
             params.add(cinemaId);
-        }
-        if (movieId != null && movieId > 0) {
-            sql.append(" AND m.id = ? ");
-            params.add(movieId);
-        }
-        if (channel != null && !channel.isBlank() && !"ALL".equalsIgnoreCase(channel)) {
-            sql.append(" AND b.channel = ? ");
-            params.add(channel.trim().toUpperCase());
         }
     }
 

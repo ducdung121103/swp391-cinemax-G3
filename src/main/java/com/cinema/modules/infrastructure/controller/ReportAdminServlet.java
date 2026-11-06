@@ -75,9 +75,6 @@ public class ReportAdminServlet extends HttpServlet {
                     req.getParameter("from"),
                     req.getParameter("to"),
                     req.getParameter("cinemaId"),
-                    req.getParameter("movieId"),
-                    req.getParameter("channel"),
-                    req.getParameter("groupBy"),
                     req.getParameter("page"),
                     req.getParameter("pageSize")
             );
@@ -87,7 +84,6 @@ public class ReportAdminServlet extends HttpServlet {
             List<RevenueBreakdownDTO> byCinema = revenueReportService.getRevenueByCinema(filter);
             PageResult<BookingDetailDTO> bookingsPaged = revenueReportService.getBookingDetailsPaged(filter);
 
-            List<Movie> movies = revenueReportService.getAllMoviesForFilter();
             List<Cinema> cinemas = revenueReportService.getAllCinemasForFilter();
 
             req.setAttribute("filter", filter);
@@ -95,7 +91,6 @@ public class ReportAdminServlet extends HttpServlet {
             req.setAttribute("byMovie", byMovie);
             req.setAttribute("byCinema", byCinema);
             req.setAttribute("bookingsPaged", bookingsPaged);
-            req.setAttribute("movies", movies);
             req.setAttribute("cinemas", cinemas);
 
             // Flash messages
@@ -108,10 +103,9 @@ public class ReportAdminServlet extends HttpServlet {
 
         } catch (IllegalArgumentException e) {
             req.setAttribute("error", e.getMessage());
-            RevenueFilterDTO safeFilter = revenueReportService.resolveAndValidateFilter(null, null, null, null, null, null, null, null);
+            RevenueFilterDTO safeFilter = revenueReportService.resolveAndValidateFilter(null, null, null, null, null);
             req.setAttribute("filter", safeFilter);
             req.setAttribute("kpi", revenueReportService.getRevenueKpis(safeFilter));
-            req.setAttribute("movies", revenueReportService.getAllMoviesForFilter());
             req.setAttribute("cinemas", revenueReportService.getAllCinemasForFilter());
             req.getRequestDispatcher("/WEB-INF/views/admin/infrastructure/revenue-report.jsp").forward(req, resp);
 
@@ -130,10 +124,7 @@ public class ReportAdminServlet extends HttpServlet {
                     req.getParameter("from"),
                     req.getParameter("to"),
                     req.getParameter("cinemaId"),
-                    req.getParameter("movieId"),
-                    req.getParameter("channel"),
-                    req.getParameter("groupBy"),
-                    "1", "1000" // Export up to 1000 drill-down detail rows
+                    "1", "1000"
             );
 
             String format = req.getParameter("format");
