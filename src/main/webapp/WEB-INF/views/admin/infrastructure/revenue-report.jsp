@@ -177,9 +177,20 @@
             margin-bottom: 12px;
         }
         @media print {
-            .admin-sidebar, .admin-navbar, .filter-toolbar, .pagination-box, .btn-export { display: none !important; }
-            .admin-main { margin: 0 !important; padding: 0 !important; }
-            .chart-card, .kpi-card-luxury { break-inside: avoid; box-shadow: none !important; border: 1px solid #ccc !important; }
+            * {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            @page {
+                size: A4 portrait;
+                margin: 10mm;
+            }
+            .admin-sidebar, .admin-navbar, .filter-toolbar, .filter-group, .pagination-box, .btn-export, .btn-back-dashboard, .breadcrumb, .btn-sidebar-toggle {
+                display: none !important;
+            }
+            .admin-main { margin: 0 !important; padding: 0 !important; width: 100% !important; }
+            .admin-content { padding: 0 !important; }
+            .chart-card, .kpi-card-luxury { break-inside: avoid; page-break-inside: avoid; box-shadow: none !important; border: 1px solid #cbd5e1 !important; }
         }
     </style>
 </head>
@@ -304,11 +315,8 @@
                     <a href="${exportExcelUrl}" class="btn-export excel" title="Xuất dữ liệu ra file Excel (.xlsx)">
                         <i class="fa-solid fa-file-excel"></i> Xuất Excel
                     </a>
-                    <a href="${exportPdfUrl}" class="btn-export pdf" title="Xuất báo cáo PDF (.pdf)">
-                        <i class="fa-solid fa-file-pdf"></i> Xuất PDF
-                    </a>
-                    <button type="button" class="btn-export" onclick="window.print()" title="In trang báo cáo này">
-                        <i class="fa-solid fa-print"></i> In
+                    <button type="button" class="btn-export pdf" onclick="window.print()" title="Xuất báo cáo dưới dạng PDF hoặc in trực tiếp" style="background:#1e293b; color:#fff; border:none; cursor:pointer;">
+                        <i class="fa-solid fa-print"></i> Xuất Báo Cáo / In PDF
                     </button>
                 </div>
             </div>

@@ -103,12 +103,30 @@
         }
 
         @media print {
-            .admin-sidebar, .admin-navbar, .filter-toolbar, .btn-print, .action-link {
+            * {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            @page {
+                size: A4 portrait;
+                margin: 10mm;
+            }
+            .admin-sidebar, .admin-navbar, .filter-toolbar, .btn-print, .action-link, .btn-sidebar-toggle, .breadcrumb {
                 display: none !important;
             }
             .admin-main {
                 margin: 0 !important;
                 padding: 0 !important;
+                width: 100% !important;
+            }
+            .admin-content {
+                padding: 0 !important;
+            }
+            .admin-card {
+                box-shadow: none !important;
+                border: 1px solid #cbd5e1 !important;
+                break-inside: avoid;
+                page-break-inside: avoid;
             }
         }
     </style>
