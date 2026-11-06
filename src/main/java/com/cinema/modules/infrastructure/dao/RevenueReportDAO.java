@@ -99,71 +99,7 @@ public class RevenueReportDAO {
         return RevenueKpiDTO.builder().build();
     }
 
-    /**
-     * Retrieves aggregated time-series revenue grouped by DAY, WEEK, or MONTH.
-     */
-    public List<RevenueTimeSeriesDTO> getTimeSeriesRevenue(LocalDate from, LocalDate to, Long cinemaId, Long movieId, String channel, String groupBy) {
-        List<RevenueTimeSeriesDTO> list = new ArrayList<>();
-        String normalizedGroupBy = (groupBy != null && !groupBy.isBlank()) ? groupBy.toUpperCase() : "DAY";
 
-        StringBuilder sql = new StringBuilder();
-        sql.append("WITH BaseData AS ( ");
-        sql.append("  SELECT b.id, p.amount, b.total_tickets_amount, b.total_fnb_amount, ");
-        if ("MONTH".equals(normalizedGroupBy)) {
-            sql.append("    FORMAT(p.payment_time, 'yyyy-MM') AS period_label ");
-        } else if ("WEEK".equals(normalizedGroupBy)) {
-            sql.append("    CONCAT(YEAR(p.payment_time), '-W', RIGHT('0' + CAST(DATEPART(WEEK, p.payment_time) AS VARCHAR(2)), 2)) AS period_label ");
-        } else {
-            sql.append("    CONVERT(VARCHAR(10), p.payment_time, 120) AS period_label ");
-        }
-        sql.append("  FROM payments p ");
-        sql.append("  JOIN bookings b ON p.booking_id = b.id ");
-        sql.append("  JOIN showtimes st ON b.showtime_id = st.id ");
-        sql.append("  JOIN screening_rooms sr ON st.screening_room_id = sr.id ");
-        sql.append("  JOIN cinemas c ON sr.cinema_id = c.id ");
-        sql.append("  JOIN movies m ON st.movie_id = m.id ");
-        sql.append("  WHERE p.status = 'SUCCESS' AND b.status = 'CONFIRMED' AND b.is_deleted = 0 ");
-        sql.append("    AND sr.is_deleted = 0 AND c.is_deleted = 0 ");
-        sql.append("    AND p.payment_time >= ? AND p.payment_time <= ? ");
-
-        List<Object> params = new ArrayList<>();
-        params.add(Timestamp.valueOf(from.atStartOfDay()));
-        params.add(Timestamp.valueOf(to.atTime(23, 59, 59, 999999999)));
-
-        appendCommonFilters(sql, params, cinemaId, movieId, channel);
-        sql.append(") ");
-        sql.append("SELECT ");
-        sql.append("  period_label, ");
-        sql.append("  COALESCE(SUM(amount), 0) AS total_revenue, ");
-        sql.append("  COALESCE(SUM(total_tickets_amount), 0) AS ticket_revenue, ");
-        sql.append("  COALESCE(SUM(total_fnb_amount), 0) AS fnb_revenue, ");
-        sql.append("  COUNT(id) AS bookings_count, ");
-        sql.append("  (SELECT COUNT(t.id) FROM tickets t WHERE t.booking_id IN (SELECT b2.id FROM BaseData b2 WHERE b2.period_label = BaseData.period_label) AND t.status IN ('VALID', 'USED') AND t.is_deleted = 0) AS tickets_count ");
-        sql.append("FROM BaseData ");
-        sql.append("GROUP BY period_label ");
-        sql.append("ORDER BY period_label ASC");
-
-        try (Connection conn = DBContext.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
-            setParameters(ps, params);
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    list.add(RevenueTimeSeriesDTO.builder()
-                            .periodLabel(rs.getString("period_label"))
-                            .totalRevenue(rs.getBigDecimal("total_revenue").setScale(0, RoundingMode.HALF_UP))
-                            .ticketRevenue(rs.getBigDecimal("ticket_revenue").setScale(0, RoundingMode.HALF_UP))
-                            .fnbRevenue(rs.getBigDecimal("fnb_revenue").setScale(0, RoundingMode.HALF_UP))
-                            .bookingsCount(rs.getInt("bookings_count"))
-                            .ticketsCount(rs.getInt("tickets_count"))
-                            .build());
-                }
-            }
-        } catch (SQLException e) {
-            logger.error("Error retrieving revenue time series", e);
-        }
-
-        return list;
-    }
 
     /**
      * Retrieves revenue breakdown by Movie (Top N).

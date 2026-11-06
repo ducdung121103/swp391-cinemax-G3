@@ -28,12 +28,7 @@ public interface RevenueReportService {
      */
     RevenueKpiDTO getRevenueKpis(RevenueFilterDTO filter);
 
-    /**
-     * Retrieves time-series revenue aggregated by DAY, WEEK, or MONTH.
-     */
-    List<RevenueTimeSeriesDTO> getTimeSeriesRevenue(RevenueFilterDTO filter);
-
-    /**
+/**
      * Retrieves revenue breakdown by movie (Top N).
      */
     List<RevenueBreakdownDTO> getRevenueByMovie(RevenueFilterDTO filter, int limit);

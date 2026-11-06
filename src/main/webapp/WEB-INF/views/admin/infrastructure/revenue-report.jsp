@@ -11,7 +11,6 @@
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/base.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/admin-layout.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/modules/infrastructure.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
     <style>
         .filter-toolbar {
             background: #fff;
@@ -362,32 +361,6 @@
                     </div>
                 </div>
             </div>
-
-            <%-- Charts Section --%>
-            <div class="charts-grid-2">
-                <%-- Main Time-series Chart --%>
-                <div class="chart-card">
-                    <h4>
-                        <span><i class="fa-solid fa-chart-line" style="color:#e50914;"></i> Biểu Đồ Diễn Biến Doanh Thu (${filter.groupBy == 'MONTH' ? 'Theo Tháng' : (filter.groupBy == 'WEEK' ? 'Theo Tuần' : 'Theo Ngày')})</span>
-                        <span style="font-size:0.75rem; font-weight:normal; color:#64748b;">Đơn vị: VNĐ</span>
-                    </h4>
-                    <c:choose>
-                        <c:when test="${not empty timeSeries}">
-                            <div style="height: 320px; position: relative;">
-                                <canvas id="timeSeriesChart"></canvas>
-                            </div>
-                        </c:when>
-                        <c:otherwise>
-                            <div class="empty-state">
-                                <i class="fa-solid fa-chart-area"></i>
-                                <p>Không có dữ liệu chuỗi thời gian trong kỳ lọc này.</p>
-                            </div>
-                        </c:otherwise>
-                    </c:choose>
-                </div>
-
-            </div>
-
             <%-- Tables Section: Top Movies & Branch Performance --%>
             <div class="tables-grid-2">
                 <%-- Top Movies --%>
@@ -545,92 +518,5 @@
 </div>
 
 <%-- Script Render Chart.js --%>
-<script>
-    document.addEventListener("DOMContentLoaded", function () {
-        // 1. Time Series Chart
-        const tsCtx = document.getElementById('timeSeriesChart');
-        if (tsCtx) {
-            const labels = [
-                <c:forEach items="${timeSeries}" var="ts" varStatus="loop">
-                "${ts.periodLabel}"${!loop.last ? ',' : ''}
-                </c:forEach>
-            ];
-            const totalData = [
-                <c:forEach items="${timeSeries}" var="ts" varStatus="loop">
-                ${ts.totalRevenue}${!loop.last ? ',' : ''}
-                </c:forEach>
-            ];
-            const ticketData = [
-                <c:forEach items="${timeSeries}" var="ts" varStatus="loop">
-                ${ts.ticketRevenue}${!loop.last ? ',' : ''}
-                </c:forEach>
-            ];
-            const fnbData = [
-                <c:forEach items="${timeSeries}" var="ts" varStatus="loop">
-                ${ts.fnbRevenue}${!loop.last ? ',' : ''}
-                </c:forEach>
-            ];
-
-            new Chart(tsCtx, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [
-                        {
-                            label: 'Tổng Doanh Thu',
-                            data: totalData,
-                            borderColor: '#e50914',
-                            backgroundColor: 'rgba(229, 9, 20, 0.08)',
-                            borderWidth: 2.5,
-                            fill: true,
-                            tension: 0.3
-                        },
-                        {
-                            label: 'Doanh Thu Vé',
-                            data: ticketData,
-                            borderColor: '#3b82f6',
-                            borderWidth: 2,
-                            borderDash: [5, 5],
-                            fill: false,
-                            tension: 0.3
-                        },
-                        {
-                            label: 'Doanh Thu F&B',
-                            data: fnbData,
-                            borderColor: '#f59e0b',
-                            borderWidth: 2,
-                            fill: false,
-                            tension: 0.3
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { position: 'top' },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    return context.dataset.label + ': ' + new Intl.NumberFormat('vi-VN').format(context.parsed.y) + ' ₫';
-                                }
-                            }
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                callback: function(value) {
-                                    return new Intl.NumberFormat('vi-VN', { notation: 'compact' }).format(value) + ' ₫';
-                                }
-                            }
-                        }
-                    }
-                }
-            });
-        }
-    });
-</script>
 </body>
 </html>

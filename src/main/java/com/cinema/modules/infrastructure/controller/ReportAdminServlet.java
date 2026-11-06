@@ -83,7 +83,6 @@ public class ReportAdminServlet extends HttpServlet {
             );
 
             RevenueKpiDTO kpi = revenueReportService.getRevenueKpis(filter);
-            List<RevenueTimeSeriesDTO> timeSeries = revenueReportService.getTimeSeriesRevenue(filter);
             List<RevenueBreakdownDTO> byMovie = revenueReportService.getRevenueByMovie(filter, 10);
             List<RevenueBreakdownDTO> byCinema = revenueReportService.getRevenueByCinema(filter);
             PageResult<BookingDetailDTO> bookingsPaged = revenueReportService.getBookingDetailsPaged(filter);
@@ -93,7 +92,6 @@ public class ReportAdminServlet extends HttpServlet {
 
             req.setAttribute("filter", filter);
             req.setAttribute("kpi", kpi);
-            req.setAttribute("timeSeries", timeSeries);
             req.setAttribute("byMovie", byMovie);
             req.setAttribute("byCinema", byCinema);
             req.setAttribute("bookingsPaged", bookingsPaged);
@@ -144,7 +142,6 @@ public class ReportAdminServlet extends HttpServlet {
             }
 
             RevenueKpiDTO kpi = revenueReportService.getRevenueKpis(filter);
-            List<RevenueTimeSeriesDTO> timeSeries = revenueReportService.getTimeSeriesRevenue(filter);
             List<RevenueBreakdownDTO> byMovie = revenueReportService.getRevenueByMovie(filter, 20);
             List<RevenueBreakdownDTO> byCinema = revenueReportService.getRevenueByCinema(filter);
             PageResult<BookingDetailDTO> bookingsPaged = revenueReportService.getBookingDetailsPaged(filter);
@@ -158,7 +155,7 @@ public class ReportAdminServlet extends HttpServlet {
             } else {
                 resp.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
                 resp.setHeader("Content-Disposition", "attachment; filename=\"" + filename + ".xlsx\"");
-                reportExportService.exportRevenueExcel(filter, kpi, timeSeries, byMovie, byCinema, java.util.Collections.emptyList(), bookingsPaged.getContent(), resp.getOutputStream());
+                reportExportService.exportRevenueExcel(filter, kpi, java.util.Collections.emptyList(), byMovie, byCinema, java.util.Collections.emptyList(), bookingsPaged.getContent(), resp.getOutputStream());
             }
             resp.getOutputStream().flush();
 

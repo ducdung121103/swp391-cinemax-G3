@@ -138,13 +138,7 @@ public class RevenueReportServiceImpl implements RevenueReportService {
         return currentKpi;
     }
 
-    @Override
-    public List<RevenueTimeSeriesDTO> getTimeSeriesRevenue(RevenueFilterDTO filter) {
-        return revenueReportDAO.getTimeSeriesRevenue(
-                filter.getFrom(), filter.getTo(), filter.getCinemaId(), filter.getMovieId(), filter.getChannel(), filter.getGroupBy());
-    }
-
-    @Override
+@Override
     public List<RevenueBreakdownDTO> getRevenueByMovie(RevenueFilterDTO filter, int limit) {
         return revenueReportDAO.getRevenueByMovie(
                 filter.getFrom(), filter.getTo(), filter.getCinemaId(), filter.getMovieId(), filter.getChannel(), limit);
