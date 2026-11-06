@@ -82,8 +82,9 @@ public Booking findByCode(Connection conn, String bookingCode) throws SQLExcepti
             ps.setString(2, bookingCode);
             return ps.executeUpdate() > 0;
         }
+    }
 
-public List<ShowtimeReminderDTO> findBookingsNeedingReminder(int withinMinutes) {
+    public List<ShowtimeReminderDTO> findBookingsNeedingReminder(int withinMinutes) {
         String sql = "SELECT b.id, b.user_id, m.title AS movie_title, st.start_time, " +
                      "sr.name AS room_name, c.name AS cinema_name " +
                      "FROM bookings b " +
