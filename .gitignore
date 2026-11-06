@@ -13,6 +13,7 @@ target/
 .tmp_class/
 tmp/
 *.log
+scratch/
 
 # IDE & Editor metadata
 .idea/
