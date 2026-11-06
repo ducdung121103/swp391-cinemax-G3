@@ -1,7 +1,11 @@
 package com.cinema.modules.catalog.service;
 
+import com.cinema.model.TicketPricing;
+import com.cinema.model.User;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * Public Service Interface tính toán giá vé động (TV 3).
@@ -9,4 +13,16 @@ import java.time.LocalDateTime;
  */
 public interface PricingService {
     BigDecimal calculateTicketPrice(Long showtimeId, Long seatTypeId, LocalDateTime showTime, String format);
+
+    List<TicketPricing> listPrices();
+
+    String savePrice(TicketPricing pricing, User actor);
+
+    String deletePrice(Long id, User actor);
+
+    int getStudentDiscountPercent();
+
+    int getSeniorDiscountPercent();
+
+    String saveDiscountPercents(int studentPercent, int seniorPercent, User actor);
 }

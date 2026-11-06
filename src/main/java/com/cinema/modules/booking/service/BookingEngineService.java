@@ -3,6 +3,7 @@ package com.cinema.modules.booking.service;
 import com.cinema.model.Ticket;
 import com.cinema.modules.booking.dto.BookingResult;
 import com.cinema.modules.booking.dto.CreateBookingDTO;
+import com.cinema.modules.booking.dto.ShowtimeReminderDTO;
 
 import java.util.List;
 
@@ -15,6 +16,8 @@ public interface BookingEngineService {
     boolean holdSeats(Long showtimeId, List<Long> seatIds, String sessionId);
     boolean releaseHoldSeats(Long showtimeId, List<Long> seatIds);
     BookingResult createBooking(CreateBookingDTO dto);
+    List<ShowtimeReminderDTO> findBookingsNeedingReminder(int withinMinutes);
+    int countTicketsByShowtime(Long showtimeId);
     Ticket getTicketByBarcode(String barcode);
     boolean updateTicketStatus(Long ticketId, String status);
 }

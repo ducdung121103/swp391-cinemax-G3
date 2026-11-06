@@ -47,6 +47,22 @@ public class BookingFlowServlet extends HttpServlet {
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         String showtimeId = req.getParameter("showtimeId");
         req.setAttribute("showtimeId", showtimeId);
+        String[] seatIdArr = req.getParameterValues("seatIds");
+        if (seatIdArr != null && seatIdArr.length > 0) {
+            List<String> codes = new ArrayList<>();
+            for (String raw : seatIdArr) {
+                try {
+                    Seat seat = screeningRoomService.getSeatById(Long.parseLong(raw));
+                    if (seat != null && seat.getSeatCode() != null) {
+                        codes.add(seat.getSeatCode());
+                    }
+                } catch (NumberFormatException ignored) {
+                }
+            }
+            if (!codes.isEmpty()) {
+                req.setAttribute("seatLabel", String.join(", ", codes));
+            }
+        }
         req.getRequestDispatcher("/WEB-INF/views/customer/booking/checkout.jsp").forward(req, resp);
     }
 

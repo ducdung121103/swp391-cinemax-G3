@@ -2,7 +2,7 @@ package com.cinema.modules.identity.service;
 
 /**
  * Interface dịch vụ gửi Email - Module Identity (TV 2 - Cường).
- * Phục vụ: M-01.2 (OTP xác thực email, reset password), M-09.1 (Thông báo đặt vé, hoàn tiền).
+ * Phục vụ: M-01.2 (OTP xác thực email, reset password), M-09.1 (xác nhận vé và nhắc suất).
  */
 public interface EmailService {
 
@@ -33,4 +33,10 @@ public interface EmailService {
     void sendBookingConfirmationEmail(String toEmail, String bookingCode,
                                       String movieTitle, String showtime,
                                       String seatInfo, String qrImageBase64);
+
+    /**
+     * Nhắc một lần trước giờ chiếu. Không dùng cho hủy vé hay hoàn tiền.
+     */
+    void sendShowtimeReminderEmail(String toEmail, String fullName, String movieTitle,
+                                   String showtimeText, String cinemaRoomText);
 }

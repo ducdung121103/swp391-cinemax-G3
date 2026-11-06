@@ -3,8 +3,12 @@ package com.cinema.modules.booking.service.impl;
 import com.cinema.common.transaction.TransactionManager;
 import com.cinema.common.util.ValidationUtil;
 import com.cinema.model.Booking;
+import com.cinema.model.Movie;
+import com.cinema.model.ScreeningRoom;
 import com.cinema.model.Seat;
+import com.cinema.model.Showtime;
 import com.cinema.model.Ticket;
+import com.cinema.model.User;
 import com.cinema.modules.booking.dao.BookingDAO;
 import com.cinema.modules.booking.dao.OrderItemDAO;
 import com.cinema.modules.booking.dao.PaymentDAO;
@@ -13,22 +17,37 @@ import com.cinema.modules.booking.dao.TicketDAO;
 import com.cinema.modules.booking.dto.BookingResult;
 import com.cinema.modules.booking.dto.CreateBookingDTO;
 import com.cinema.modules.booking.dto.FnbReceipt;
+import com.cinema.modules.booking.dto.ShowtimeReminderDTO;
 import com.cinema.modules.booking.dto.TicketReceipt;
 import com.cinema.modules.booking.service.BookingEngineService;
 import com.cinema.modules.booking.service.VoucherService;
+import com.cinema.modules.catalog.service.MovieService;
+import com.cinema.modules.catalog.service.ShowtimeService;
+import com.cinema.modules.catalog.service.impl.MovieServiceImpl;
+import com.cinema.modules.catalog.service.impl.ShowtimeServiceImpl;
+import com.cinema.modules.identity.service.EmailService;
+import com.cinema.modules.identity.service.UserService;
+import com.cinema.modules.identity.service.impl.EmailServiceImpl;
+import com.cinema.modules.identity.service.impl.UserServiceImpl;
 import com.cinema.modules.infrastructure.dao.ScreeningRoomDAO;
 
 import java.math.BigDecimal;
 import java.sql.Connection;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Cài đặt Core Engine Đặt vé và Hóa đơn (TV 4).
  * Vận hành 100% bằng TransactionManager lồng nhau đảm bảo tính toàn vẹn dữ liệu ACID.
  */
 public class BookingEngineServiceImpl implements BookingEngineService {
+    private static final Logger LOGGER = Logger.getLogger(BookingEngineServiceImpl.class.getName());
+    private static final DateTimeFormatter SHOWTIME_FORMAT = DateTimeFormatter.ofPattern("HH:mm dd/MM/yyyy");
+
     private final BookingDAO bookingDAO;
     private final TicketDAO ticketDAO;
     private final OrderItemDAO orderItemDAO;
@@ -36,6 +55,10 @@ public class BookingEngineServiceImpl implements BookingEngineService {
     private final SeatHoldingDAO seatHoldingDAO;
     private final VoucherService voucherService;
     private final ScreeningRoomDAO screeningRoomDAO;
+    private final EmailService emailService;
+    private final UserService userService;
+    private final ShowtimeService showtimeService;
+    private final MovieService movieService;
 
     public BookingEngineServiceImpl() {
         this.bookingDAO = new BookingDAO();
@@ -45,6 +68,10 @@ public class BookingEngineServiceImpl implements BookingEngineService {
         this.seatHoldingDAO = new SeatHoldingDAO();
         this.voucherService = new VoucherServiceImpl();
         this.screeningRoomDAO = new ScreeningRoomDAO();
+        this.emailService = new EmailServiceImpl();
+        this.userService = new UserServiceImpl();
+        this.showtimeService = new ShowtimeServiceImpl();
+        this.movieService = new MovieServiceImpl();
     }
 
     public BookingEngineServiceImpl(BookingDAO bookingDAO, TicketDAO ticketDAO,
@@ -70,6 +97,10 @@ public class BookingEngineServiceImpl implements BookingEngineService {
         this.seatHoldingDAO = seatHoldingDAO;
         this.voucherService = voucherService;
         this.screeningRoomDAO = screeningRoomDAO;
+        this.emailService = null;
+        this.userService = null;
+        this.showtimeService = null;
+        this.movieService = null;
     }
 
     @Override
@@ -122,7 +153,7 @@ public class BookingEngineServiceImpl implements BookingEngineService {
                 ValidationUtil.validateCoupleSeats(seats);
             }
         }
-        return TransactionManager.executeInTransaction(conn -> {
+        BookingResult result = TransactionManager.executeInTransaction(conn -> {
             List<Long> lockOrder = new ArrayList<>(dto.getSeatIds());
             lockOrder.sort(Comparator.naturalOrder());
             ticketDAO.assertSeatsAvailable(conn, dto.getShowtimeId(), lockOrder, dto.getSessionId());
@@ -227,6 +258,49 @@ public class BookingEngineServiceImpl implements BookingEngineService {
                     .fnbItems(fnbReceipts)
                     .build();
         });
+        sendConfirmationAfterCommit(dto, result);
+        return result;
+    }
+
+    @Override
+    public List<ShowtimeReminderDTO> findBookingsNeedingReminder(int withinMinutes) {
+        int window = withinMinutes <= 0 ? 120 : withinMinutes;
+        return bookingDAO.findBookingsNeedingReminder(window);
+    }
+
+    private void sendConfirmationAfterCommit(CreateBookingDTO dto, BookingResult result) {
+        if (emailService == null || dto == null || dto.getUserId() == null || result == null) return;
+        if (!"SUCCESS".equals(result.getStatus())) return;
+        try {
+            User user = userService.getUserById(dto.getUserId());
+            if (user == null || user.getEmail() == null || user.getEmail().isBlank()) return;
+            Showtime showtime = showtimeService.getShowtimeById(dto.getShowtimeId());
+            Movie movie = showtime == null ? null : movieService.getMovieById(showtime.getMovieId());
+            String movieTitle = movie == null || movie.getTitle() == null ? "Phim" : movie.getTitle();
+            String when = formatShowtime(showtime);
+            String seats = String.join(", ", ticketDAO.findSeatCodesByBooking(result.getBookingId()));
+            if (seats.isBlank()) seats = "Đang cập nhật";
+            emailService.sendBookingConfirmationEmail(user.getEmail(), result.getBookingCode(), movieTitle, when, seats, null);
+        } catch (Exception e) {
+            LOGGER.log(Level.WARNING, "Không gửi được email xác nhận vé " + result.getBookingCode(), e);
+        }
+    }
+
+    private String formatShowtime(Showtime showtime) {
+        if (showtime == null || showtime.getStartTime() == null) return "Đang cập nhật";
+        String when = showtime.getStartTime().format(SHOWTIME_FORMAT);
+        ScreeningRoom room = showtime.getScreeningRoom();
+        if (room == null) return when;
+        String place = room.getName() == null ? "" : room.getName();
+        if (room.getCinema() != null && room.getCinema().getName() != null) {
+            place = room.getCinema().getName() + " · " + place;
+        }
+        return place.isBlank() ? when : when + " · " + place;
+    }
+
+    @Override
+    public int countTicketsByShowtime(Long showtimeId) {
+        return ticketDAO.countByShowtime(showtimeId);
     }
 
     @Override

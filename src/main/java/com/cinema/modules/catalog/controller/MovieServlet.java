@@ -2,8 +2,11 @@ package com.cinema.modules.catalog.controller;
 
 import com.cinema.model.Genre;
 import com.cinema.model.Movie;
+import com.cinema.model.Showtime;
 import com.cinema.modules.catalog.service.MovieService;
+import com.cinema.modules.catalog.service.ShowtimeService;
 import com.cinema.modules.catalog.service.impl.MovieServiceImpl;
+import com.cinema.modules.catalog.service.impl.ShowtimeServiceImpl;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -11,6 +14,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 /**
@@ -22,6 +26,8 @@ public class MovieServlet extends HttpServlet {
     private static final int PAGE_SIZE = 12;
 
     private final MovieService movieService = new MovieServiceImpl();
+    private final ShowtimeService showtimeService = new ShowtimeServiceImpl();
+    private static final DateTimeFormatter SHOWTIME_TEXT = DateTimeFormatter.ofPattern("HH:mm dd/MM/yyyy");
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -69,6 +75,7 @@ public class MovieServlet extends HttpServlet {
                     req.setAttribute("movie", movie);
                     req.setAttribute("relatedMovies", relatedMovies);
                     req.setAttribute("activeMenu", "movies");
+                    attachSelectedShowtime(req, movie);
                     req.getRequestDispatcher("/WEB-INF/views/customer/catalog/movie-detail.jsp").forward(req, resp);
                     return;
                 }
@@ -76,6 +83,25 @@ public class MovieServlet extends HttpServlet {
             }
         }
         resp.sendRedirect(req.getContextPath() + "/movies");
+    }
+
+    private void attachSelectedShowtime(HttpServletRequest req, Movie movie) {
+        String raw = req.getParameter("showtimeId");
+        if (raw == null || raw.isBlank() || movie.getId() == null) {
+            return;
+        }
+        try {
+            Showtime showtime = showtimeService.getShowtimeById(Long.parseLong(raw.trim()));
+            if (showtime == null || showtime.getStartTime() == null) {
+                return;
+            }
+            if (!movie.getId().equals(showtime.getMovieId()) || !"SCHEDULED".equals(showtime.getStatus())) {
+                return;
+            }
+            req.setAttribute("selectedShowtime", showtime);
+            req.setAttribute("showtimeText", showtime.getStartTime().format(SHOWTIME_TEXT));
+        } catch (NumberFormatException ignored) {
+        }
     }
 
     private void handleBrowseMovies(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {

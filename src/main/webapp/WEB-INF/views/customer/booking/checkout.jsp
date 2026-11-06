@@ -30,7 +30,7 @@
                 <tbody>
                     <tr class="border-bottom border-secondary border-opacity-50">
                         <td><strong>Vé xem phim</strong></td>
-                        <td>Ghế: VIP F08, VIP F09 (Suất #${showtimeId != null ? showtimeId : 1})</td>
+                        <td>Ghế: ${not empty seatLabel ? seatLabel : 'VIP F08, VIP F09'} (Suất #${showtimeId != null ? showtimeId : 1})</td>
                         <td class="text-end text-warning fw-semibold">190,000đ</td>
                     </tr>
                     <tr class="border-bottom border-secondary border-opacity-50">

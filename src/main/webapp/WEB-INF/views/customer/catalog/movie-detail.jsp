@@ -114,11 +114,26 @@
                     <p class="text-secondary leading-relaxed">${movie.description}</p>
                 </div>
 
+                <c:if test="${not empty selectedShowtime}">
+                    <div class="p-3 rounded-3 mb-2" style="background:#141820;border:1px solid #2E3550;">
+                        <div class="text-secondary small">Suất đã chọn</div>
+                        <div class="text-white fw-bold mt-1">
+                            ${selectedShowtime.screeningRoom.cinema.name} · ${selectedShowtime.screeningRoom.name}
+                        </div>
+                        <div style="color:#F5C518;">${showtimeText} · ${selectedShowtime.experienceFormat}</div>
+                    </div>
+                </c:if>
+
                 <!-- Action CTA Buttons -->
                 <div class="d-flex flex-wrap gap-3 mt-4">
                     <c:choose>
+                        <c:when test="${not empty selectedShowtime}">
+                            <a href="${pageContext.request.contextPath}/booking/seats?showtimeId=${selectedShowtime.id}" class="btn btn-cinema-primary btn-lg">
+                                <i class="fa-solid fa-chair me-2"></i> Chọn ghế
+                            </a>
+                        </c:when>
                         <c:when test="${movie.nowShowing}">
-                            <a href="${pageContext.request.contextPath}/booking/checkout?showtimeId=1" class="btn btn-cinema-primary btn-lg">
+                            <a href="${pageContext.request.contextPath}/showtimes?movieId=${movie.id}" class="btn btn-cinema-primary btn-lg">
                                 <i class="fa-solid fa-ticket me-2"></i> Mua Vé Ngay
                             </a>
                         </c:when>
@@ -135,9 +150,18 @@
                         </button>
                     </c:if>
                     
-                    <a href="${pageContext.request.contextPath}/movies" class="btn btn-outline-secondary btn-lg">
-                        <i class="fa-solid fa-arrow-left me-1"></i> Quay Lại
-                    </a>
+                    <c:choose>
+                        <c:when test="${not empty selectedShowtime}">
+                            <a href="${pageContext.request.contextPath}/showtimes?movieId=${movie.id}" class="btn btn-outline-secondary btn-lg">
+                                <i class="fa-solid fa-arrow-left me-1"></i> Quay Lại
+                            </a>
+                        </c:when>
+                        <c:otherwise>
+                            <a href="${pageContext.request.contextPath}/movies" class="btn btn-outline-secondary btn-lg">
+                                <i class="fa-solid fa-arrow-left me-1"></i> Quay Lại
+                            </a>
+                        </c:otherwise>
+                    </c:choose>
                 </div>
             </div>
         </div>
