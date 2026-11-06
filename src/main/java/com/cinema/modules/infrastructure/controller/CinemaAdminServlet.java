@@ -1,6 +1,8 @@
 package com.cinema.modules.infrastructure.controller;
 
+import com.cinema.common.constant.RoleConstant;
 import com.cinema.model.Cinema;
+import com.cinema.model.User;
 import com.cinema.modules.infrastructure.service.ScreeningRoomService;
 import com.cinema.modules.infrastructure.service.impl.ScreeningRoomServiceImpl;
 import jakarta.servlet.ServletException;
@@ -43,6 +45,7 @@ public class CinemaAdminServlet extends HttpServlet {
         req.setAttribute("keyword", keyword);
         req.setAttribute("selectedCity", city);
         req.setAttribute("selectedStatus", statusParam);
+        req.setAttribute("actor", currentUser(req));
 
         // Flash message handling
         String msg = req.getParameter("msg");
@@ -56,6 +59,12 @@ public class CinemaAdminServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         req.setCharacterEncoding("UTF-8");
+        User actor = currentUser(req);
+        if (actor == null || actor.getRole() == null || !RoleConstant.ADMIN.equalsIgnoreCase(actor.getRole().getRoleName())) {
+            resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Chỉ Quản trị viên (Admin) mới có quyền thao tác quản lý cụm rạp!");
+            return;
+        }
+
         String action = req.getParameter("action");
 
         try {
@@ -123,8 +132,16 @@ public class CinemaAdminServlet extends HttpServlet {
 
             } else if ("delete".equalsIgnoreCase(action)) {
                 Long id = Long.parseLong(req.getParameter("id"));
-                screeningRoomService.deleteCinema(id);
-                resp.sendRedirect(req.getContextPath() + "/admin/infrastructure/cinemas?msg=deleted");
+                String code = screeningRoomService.deleteCinema(actor, id);
+                if ("OK".equals(code)) {
+                    resp.sendRedirect(req.getContextPath() + "/admin/infrastructure/cinemas?msg=deleted");
+                } else if ("ACTIVE_SHOWTIMES".equals(code)) {
+                    resp.sendRedirect(req.getContextPath() + "/admin/infrastructure/cinemas?error=active_showtimes");
+                } else if ("UNAUTHORIZED".equals(code)) {
+                    resp.sendRedirect(req.getContextPath() + "/admin/infrastructure/cinemas?error=forbidden");
+                } else {
+                    resp.sendRedirect(req.getContextPath() + "/admin/infrastructure/cinemas?error=failed");
+                }
                 return;
             }
 
@@ -136,5 +153,11 @@ public class CinemaAdminServlet extends HttpServlet {
         }
 
         resp.sendRedirect(req.getContextPath() + "/admin/infrastructure/cinemas");
+    }
+    private User currentUser(HttpServletRequest req) {
+        jakarta.servlet.http.HttpSession session = req.getSession(false);
+        if (session == null) return null;
+        Object val = session.getAttribute("currentUser");
+        return val instanceof User ? (User) val : null;
     }
 }

@@ -165,7 +165,12 @@
                     <div class="alert-toast alert-error">
                         <span>
                             <i class="fa-solid fa-triangle-exclamation" style="margin-right: 6px;"></i>
-                            ${error}
+                            <c:choose>
+                                <c:when test="${error == 'active_showtimes'}">Không thể xóa cụm rạp đang có suất chiếu sắp tới hoặc đang diễn ra! Vui lòng hủy các suất chiếu trước.</c:when>
+                                <c:when test="${error == 'forbidden'}">Chỉ Quản trị viên (Admin) mới có quyền xóa cụm rạp!</c:when>
+                                <c:when test="${error == 'failed'}">Không thể xóa cụm rạp. Vui lòng thử lại sau.</c:when>
+                                <c:otherwise>${error}</c:otherwise>
+                            </c:choose>
                         </span>
                         <button onclick="this.parentElement.style.display='none'" style="background:none; border:none; cursor:pointer; font-size: 1.2rem;">&times;</button>
                     </div>
@@ -269,6 +274,17 @@
                                             <a href="${pageContext.request.contextPath}/admin/infrastructure/rooms?cinemaId=${c.id}" class="btn-sm btn-secondary" style="background:#0284c7;" title="Xem phòng">
                                                 <i class="fa-solid fa-video"></i> Phòng
                                             </a>
+
+                                            <c:if test="${sessionScope.currentUser.role.roleName == 'ADMIN' || sessionScope.currentUser.roleId == 1}">
+                                                <form method="POST" action="${pageContext.request.contextPath}/admin/infrastructure/cinemas" style="display:inline;"
+                                                      onsubmit="return confirm('Bạn có chắc muốn xóa mềm cụm rạp [${c.name}]? Toàn bộ phòng chiếu thuộc rạp này cũng sẽ được tự động đóng và ẩn khỏi hệ thống.')">
+                                                    <input type="hidden" name="action" value="delete">
+                                                    <input type="hidden" name="id" value="${c.id}">
+                                                    <button type="submit" class="btn-sm btn-secondary" style="background:#dc2626;" title="Xóa mềm cụm rạp">
+                                                        <i class="fa-solid fa-trash-can"></i> Xóa
+                                                    </button>
+                                                </form>
+                                            </c:if>
                                         </td>
                                     </tr>
                                 </c:forEach>

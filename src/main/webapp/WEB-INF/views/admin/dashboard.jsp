@@ -239,10 +239,12 @@
                             <i class="fa-solid fa-chart-column" style="color: #e50914;"></i>
                             Hiệu Suất Kinh Doanh & Đóng Góp Doanh Thu Theo Chi Nhánh
                         </h3>
-                        <a href="${pageContext.request.contextPath}/admin/infrastructure/occupancy" class="action-link">
-                            <span>Xem phân tích lấp đầy</span>
-                            <i class="fa-solid fa-arrow-right"></i>
-                        </a>
+                        <c:if test="${userRole == 'ADMIN' || sessionScope.currentUser.roleId == 1}">
+                            <a href="${pageContext.request.contextPath}/admin/infrastructure/occupancy" class="action-link">
+                                <span>Xem phân tích lấp đầy</span>
+                                <i class="fa-solid fa-arrow-right"></i>
+                            </a>
+                        </c:if>
                     </div>
 
                     <div class="table-responsive">
@@ -291,10 +293,12 @@
                                             </div>
                                         </td>
                                         <td style="text-align: right;">
-                                            <a href="${pageContext.request.contextPath}/admin/infrastructure/occupancy?cinemaId=${bp.cinemaId}" class="action-link" title="Xem tỷ lệ lấp đầy rạp">
-                                                <span>Lấp đầy</span>
-                                                <i class="fa-solid fa-chart-pie"></i>
-                                            </a>
+                                            <c:if test="${userRole == 'ADMIN' || sessionScope.currentUser.roleId == 1}">
+                                                <a href="${pageContext.request.contextPath}/admin/infrastructure/occupancy?cinemaId=${bp.cinemaId}" class="action-link" title="Xem tỷ lệ lấp đầy rạp">
+                                                    <span>Lấp đầy</span>
+                                                    <i class="fa-solid fa-chart-pie"></i>
+                                                </a>
+                                            </c:if>
                                         </td>
                                     </tr>
                                 </c:forEach>

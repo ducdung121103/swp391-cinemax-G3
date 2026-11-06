@@ -1,7 +1,9 @@
 package com.cinema.modules.infrastructure.service.impl;
 
 import com.cinema.common.util.ValidationUtil;
+import com.cinema.common.constant.RoleConstant;
 import com.cinema.model.Cinema;
+import com.cinema.model.User;
 import com.cinema.model.MaintenanceSchedule;
 import com.cinema.model.ScreeningRoom;
 import com.cinema.model.Seat;
@@ -130,6 +132,18 @@ public class ScreeningRoomServiceImpl implements ScreeningRoomService {
     }
 
     @Override
+    public String deleteCinema(User actor, Long cinemaId) {
+        if (actor == null || actor.getRole() == null || !RoleConstant.ADMIN.equalsIgnoreCase(actor.getRole().getRoleName())) {
+            return "UNAUTHORIZED";
+        }
+        if (cinemaId == null) return "NOT_FOUND";
+        if (cinemaDAO.hasFutureShowtimes(cinemaId)) {
+            return "ACTIVE_SHOWTIMES";
+        }
+        return cinemaDAO.softDelete(cinemaId) ? "OK" : "FAILED";
+    }
+
+    @Override
     public int getTotalCinemasCount() {
         return cinemaDAO.countTotalCinemas();
     }
@@ -167,6 +181,33 @@ public class ScreeningRoomServiceImpl implements ScreeningRoomService {
     @Override
     public boolean deleteRoom(Long roomId) {
         return screeningRoomDAO.softDeleteRoom(roomId);
+    }
+
+    @Override
+    public String deleteRoom(User actor, Long roomId) {
+        if (actor == null || actor.getRole() == null) {
+            return "UNAUTHORIZED";
+        }
+        if (roomId == null) return "NOT_FOUND";
+        ScreeningRoom room = screeningRoomDAO.findById(roomId);
+        if (room == null) return "NOT_FOUND";
+
+        String role = actor.getRole().getRoleName();
+        if (RoleConstant.ADMIN.equalsIgnoreCase(role)) {
+            // Admin có quyền xóa mọi rạp
+        } else if (RoleConstant.MANAGER.equalsIgnoreCase(role)) {
+            // Manager chỉ được xóa phòng thuộc chi nhánh rạp của mình
+            if (actor.getCinemaId() == null || !actor.getCinemaId().equals(room.getCinemaId())) {
+                return "FORBIDDEN_BRANCH";
+            }
+        } else {
+            return "UNAUTHORIZED";
+        }
+
+        if (screeningRoomDAO.hasFutureShowtimes(roomId)) {
+            return "ACTIVE_SHOWTIMES";
+        }
+        return screeningRoomDAO.softDeleteRoom(roomId) ? "OK" : "FAILED";
     }
 
     @Override

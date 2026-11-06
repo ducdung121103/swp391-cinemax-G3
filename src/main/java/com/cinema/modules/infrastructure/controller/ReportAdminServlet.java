@@ -1,7 +1,9 @@
 package com.cinema.modules.infrastructure.controller;
 
 import com.cinema.common.dto.PageResult;
+import com.cinema.common.constant.RoleConstant;
 import com.cinema.model.Cinema;
+import com.cinema.model.User;
 import com.cinema.model.Movie;
 import com.cinema.model.ScreeningRoom;
 import com.cinema.modules.infrastructure.dao.InfrastructureReportDAO;

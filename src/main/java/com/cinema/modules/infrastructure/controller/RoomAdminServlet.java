@@ -1,6 +1,8 @@
 package com.cinema.modules.infrastructure.controller;
 
+import com.cinema.common.constant.RoleConstant;
 import com.cinema.model.Cinema;
+import com.cinema.model.User;
 import com.cinema.model.ScreeningRoom;
 import com.cinema.modules.infrastructure.service.ScreeningRoomService;
 import com.cinema.modules.infrastructure.service.impl.ScreeningRoomServiceImpl;
@@ -42,6 +44,7 @@ public class RoomAdminServlet extends HttpServlet {
         req.setAttribute("selectedCinemaId", cinemaId);
         req.setAttribute("selectedRoomType", roomType);
         req.setAttribute("selectedStatus", status);
+        req.setAttribute("actor", currentUser(req));
 
         // Flash message
         String msg = req.getParameter("msg");
@@ -113,9 +116,20 @@ public class RoomAdminServlet extends HttpServlet {
                 return;
 
             } else if ("delete".equalsIgnoreCase(action)) {
+                User actor = currentUser(req);
                 Long id = Long.parseLong(req.getParameter("id"));
-                screeningRoomService.deleteRoom(id);
-                resp.sendRedirect(req.getContextPath() + "/admin/infrastructure/rooms?msg=deleted");
+                String code = screeningRoomService.deleteRoom(actor, id);
+                if ("OK".equals(code)) {
+                    resp.sendRedirect(req.getContextPath() + "/admin/infrastructure/rooms?msg=deleted");
+                } else if ("ACTIVE_SHOWTIMES".equals(code)) {
+                    resp.sendRedirect(req.getContextPath() + "/admin/infrastructure/rooms?error=active_showtimes");
+                } else if ("FORBIDDEN_BRANCH".equals(code)) {
+                    resp.sendRedirect(req.getContextPath() + "/admin/infrastructure/rooms?error=forbidden_branch");
+                } else if ("UNAUTHORIZED".equals(code)) {
+                    resp.sendRedirect(req.getContextPath() + "/admin/infrastructure/rooms?error=forbidden");
+                } else {
+                    resp.sendRedirect(req.getContextPath() + "/admin/infrastructure/rooms?error=failed");
+                }
                 return;
             }
 
@@ -127,5 +141,11 @@ public class RoomAdminServlet extends HttpServlet {
         }
 
         resp.sendRedirect(req.getContextPath() + "/admin/infrastructure/rooms");
+    }
+    private User currentUser(HttpServletRequest req) {
+        jakarta.servlet.http.HttpSession session = req.getSession(false);
+        if (session == null) return null;
+        Object val = session.getAttribute("currentUser");
+        return val instanceof User ? (User) val : null;
     }
 }
