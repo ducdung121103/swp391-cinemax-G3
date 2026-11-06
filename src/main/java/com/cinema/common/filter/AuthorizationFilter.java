@@ -14,9 +14,8 @@ import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 
 /**
- * AuthorizationFilter thá»±c thi kiá»ƒm soÃ¡t phÃ¢n quyá»n dá»±a trÃªn Vai trÃ² (Role-Based Access Control - RBAC).
- 
- * Refactor update: Lam ro trach nhiem lop cho de bao tri.*/
+ * AuthorizationFilter thực thi kiểm soát phân quyền dựa trên Vai trò (Role-Based Access Control - RBAC).
+ */
 public class AuthorizationFilter implements Filter {
 
     @Override
@@ -36,7 +35,7 @@ public class AuthorizationFilter implements Filter {
         String role = (currentUser.getRole() != null) ? currentUser.getRole().getRoleName() : RoleConstant.CUSTOMER;
         String uri = req.getRequestURI();
 
-        // 1. ADMIN cÃ³ toÃ n quyá»n
+        // 1. ADMIN có toàn quyền (trừ quầy POS trực tiếp)
         if (RoleConstant.ADMIN.equalsIgnoreCase(role)) {
             if (uri.contains("/operation/pos")) {
                 res.sendError(HttpServletResponse.SC_FORBIDDEN, "Admin không có quyền sử dụng quầy POS!");
@@ -46,7 +45,7 @@ public class AuthorizationFilter implements Filter {
             return;
         }
 
-        // 2. MANAGER Ä‘Æ°á»£c vÃ o háº¡ táº§ng, catalog, hÃ³a Ä‘Æ¡n, bÃ¡o cÃ¡o cá»§a ráº¡p mÃ¬nh
+        // 2. MANAGER được vào hạ tầng, catalog, hóa đơn, báo cáo của rạp mình
         if (RoleConstant.MANAGER.equalsIgnoreCase(role)) {
             if (uri.contains("/admin/reports/revenue")) {
                 res.sendError(HttpServletResponse.SC_FORBIDDEN, "Báo cáo Doanh thu chỉ dành riêng cho Quản trị viên (Admin)!");
@@ -60,34 +59,31 @@ public class AuthorizationFilter implements Filter {
                 res.sendError(HttpServletResponse.SC_FORBIDDEN, "Chỉ Admin hệ thống mới được quyền kiểm duyệt đánh giá phim!");
                 return;
             }
-                return;
-            }
             if (uri.contains("/admin/operation/fnb-catalog")) {
-                res.sendError(HttpServletResponse.SC_FORBIDDEN, "Chá»‰ Admin Ä‘Æ°á»£c quáº£n lÃ½ danh má»¥c F&B!");
+                res.sendError(HttpServletResponse.SC_FORBIDDEN, "Chỉ Admin được quản lý danh mục F&B!");
                 return;
             }
             if (uri.contains("/admin/identity/users") && !uri.contains("/admin/identity/staff")) {
-                // KhÃ´ng Ä‘Æ°á»£c sá»­a tÃ i khoáº£n Admin
-                res.sendError(HttpServletResponse.SC_FORBIDDEN, "Báº¡n khÃ´ng cÃ³ quyá»n quáº£n lÃ½ tÃ i khoáº£n cáº¥p cao!");
+                // Không được sửa tài khoản Admin
+                res.sendError(HttpServletResponse.SC_FORBIDDEN, "Bạn không có quyền quản lý tài khoản cấp cao!");
                 return;
             }
             chain.doFilter(request, response);
             return;
         }
 
-        // 3. STAFF chá»‰ Ä‘Æ°á»£c vÃ o POS vÃ  Scanner QR
+        // 3. STAFF chỉ được vào POS và Scanner QR
         if (RoleConstant.STAFF.equalsIgnoreCase(role)) {
             if (uri.contains("/operation/pos") || uri.contains("/admin/operation/scanner")) {
                 chain.doFilter(request, response);
                 return;
             } else {
-                res.sendError(HttpServletResponse.SC_FORBIDDEN, "NhÃ¢n viÃªn chá»‰ cÃ³ quyá»n truy cáº­p Quáº§y POS vÃ  SoÃ¡t vÃ©!");
+                res.sendError(HttpServletResponse.SC_FORBIDDEN, "Nhân viên chỉ có quyền truy cập Quầy POS và Soát vé!");
                 return;
             }
         }
 
-        // 4. CUSTOMER cá»‘ tÃ¬nh vÃ o khu vá»±c Admin -> Cháº·n 403
-        res.sendError(HttpServletResponse.SC_FORBIDDEN, "KhÃ¡ch hÃ ng khÃ´ng cÃ³ quyá»n truy cáº­p khu vá»±c Quáº£n trá»‹!");
+        // 4. CUSTOMER cố tình vào khu vực Admin -> Chặn 403
+        res.sendError(HttpServletResponse.SC_FORBIDDEN, "Khách hàng không có quyền truy cập khu vực Quản trị!");
     }
 }
-
