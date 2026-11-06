@@ -67,7 +67,17 @@ public class UserAdminServlet extends HttpServlet {
         String action = req.getParameter("action");
         Long targetId = parseLong(req.getParameter("userId"));
         String code;
-        if ("assign".equals(action)) {
+        if ("create".equals(action)) {
+            String fullName = req.getParameter("fullName");
+            String email = req.getParameter("email");
+            String phone = req.getParameter("phone");
+            String roleName = req.getParameter("roleName");
+            Long cinemaId = parseLong(req.getParameter("cinemaId"));
+            String password = req.getParameter("password");
+            code = userService.createStaffOrManager(actor.getId(), fullName, email, phone, roleName, cinemaId, password);
+        } else if ("delete".equals(action)) {
+            code = userService.softDeleteUser(actor.getId(), targetId);
+        } else if ("assign".equals(action)) {
             code = userService.assignRoleAndBranch(actor.getId(), targetId, req.getParameter("roleName"), parseLong(req.getParameter("cinemaId")));
         } else if ("toggleStatus".equals(action)) {
             code = userService.toggleAccountStatus(actor.getId(), targetId);
@@ -75,7 +85,15 @@ public class UserAdminServlet extends HttpServlet {
             code = "FAILED";
         }
         String key = "OK".equals(code) ? "msg" : "error";
-        String value = "OK".equals(code) ? ("assign".equals(action) ? "assigned" : "status_updated") : code;
+        String value;
+        if ("OK".equals(code)) {
+            if ("create".equals(action)) value = "created";
+            else if ("delete".equals(action)) value = "deleted";
+            else if ("assign".equals(action)) value = "assigned";
+            else value = "status_updated";
+        } else {
+            value = code;
+        }
         StringBuilder back = new StringBuilder(req.getContextPath())
                 .append("/admin/identity/users?")
                 .append(key).append("=").append(URLEncoder.encode(value, StandardCharsets.UTF_8));

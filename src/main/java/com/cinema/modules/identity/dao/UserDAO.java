@@ -37,6 +37,38 @@ public class UserDAO {
         return querySingle(sql, ps -> ps.setString(1, phone.trim()));
     }
 
+    /** Kiểm tra email đã tồn tại trong hệ thống (kể cả đã bị xóa mềm hoặc chưa). */
+    public boolean existsByEmail(String email) {
+        if (email == null || email.isBlank()) return false;
+        String sql = "SELECT 1 FROM users WHERE LOWER(email) = LOWER(?)";
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, email.trim());
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    /** Kiểm tra số điện thoại đã tồn tại trong hệ thống. */
+    public boolean existsByPhone(String phone) {
+        if (phone == null || phone.isBlank()) return false;
+        String sql = "SELECT 1 FROM users WHERE phone = ?";
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, phone.trim());
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
     /** Tìm user theo ID. */
     public User findById(Long id) {
         String sql = "SELECT u.*, r.role_name, r.description AS role_desc " +
@@ -175,6 +207,40 @@ public class UserDAO {
             }
         } catch (SQLException e) {
             // Email hoặc Phone đã tồn tại → trả về null
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    /**
+     * Tạo tài khoản nội bộ (STAFF hoặc MANAGER) do Admin khởi tạo.
+     * Mặc định status = 'ACTIVE', email_verified = 1, is_deleted = 0.
+     */
+    public Long insertStaffOrManager(User user, String roleName) {
+        String sql = "INSERT INTO users (role_id, cinema_id, email, password_hash, full_name, phone, " +
+                     "loyalty_points, status, email_verified, is_deleted, created_at, updated_at) " +
+                     "VALUES ((SELECT id FROM roles WHERE role_name = ?), ?, ?, ?, ?, ?, 0, 'ACTIVE', 1, 0, GETDATE(), GETDATE())";
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            ps.setString(1, roleName);
+            if (user.getCinemaId() != null) {
+                ps.setLong(2, user.getCinemaId());
+            } else {
+                ps.setNull(2, Types.BIGINT);
+            }
+            ps.setString(3, user.getEmail().trim().toLowerCase());
+            ps.setString(4, user.getPasswordHash());
+            ps.setString(5, user.getFullName().trim());
+            if (user.getPhone() != null && !user.getPhone().isBlank()) {
+                ps.setString(6, user.getPhone().trim());
+            } else {
+                ps.setNull(6, Types.VARCHAR);
+            }
+            ps.executeUpdate();
+            try (ResultSet rs = ps.getGeneratedKeys()) {
+                if (rs.next()) return rs.getLong(1);
+            }
+        } catch (SQLException e) {
             e.printStackTrace();
         }
         return null;
@@ -346,6 +412,22 @@ public class UserDAO {
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, status);
             ps.setLong(2, userId);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    /**
+     * Xóa mềm tài khoản người dùng: chuyển is_deleted = 1, status = 'DEACTIVATED'.
+     */
+    public boolean softDelete(Long userId) {
+        String sql = "UPDATE users SET is_deleted = 1, status = 'DEACTIVATED', updated_at = GETDATE() " +
+                     "WHERE id = ? AND is_deleted = 0";
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setLong(1, userId);
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
             e.printStackTrace();
