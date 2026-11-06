@@ -1,5 +1,6 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <c:set var="pageTitle" value="${movie.title} - Chi Tiết Phim | CineMax" />
 <jsp:include page="../../common/header.jsp" />
 
@@ -165,6 +166,92 @@
                 </div>
             </div>
         </div>
+    </div>
+</div>
+
+<div class="container py-5 border-top border-secondary">
+    <h3 class="fw-bold text-white mb-3">
+        <i class="fa-solid fa-star text-warning me-2"></i>Danh Gia Khach Hang
+    </h3>
+
+    <div class="mb-4 p-3 rounded" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);">
+        <div class="d-flex flex-wrap gap-4 align-items-center">
+            <div>
+                <span class="text-secondary small">Diem trung binh</span>
+                <div class="text-warning fs-4 fw-bold">
+                    <fmt:formatNumber value="${reviewSummary.averageRating}" type="number" maxFractionDigits="1" minFractionDigits="1" /> / 5
+                </div>
+            </div>
+            <div>
+                <span class="text-secondary small">Tong danh gia da duyet</span>
+                <div class="text-white fs-5 fw-semibold">${reviewSummary.totalReviews}</div>
+            </div>
+        </div>
+    </div>
+
+    <c:if test="${not empty param.reviewMsg}">
+        <div class="alert alert-success"><c:out value="${param.reviewMsg}" /></div>
+    </c:if>
+    <c:if test="${not empty param.reviewErr}">
+        <div class="alert alert-danger"><c:out value="${param.reviewErr}" /></div>
+    </c:if>
+
+    <c:if test="${not empty sessionScope.currentUser and sessionScope.currentUser.role.roleName == 'CUSTOMER'}">
+        <div class="mb-4 p-3 rounded" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);">
+            <h5 class="text-white mb-3">Gui danh gia cua ban</h5>
+            <c:choose>
+                <c:when test="${not empty userReview}">
+                    <p class="mb-2 text-secondary">Ban da gui danh gia cho phim nay.</p>
+                    <p class="mb-0"><span class="badge bg-info text-dark">Trang thai: <c:out value="${userReview.status}" /></span></p>
+                </c:when>
+                <c:otherwise>
+                    <form method="post" action="${pageContext.request.contextPath}/customer/reviews/create">
+                        <input type="hidden" name="movieId" value="${movie.id}" />
+                        <div class="mb-3">
+                            <label for="rating" class="form-label text-secondary">So sao</label>
+                            <select id="rating" name="rating" class="form-select" required>
+                                <option value="">-- Chon danh gia --</option>
+                                <option value="5">5 sao</option>
+                                <option value="4">4 sao</option>
+                                <option value="3">3 sao</option>
+                                <option value="2">2 sao</option>
+                                <option value="1">1 sao</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="comment" class="form-label text-secondary">Noi dung danh gia</label>
+                            <textarea id="comment" name="comment" class="form-control" rows="4" required placeholder="Hay chia se cam nhan cua ban sau khi xem phim..."></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-cinema-primary">
+                            <i class="fa-solid fa-paper-plane me-1"></i>Gui danh gia
+                        </button>
+                    </form>
+                </c:otherwise>
+            </c:choose>
+        </div>
+    </c:if>
+
+    <div class="d-flex flex-column gap-3">
+        <c:forEach items="${approvedReviews}" var="review">
+            <div class="p-3 rounded" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07);">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <div>
+                        <div class="fw-semibold text-white"><c:out value="${review.customerName}" /></div>
+                        <div class="text-warning">
+                            <c:forEach begin="1" end="5" var="star">
+                                <i class="fa${star <= review.ratingScore ? 's' : 'r'} fa-star"></i>
+                            </c:forEach>
+                        </div>
+                    </div>
+                    <small class="text-secondary"><c:out value="${review.createdAt}" /></small>
+                </div>
+                <p class="mb-0 text-secondary"><c:out value="${review.comment}" /></p>
+            </div>
+        </c:forEach>
+
+        <c:if test="${empty approvedReviews}">
+            <div class="text-secondary">Phim nay chua co danh gia da duyet.</div>
+        </c:if>
     </div>
 </div>
 

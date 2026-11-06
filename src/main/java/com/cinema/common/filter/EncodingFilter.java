@@ -11,9 +11,10 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 /**
- * Filter đảm bảo mã hóa ký tự UTF-8 cho toàn bộ Request và Response trong hệ thống.
- * Không ghi đè Content-Type của các tài nguyên tĩnh (.css, .js, .png, .jpg...).
- */
+ * Filter Ä‘áº£m báº£o mÃ£ hÃ³a kÃ½ tá»± UTF-8 cho toÃ n bá»™ Request vÃ  Response trong há»‡ thá»‘ng.
+ * KhÃ´ng ghi Ä‘Ã¨ Content-Type cá»§a cÃ¡c tÃ i nguyÃªn tÄ©nh (.css, .js, .png, .jpg...).
+ 
+ * Refactor update: Lam ro trach nhiem lop cho de bao tri.*/
 public class EncodingFilter implements Filter {
     private static final String ENCODING = "UTF-8";
 
@@ -27,7 +28,7 @@ public class EncodingFilter implements Filter {
         res.setCharacterEncoding(ENCODING);
 
         String path = req.getRequestURI();
-        // Chỉ set default content-type nếu request là servlet/trang động và chưa có extension tĩnh
+        // Chá»‰ set default content-type náº¿u request lÃ  servlet/trang Ä‘á»™ng vÃ  chÆ°a cÃ³ extension tÄ©nh
         if (!isStaticResource(path) && res.getContentType() == null) {
             res.setContentType("text/html; charset=UTF-8");
         }
@@ -44,3 +45,4 @@ public class EncodingFilter implements Filter {
                 || lower.endsWith(".woff2") || lower.endsWith(".ttf") || lower.endsWith(".map");
     }
 }
+

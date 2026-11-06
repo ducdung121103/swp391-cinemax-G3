@@ -5,8 +5,9 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 /**
- * Tiện ích định dạng và phân tích chuỗi thời gian chuẩn Việt Nam và ISO.
- */
+ * Tiá»‡n Ã­ch Ä‘á»‹nh dáº¡ng vÃ  phÃ¢n tÃ­ch chuá»—i thá»i gian chuáº©n Viá»‡t Nam vÃ  ISO.
+ 
+ * Refactor update: Lam ro trach nhiem lop cho de bao tri.*/
 public final class DateTimeUtil {
     public static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
     public static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");
@@ -32,3 +33,4 @@ public final class DateTimeUtil {
         return LocalDateTime.parse(text, DB_DATETIME_FORMATTER);
     }
 }
+

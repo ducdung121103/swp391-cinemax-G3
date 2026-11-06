@@ -8,8 +8,9 @@ import lombok.Setter;
 import lombok.ToString;
 
 /**
- * Entity Tài khoản người dùng (Bảng users - Zone 2)
- */
+ * Entity TÃ i khoáº£n ngÆ°á»i dÃ¹ng (Báº£ng users - Zone 2)
+ 
+ * Refactor update: Lam ro trach nhiem lop cho de bao tri.*/
 @Getter
 @Setter
 @Builder
@@ -34,8 +35,9 @@ public class User extends BaseEntity {
     private String resetPasswordToken;
     private java.time.LocalDateTime resetTokenExpiresAt;
 
-    // Quan hệ điều hướng
+    // Quan há»‡ Ä‘iá»u hÆ°á»›ng
     private Role role;
     private MembershipTier membershipTier;
     private Cinema cinema;
 }
+

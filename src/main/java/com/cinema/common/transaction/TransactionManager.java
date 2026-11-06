@@ -6,15 +6,16 @@ import java.sql.Connection;
 import java.sql.SQLException;
 
 /**
- * TransactionManager quản lý Transaction phân tán lồng nhau (Nested Transactions)
- * sử dụng ThreadLocal cô lập Connection theo từng luồng request của Tomcat.
+ * TransactionManager quáº£n lÃ½ Transaction phÃ¢n tÃ¡n lá»“ng nhau (Nested Transactions)
+ * sá»­ dá»¥ng ThreadLocal cÃ´ láº­p Connection theo tá»«ng luá»“ng request cá»§a Tomcat.
  * 
- * Quy tắc an toàn:
- * - Chỉ Root Transaction (depth == 0) mới có quyền mở kết nối, setAutoCommit(false),
- *   commit, rollback và close kết nối.
- * - Các hàm con gọi lồng bên trong sẽ tái sử dụng Connection hiện tại của Root,
- *   tránh lỗi SQLException: Connection is closed.
- */
+ * Quy táº¯c an toÃ n:
+ * - Chá»‰ Root Transaction (depth == 0) má»›i cÃ³ quyá»n má»Ÿ káº¿t ná»‘i, setAutoCommit(false),
+ *   commit, rollback vÃ  close káº¿t ná»‘i.
+ * - CÃ¡c hÃ m con gá»i lá»“ng bÃªn trong sáº½ tÃ¡i sá»­ dá»¥ng Connection hiá»‡n táº¡i cá»§a Root,
+ *   trÃ¡nh lá»—i SQLException: Connection is closed.
+ 
+ * Refactor update: Lam ro trach nhiem lop cho de bao tri.*/
 public class TransactionManager {
     private static final ThreadLocal<Connection> connectionHolder = new ThreadLocal<>();
     private static final ThreadLocal<Integer> depthHolder = ThreadLocal.withInitial(() -> 0);
@@ -31,7 +32,7 @@ public class TransactionManager {
     }
 
     /**
-     * Lấy Connection hiện tại của Transaction (nếu có) hoặc mở mới.
+     * Láº¥y Connection hiá»‡n táº¡i cá»§a Transaction (náº¿u cÃ³) hoáº·c má»Ÿ má»›i.
      */
     public static Connection getConnection() throws SQLException {
         Connection conn = connectionHolder.get();
@@ -43,7 +44,7 @@ public class TransactionManager {
     }
 
     /**
-     * Thực thi một chuỗi tác vụ nghiệp vụ bên trong một Database Transaction duy nhất.
+     * Thá»±c thi má»™t chuá»—i tÃ¡c vá»¥ nghiá»‡p vá»¥ bÃªn trong má»™t Database Transaction duy nháº¥t.
      */
     public static <T> T executeInTransaction(TransactionCallable<T> action) {
         Connection conn = null;
@@ -57,40 +58,40 @@ public class TransactionManager {
                     conn = DBContext.getConnection();
                     connectionHolder.set(conn);
                 }
-                conn.setAutoCommit(false); // Bắt đầu Transaction tại Root
+                conn.setAutoCommit(false); // Báº¯t Ä‘áº§u Transaction táº¡i Root
             } else {
-                conn = connectionHolder.get(); // Tái sử dụng Connection của Root
+                conn = connectionHolder.get(); // TÃ¡i sá»­ dá»¥ng Connection cá»§a Root
             }
             depthHolder.set(depth + 1);
 
-            T result = action.call(conn); // Thực thi logic nghiệp vụ
+            T result = action.call(conn); // Thá»±c thi logic nghiá»‡p vá»¥
 
             if (isRoot) {
-                conn.commit(); // Chỉ Root mới được Commit xuống DB
+                conn.commit(); // Chá»‰ Root má»›i Ä‘Æ°á»£c Commit xuá»‘ng DB
             }
             return result;
         } catch (Exception e) {
             if (isRoot && conn != null) {
                 try {
-                    conn.rollback(); // Lỗi bất kỳ tầng nào -> Root Rollback toàn bộ sạch sẽ
-                    System.err.println("[TransactionManager] Rollback thành công do lỗi: " + e.getMessage());
+                    conn.rollback(); // Lá»—i báº¥t ká»³ táº§ng nÃ o -> Root Rollback toÃ n bá»™ sáº¡ch sáº½
+                    System.err.println("[TransactionManager] Rollback thÃ nh cÃ´ng do lá»—i: " + e.getMessage());
                 } catch (SQLException ex) {
                     ex.printStackTrace();
                 }
             }
-            throw (e instanceof RuntimeException) ? (RuntimeException) e : new RuntimeException("Giao dịch thất bại: " + e.getMessage(), e);
+            throw (e instanceof RuntimeException) ? (RuntimeException) e : new RuntimeException("Giao dá»‹ch tháº¥t báº¡i: " + e.getMessage(), e);
         } finally {
-            depthHolder.set(depth); // Trả lại độ sâu trước đó
+            depthHolder.set(depth); // Tráº£ láº¡i Ä‘á»™ sÃ¢u trÆ°á»›c Ä‘Ã³
             if (isRoot) {
                 if (conn != null) {
                     try {
                         conn.setAutoCommit(true);
-                        conn.close(); // Trả Connection về HikariCP Pool
+                        conn.close(); // Tráº£ Connection vá» HikariCP Pool
                     } catch (SQLException e) {
                         e.printStackTrace();
                     }
                 }
-                connectionHolder.remove(); // Giải phóng ThreadLocal chống memory leak
+                connectionHolder.remove(); // Giáº£i phÃ³ng ThreadLocal chá»‘ng memory leak
                 depthHolder.remove();
             }
         }
@@ -101,3 +102,4 @@ public class TransactionManager {
         T call(Connection conn) throws Exception;
     }
 }
+

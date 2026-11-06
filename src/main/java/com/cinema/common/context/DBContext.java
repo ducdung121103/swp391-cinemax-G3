@@ -8,9 +8,10 @@ import java.sql.Connection;
 import java.sql.SQLException;
 
 /**
- * DBContext quản lý tập trung Connection Pool (HikariCP) cho toàn bộ ứng dụng.
- * Đảm bảo hiệu năng cao, chống rò rỉ kết nối (Memory/Connection Leak).
- */
+ * DBContext quáº£n lÃ½ táº­p trung Connection Pool (HikariCP) cho toÃ n bá»™ á»©ng dá»¥ng.
+ * Äáº£m báº£o hiá»‡u nÄƒng cao, chá»‘ng rÃ² rá»‰ káº¿t ná»‘i (Memory/Connection Leak).
+ 
+ * Refactor update: Lam ro trach nhiem lop cho de bao tri.*/
 public class DBContext {
     private static final HikariDataSource dataSource;
 
@@ -22,7 +23,7 @@ public class DBContext {
             config.setUsername(DatabaseConfig.getProperty("db.username", "sa"));
             config.setPassword(DatabaseConfig.getProperty("db.password", "123456"));
 
-            // Cấu hình Pool
+            // Cáº¥u hÃ¬nh Pool
             config.setMaximumPoolSize(DatabaseConfig.getIntProperty("hikari.maximumPoolSize", 10));
             config.setMinimumIdle(DatabaseConfig.getIntProperty("hikari.minimumIdle", 2));
             config.setIdleTimeout(DatabaseConfig.getIntProperty("hikari.idleTimeout", 30000));
@@ -30,9 +31,9 @@ public class DBContext {
             config.setConnectionTimeout(DatabaseConfig.getIntProperty("hikari.connectionTimeout", 10000));
 
             dataSource = new HikariDataSource(config);
-            System.out.println("[DBContext] Khởi tạo HikariCP Connection Pool thành công!");
+            System.out.println("[DBContext] Khá»Ÿi táº¡o HikariCP Connection Pool thÃ nh cÃ´ng!");
         } catch (Exception e) {
-            System.err.println("[DBContext] Lỗi khởi tạo HikariDataSource: " + e.getMessage());
+            System.err.println("[DBContext] Lá»—i khá»Ÿi táº¡o HikariDataSource: " + e.getMessage());
             throw new ExceptionInInitializerError(e);
         }
     }
@@ -40,19 +41,20 @@ public class DBContext {
     private DBContext() {}
 
     /**
-     * Cấp phát một Connection từ HikariCP Pool.
+     * Cáº¥p phÃ¡t má»™t Connection tá»« HikariCP Pool.
      */
     public static Connection getConnection() throws SQLException {
         return dataSource.getConnection();
     }
 
     /**
-     * Đóng Connection Pool khi ứng dụng tắt.
+     * ÄÃ³ng Connection Pool khi á»©ng dá»¥ng táº¯t.
      */
     public static void closeDataSource() {
         if (dataSource != null && !dataSource.isClosed()) {
             dataSource.close();
-            System.out.println("[DBContext] Đã đóng HikariCP Connection Pool!");
+            System.out.println("[DBContext] ÄÃ£ Ä‘Ã³ng HikariCP Connection Pool!");
         }
     }
 }
+
