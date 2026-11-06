@@ -11,11 +11,8 @@ import com.cinema.modules.infrastructure.dto.BookingDetailDTO;
 import com.cinema.modules.infrastructure.dto.RevenueBreakdownDTO;
 import com.cinema.modules.infrastructure.dto.RevenueFilterDTO;
 import com.cinema.modules.infrastructure.dto.RevenueKpiDTO;
-import com.cinema.modules.infrastructure.dto.RevenueTimeSeriesDTO;
-import com.cinema.modules.infrastructure.service.ReportExportService;
 import com.cinema.modules.infrastructure.service.RevenueReportService;
 import com.cinema.modules.infrastructure.service.ScreeningRoomService;
-import com.cinema.modules.infrastructure.service.impl.ReportExportServiceImpl;
 import com.cinema.modules.infrastructure.service.impl.RevenueReportServiceImpl;
 import com.cinema.modules.infrastructure.service.impl.ScreeningRoomServiceImpl;
 import jakarta.servlet.ServletException;
@@ -41,8 +38,7 @@ import java.util.List;
         "/admin/infrastructure/occupancy",
         "/admin/reports/occupancy",
         "/admin/reports",
-        "/admin/reports/revenue",
-        "/admin/reports/revenue/export"
+        "/admin/reports/revenue"
 })
 public class ReportAdminServlet extends HttpServlet {
 
@@ -51,15 +47,12 @@ public class ReportAdminServlet extends HttpServlet {
     private final InfrastructureReportDAO reportDAO = new InfrastructureReportDAO();
     private final ScreeningRoomService screeningRoomService = new ScreeningRoomServiceImpl();
     private final RevenueReportService revenueReportService = new RevenueReportServiceImpl();
-    private final ReportExportService reportExportService = new ReportExportServiceImpl();
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         String servletPath = req.getServletPath();
 
-        if ("/admin/reports/revenue/export".equals(servletPath)) {
-            handleRevenueExport(req, resp);
-        } else if ("/admin/reports/revenue".equals(servletPath)) {
+        if ("/admin/reports/revenue".equals(servletPath)) {
             handleRevenueReport(req, resp);
         } else {
             handleOccupancyReport(req, resp);
@@ -115,46 +108,7 @@ public class ReportAdminServlet extends HttpServlet {
         }
     }
 
-    /**
-     * Handles Revenue & Sales Report export to Excel (.xlsx) or PDF (.pdf).
-     */
-    private void handleRevenueExport(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        try {
-            RevenueFilterDTO filter = revenueReportService.resolveAndValidateFilter(
-                    req.getParameter("from"),
-                    req.getParameter("to"),
-                    req.getParameter("cinemaId"),
-                    "1", "1000"
-            );
-
-            String format = req.getParameter("format");
-            if (format == null || format.isBlank()) {
-                format = "xlsx";
-            }
-
-            RevenueKpiDTO kpi = revenueReportService.getRevenueKpis(filter);
-            List<RevenueBreakdownDTO> byMovie = revenueReportService.getRevenueByMovie(filter, 20);
-            List<RevenueBreakdownDTO> byCinema = revenueReportService.getRevenueByCinema(filter);
-            PageResult<BookingDetailDTO> bookingsPaged = revenueReportService.getBookingDetailsPaged(filter);
-
-            String filename = String.format("revenue-report_%s_%s", filter.getFrom(), filter.getTo());
-
-            if ("pdf".equalsIgnoreCase(format)) {
-                resp.setContentType("application/pdf");
-                resp.setHeader("Content-Disposition", "attachment; filename=\"" + filename + ".pdf\"");
-                reportExportService.exportRevenuePdf(filter, kpi, byMovie, byCinema, java.util.Collections.emptyList(), resp.getOutputStream());
-            } else {
-                resp.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-                resp.setHeader("Content-Disposition", "attachment; filename=\"" + filename + ".xlsx\"");
-                reportExportService.exportRevenueExcel(filter, kpi, java.util.Collections.emptyList(), byMovie, byCinema, java.util.Collections.emptyList(), bookingsPaged.getContent(), resp.getOutputStream());
-            }
-            resp.getOutputStream().flush();
-
-        } catch (Exception e) {
-            logger.error("Error exporting revenue report", e);
-            resp.sendRedirect(req.getContextPath() + "/admin/reports/revenue?error=" + URLEncoder.encode("Lỗi xuất file: " + e.getMessage(), StandardCharsets.UTF_8));
-        }
-    }
+    
 
     /**
      * Handles Branch Occupancy Report (M-10.3) - existing implementation preserved.
