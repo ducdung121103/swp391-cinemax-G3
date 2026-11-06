@@ -38,13 +38,10 @@ $RECYCLE.BIN/
 ~$*
 *.tmp
 
-# Documentation, spreadsheets & auxiliary files
+# Documentation, spreadsheets, plans & local deliverables
+docs/
+plans/
 *.xls
+*.xlsx
 cine-diagram/
 Feature_Tree*.md
-
-# Allow docs/testing/ for test deliverables while ignoring other docs
-!docs/
-docs/*
-!docs/testing/
-!docs/testing/**
