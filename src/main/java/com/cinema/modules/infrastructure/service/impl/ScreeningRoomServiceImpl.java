@@ -350,6 +350,26 @@ public class ScreeningRoomServiceImpl implements ScreeningRoomService {
     // =========================================================================
     // ITERATION 2: SEAT MAINTENANCE & MAINTENANCE SCHEDULES
     // =========================================================================
+    /**
+     * Helper tạo bản sao ghế mô phỏng sang loại COUPLE (Sweetbox) phục vụ kiểm định nghiệp vụ.
+     */
+    private Seat createSimulatedCoupleSeat(Seat source) {
+        Seat copy = new Seat();
+        copy.setId(source.getId());
+        copy.setSeatRow(source.getSeatRow());
+        copy.setSeatNumber(source.getSeatNumber());
+        copy.setSeatCode(source.getSeatCode());
+        copy.setGridRowIndex(source.getGridRowIndex());
+        copy.setGridColIndex(source.getGridColIndex());
+        copy.setSeatTypeId(3L);
+        SeatType st = new SeatType();
+        st.setId(3L);
+        st.setTypeCode("COUPLE");
+        st.setName("Ghế Đôi Sweetbox");
+        copy.setSeatType(st);
+        return copy;
+    }
+
 
     @Override
     public boolean toggleSeatsMaintenance(Long roomId, List<Long> seatIds, boolean underMaintenance) {
