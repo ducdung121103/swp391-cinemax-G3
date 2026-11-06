@@ -120,12 +120,12 @@ public class ReportExportServiceImpl implements ReportExportService {
             createCell(kpiHeader, 1, "Giá Trị Kỳ Này", headerStyle);
             createCell(kpiHeader, 2, "Tăng Trưởng Kỳ Trước", headerStyle);
 
-            addKpiRow(kpiSheet, rIdx++, "Tổng Doanh Thu Toàn Hệ Thống", kpi.getTotalRevenue(), currencyStyle, kpi.getRevenueGrowthPercent(), percentStyle, dataStyle);
+            addKpiRow(kpiSheet, rIdx++, "Tổng Doanh Thu Toàn Hệ Thống", kpi.getTotalRevenue(), currencyStyle, null, percentStyle, dataStyle);
             addKpiRow(kpiSheet, rIdx++, "Doanh Thu Vé Xem Phim", kpi.getTicketRevenue(), currencyStyle, null, null, dataStyle);
             addKpiRow(kpiSheet, rIdx++, "Doanh Thu Bắp Nước & F&B", kpi.getFnbRevenue(), currencyStyle, null, null, dataStyle);
             addKpiRow(kpiSheet, rIdx++, "Tổng Tiền Chiết Khấu / Voucher", kpi.getDiscountAmount(), currencyStyle, null, null, dataStyle);
-            addKpiRow(kpiSheet, rIdx++, "Số Đơn Đặt Vé Xác Nhận", BigDecimal.valueOf(kpi.getTotalConfirmedBookings()), intStyle, kpi.getBookingsGrowthPercent(), percentStyle, dataStyle);
-            addKpiRow(kpiSheet, rIdx++, "Số Lượng Vé Bán Ra", BigDecimal.valueOf(kpi.getTotalTicketsSold()), intStyle, kpi.getTicketsGrowthPercent(), percentStyle, dataStyle);
+            addKpiRow(kpiSheet, rIdx++, "Số Đơn Đặt Vé Xác Nhận", BigDecimal.valueOf(kpi.getTotalConfirmedBookings()), intStyle, null, percentStyle, dataStyle);
+            addKpiRow(kpiSheet, rIdx++, "Số Lượng Vé Bán Ra", BigDecimal.valueOf(kpi.getTotalTicketsSold()), intStyle, null, percentStyle, dataStyle);
             addKpiRow(kpiSheet, rIdx++, "Giá Trị Đơn Trung Bình (AOV)", kpi.getAverageOrderValue(), currencyStyle, null, null, dataStyle);
             addKpiRow(kpiSheet, rIdx++, "Giá Vé Trung Bình (ATP)", kpi.getAverageTicketPrice(), currencyStyle, null, null, dataStyle);
 
@@ -288,11 +288,11 @@ public class ReportExportServiceImpl implements ReportExportService {
         addPdfHeaderCell(kpiTable, "Giá Trị Thực Đạt", fontHeader);
         addPdfHeaderCell(kpiTable, "Tăng Trưởng", fontHeader);
 
-        addPdfRow(kpiTable, "Tổng Doanh Thu Toàn Hệ Thống", CURRENCY_FMT.format(kpi.getTotalRevenue()), formatGrowth(kpi.getRevenueGrowthPercent()), fontBody);
+        addPdfRow(kpiTable, "Tổng Doanh Thu Toàn Hệ Thống", CURRENCY_FMT.format(kpi.getTotalRevenue()), "-", fontBody);
         addPdfRow(kpiTable, "Doanh Thu Vé Xem Phim", CURRENCY_FMT.format(kpi.getTicketRevenue()), "-", fontBody);
         addPdfRow(kpiTable, "Doanh Thu Bắp Nước (F&B)", CURRENCY_FMT.format(kpi.getFnbRevenue()), "-", fontBody);
-        addPdfRow(kpiTable, "Số Đơn Đặt Vé Xác Nhận", String.valueOf(kpi.getTotalConfirmedBookings()), formatGrowth(kpi.getBookingsGrowthPercent()), fontBody);
-        addPdfRow(kpiTable, "Số Lượng Vé Bán Ra", String.valueOf(kpi.getTotalTicketsSold()), formatGrowth(kpi.getTicketsGrowthPercent()), fontBody);
+        addPdfRow(kpiTable, "Số Đơn Đặt Vé Xác Nhận", String.valueOf(kpi.getTotalConfirmedBookings()), "-", fontBody);
+        addPdfRow(kpiTable, "Số Lượng Vé Bán Ra", String.valueOf(kpi.getTotalTicketsSold()), "-", fontBody);
         addPdfRow(kpiTable, "Giá Trị Đơn Trung Bình (AOV)", CURRENCY_FMT.format(kpi.getAverageOrderValue()), "-", fontBody);
         document.add(kpiTable);
 

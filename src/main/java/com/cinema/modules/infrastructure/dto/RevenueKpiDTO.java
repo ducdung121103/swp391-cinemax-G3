@@ -33,9 +33,4 @@ public class RevenueKpiDTO {
     private BigDecimal averageOrderValue = BigDecimal.ZERO;
     @Builder.Default
     private BigDecimal averageTicketPrice = BigDecimal.ZERO;
-
-    // Period-over-period % growth vs previous period
-    private Double revenueGrowthPercent;
-    private Double bookingsGrowthPercent;
-    private Double ticketsGrowthPercent;
 }

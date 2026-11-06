@@ -93,72 +93,31 @@ class RevenueReportServiceTest {
     }
 
     @Test
-    @DisplayName("Should safely calculate positive and negative percentage growth")
-    void testCalculateGrowthStandard() {
-        // +50% growth
-        Double growthPos = RevenueReportServiceImpl.calculateGrowth(BigDecimal.valueOf(150), BigDecimal.valueOf(100));
-        assertEquals(50.0, growthPos);
-
-        // -20% growth
-        Double growthNeg = RevenueReportServiceImpl.calculateGrowth(BigDecimal.valueOf(80), BigDecimal.valueOf(100));
-        assertEquals(-20.0, growthNeg);
-    }
-
-    @Test
-    @DisplayName("Should handle divide-by-zero safely when previous value is zero")
-    void testCalculateGrowthDivideByZero() {
-        // Prev = 0, current > 0 -> +100.0%
-        Double growthFromZero = RevenueReportServiceImpl.calculateGrowth(BigDecimal.valueOf(500), BigDecimal.ZERO);
-        assertEquals(100.0, growthFromZero);
-
-        // Prev = 0, current = 0 -> 0.0%
-        Double growthBothZero = RevenueReportServiceImpl.calculateGrowth(BigDecimal.ZERO, BigDecimal.ZERO);
-        assertEquals(0.0, growthBothZero);
-
-        // Null handling
-        Double growthNulls = RevenueReportServiceImpl.calculateGrowth(null, null);
-        assertEquals(0.0, growthNulls);
-    }
-
-    @Test
-    @DisplayName("Should calculate previous equal period and compute period-over-period KPIs")
-    void testGetRevenueKpisWithPeriodOverPeriod() {
+    @DisplayName("Should retrieve revenue KPIs for current filter period")
+    void testGetRevenueKpis() {
         LocalDate from = LocalDate.of(2026, 10, 11);
-        LocalDate to = LocalDate.of(2026, 10, 20); // 10 days
+        LocalDate to = LocalDate.of(2026, 10, 20);
         RevenueFilterDTO filter = RevenueFilterDTO.builder()
                 .from(from)
                 .to(to)
                 .channel("ALL")
                 .build();
 
-        RevenueKpiDTO currentKpi = RevenueKpiDTO.builder()
+        RevenueKpiDTO expectedKpi = RevenueKpiDTO.builder()
                 .totalRevenue(BigDecimal.valueOf(1200000))
                 .totalConfirmedBookings(12)
                 .totalTicketsSold(24)
                 .build();
 
-        RevenueKpiDTO prevKpi = RevenueKpiDTO.builder()
-                .totalRevenue(BigDecimal.valueOf(1000000))
-                .totalConfirmedBookings(10)
-                .totalTicketsSold(20)
-                .build();
-
-        // 10 days prior: from Oct 1 to Oct 10
-        LocalDate expectedPrevFrom = LocalDate.of(2026, 10, 1);
-        LocalDate expectedPrevTo = LocalDate.of(2026, 10, 10);
-
-        when(revenueReportDAO.getKpiMetrics(eq(from), eq(to), any(), any(), eq("ALL"))).thenReturn(currentKpi);
-        when(revenueReportDAO.getKpiMetrics(eq(expectedPrevFrom), eq(expectedPrevTo), any(), any(), eq("ALL"))).thenReturn(prevKpi);
+        when(revenueReportDAO.getKpiMetrics(eq(from), eq(to), any(), any(), eq("ALL"))).thenReturn(expectedKpi);
 
         RevenueKpiDTO result = service.getRevenueKpis(filter);
 
         assertNotNull(result);
         assertEquals(BigDecimal.valueOf(1200000), result.getTotalRevenue());
-        assertEquals(20.0, result.getRevenueGrowthPercent()); // (1200000 - 1000000)/1000000 = +20.0%
-        assertEquals(20.0, result.getBookingsGrowthPercent());
-        assertEquals(20.0, result.getTicketsGrowthPercent());
+        assertEquals(12, result.getTotalConfirmedBookings());
+        assertEquals(24, result.getTotalTicketsSold());
 
         verify(revenueReportDAO).getKpiMetrics(eq(from), eq(to), any(), any(), eq("ALL"));
-        verify(revenueReportDAO).getKpiMetrics(eq(expectedPrevFrom), eq(expectedPrevTo), any(), any(), eq("ALL"));
     }
 }

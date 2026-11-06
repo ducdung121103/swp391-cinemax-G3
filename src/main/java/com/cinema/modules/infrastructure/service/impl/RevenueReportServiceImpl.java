@@ -116,26 +116,8 @@ public class RevenueReportServiceImpl implements RevenueReportService {
 
     @Override
     public RevenueKpiDTO getRevenueKpis(RevenueFilterDTO filter) {
-        RevenueKpiDTO currentKpi = revenueReportDAO.getKpiMetrics(
+        return revenueReportDAO.getKpiMetrics(
                 filter.getFrom(), filter.getTo(), filter.getCinemaId(), filter.getMovieId(), filter.getChannel());
-
-        // Previous equal period calculation
-        long days = ChronoUnit.DAYS.between(filter.getFrom(), filter.getTo()) + 1;
-        LocalDate prevTo = filter.getFrom().minusDays(1);
-        LocalDate prevFrom = prevTo.minusDays(days - 1);
-
-        RevenueKpiDTO prevKpi = revenueReportDAO.getKpiMetrics(
-                prevFrom, prevTo, filter.getCinemaId(), filter.getMovieId(), filter.getChannel());
-
-        currentKpi.setRevenueGrowthPercent(calculateGrowth(currentKpi.getTotalRevenue(), prevKpi.getTotalRevenue()));
-        currentKpi.setBookingsGrowthPercent(calculateGrowth(
-                BigDecimal.valueOf(currentKpi.getTotalConfirmedBookings()),
-                BigDecimal.valueOf(prevKpi.getTotalConfirmedBookings())));
-        currentKpi.setTicketsGrowthPercent(calculateGrowth(
-                BigDecimal.valueOf(currentKpi.getTotalTicketsSold()),
-                BigDecimal.valueOf(prevKpi.getTotalTicketsSold())));
-
-        return currentKpi;
     }
 
 @Override
@@ -165,27 +147,4 @@ public class RevenueReportServiceImpl implements RevenueReportService {
         return revenueReportDAO.getAllCinemasForFilter();
     }
 
-    /**
-     * Calculates percentage growth between current and previous values.
-     * Prevents divide-by-zero errors.
-     */
-    public static Double calculateGrowth(BigDecimal current, BigDecimal previous) {
-        if (current == null) current = BigDecimal.ZERO;
-        if (previous == null) previous = BigDecimal.ZERO;
-
-        if (previous.compareTo(BigDecimal.ZERO) == 0) {
-            if (current.compareTo(BigDecimal.ZERO) > 0) {
-                return 100.0;
-            } else if (current.compareTo(BigDecimal.ZERO) < 0) {
-                return -100.0;
-            } else {
-                return 0.0;
-            }
-        }
-
-        BigDecimal diff = current.subtract(previous);
-        return diff.multiply(BigDecimal.valueOf(100))
-                .divide(previous, 1, RoundingMode.HALF_UP)
-                .doubleValue();
-    }
 }

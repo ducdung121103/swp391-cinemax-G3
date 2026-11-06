@@ -306,17 +306,6 @@
                     <div class="kpi-content">
                         <h3><fmt:formatNumber value="${kpi.totalRevenue}" pattern="#,##0"/> ₫</h3>
                         <p>Tổng Doanh Thu Toàn Hệ Thống</p>
-                        <c:choose>
-                            <c:when test="${kpi.revenueGrowthPercent != null && kpi.revenueGrowthPercent > 0}">
-                                <span class="growth-badge growth-pos"><i class="fa-solid fa-arrow-up"></i> +${kpi.revenueGrowthPercent}% vs kỳ trước</span>
-                            </c:when>
-                            <c:when test="${kpi.revenueGrowthPercent != null && kpi.revenueGrowthPercent < 0}">
-                                <span class="growth-badge growth-neg"><i class="fa-solid fa-arrow-down"></i> ${kpi.revenueGrowthPercent}% vs kỳ trước</span>
-                            </c:when>
-                            <c:otherwise>
-                                <span class="growth-badge growth-neutral"><i class="fa-solid fa-minus"></i> 0.0% vs kỳ trước</span>
-                            </c:otherwise>
-                        </c:choose>
                     </div>
                 </div>
 
@@ -347,17 +336,6 @@
                     <div class="kpi-content">
                         <h3><fmt:formatNumber value="${kpi.totalConfirmedBookings}" pattern="#,##0"/></h3>
                         <p>Số Đơn Hàng Thành Công</p>
-                        <c:choose>
-                            <c:when test="${kpi.bookingsGrowthPercent != null && kpi.bookingsGrowthPercent > 0}">
-                                <span class="growth-badge growth-pos"><i class="fa-solid fa-arrow-up"></i> +${kpi.bookingsGrowthPercent}%</span>
-                            </c:when>
-                            <c:when test="${kpi.bookingsGrowthPercent != null && kpi.bookingsGrowthPercent < 0}">
-                                <span class="growth-badge growth-neg"><i class="fa-solid fa-arrow-down"></i> ${kpi.bookingsGrowthPercent}%</span>
-                            </c:when>
-                            <c:otherwise>
-                                <span class="growth-badge growth-neutral"><i class="fa-solid fa-minus"></i> 0.0%</span>
-                            </c:otherwise>
-                        </c:choose>
                     </div>
                 </div>
             </div>
