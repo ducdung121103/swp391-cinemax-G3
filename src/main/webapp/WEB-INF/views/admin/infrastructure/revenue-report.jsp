@@ -292,29 +292,8 @@
                     </div>
                 </form>
 
-                <%-- Export Actions --%>
+                <%-- Export Action --%>
                 <div class="filter-group" style="align-self:flex-end;">
-                    <c:url var="exportExcelUrl" value="/admin/reports/revenue/export">
-                        <c:param name="format" value="xlsx" />
-                        <c:param name="from" value="${filter.from}" />
-                        <c:param name="to" value="${filter.to}" />
-                        <c:param name="cinemaId" value="${filter.cinemaId}" />
-                        <c:param name="movieId" value="${filter.movieId}" />
-                        <c:param name="channel" value="${filter.channel}" />
-                        <c:param name="groupBy" value="${filter.groupBy}" />
-                    </c:url>
-                    <c:url var="exportPdfUrl" value="/admin/reports/revenue/export">
-                        <c:param name="format" value="pdf" />
-                        <c:param name="from" value="${filter.from}" />
-                        <c:param name="to" value="${filter.to}" />
-                        <c:param name="cinemaId" value="${filter.cinemaId}" />
-                        <c:param name="movieId" value="${filter.movieId}" />
-                        <c:param name="channel" value="${filter.channel}" />
-                        <c:param name="groupBy" value="${filter.groupBy}" />
-                    </c:url>
-                    <a href="${exportExcelUrl}" class="btn-export excel" title="Xuất dữ liệu ra file Excel (.xlsx)">
-                        <i class="fa-solid fa-file-excel"></i> Xuất Excel
-                    </a>
                     <button type="button" class="btn-export pdf" onclick="window.print()" title="Xuất báo cáo dưới dạng PDF hoặc in trực tiếp" style="background:#1e293b; color:#fff; border:none; cursor:pointer;">
                         <i class="fa-solid fa-print"></i> Xuất Báo Cáo / In PDF
                     </button>
