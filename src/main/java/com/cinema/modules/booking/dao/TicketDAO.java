@@ -105,26 +105,6 @@ public class TicketDAO {
         }
     }
 
-public List<TicketReceipt> findReceiptItems(Connection conn, Long bookingId) throws SQLException {
-        String sql = "SELECT s.seat_code, t.barcode, t.ticket_price " +
-                     "FROM tickets t JOIN seats s ON s.id = t.seat_id " +
-                     "WHERE t.booking_id = ? ORDER BY s.seat_row, s.seat_number";
-        List<TicketReceipt> items = new java.util.ArrayList<>();
-        try (PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setLong(1, bookingId);
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    items.add(TicketReceipt.builder()
-                            .seatCode(rs.getString("seat_code"))
-                            .barcode(rs.getString("barcode"))
-                            .ticketPrice(rs.getBigDecimal("ticket_price"))
-                            .build());
-                }
-            }
-        }
-        return items;
-    }
-
     public int countByShowtime(Long showtimeId) {
         if (showtimeId == null) return 0;
         String sql = "SELECT COUNT(*) FROM tickets WHERE showtime_id = ? AND is_deleted = 0 " +
@@ -160,6 +140,26 @@ public List<TicketReceipt> findReceiptItems(Connection conn, Long bookingId) thr
             e.printStackTrace();
         }
         return codes;
+    }
+
+    public List<TicketReceipt> findReceiptItems(Connection conn, Long bookingId) throws SQLException {
+        String sql = "SELECT s.seat_code, t.barcode, t.ticket_price " +
+                     "FROM tickets t JOIN seats s ON s.id = t.seat_id " +
+                     "WHERE t.booking_id = ? ORDER BY s.seat_row, s.seat_number";
+        List<TicketReceipt> items = new ArrayList<>();
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setLong(1, bookingId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    items.add(TicketReceipt.builder()
+                            .seatCode(rs.getString("seat_code"))
+                            .barcode(rs.getString("barcode"))
+                            .ticketPrice(rs.getBigDecimal("ticket_price"))
+                            .build());
+                }
+            }
+        }
+        return items;
     }
 
     public Ticket findByBarcode(String barcode) {

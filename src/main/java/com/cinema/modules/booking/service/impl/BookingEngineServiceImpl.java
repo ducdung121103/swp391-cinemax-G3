@@ -54,11 +54,11 @@ public class BookingEngineServiceImpl implements BookingEngineService {
     private final PaymentDAO paymentDAO;
     private final SeatHoldingDAO seatHoldingDAO;
     private final VoucherService voucherService;
-    private final ScreeningRoomDAO screeningRoomDAO;
     private final EmailService emailService;
     private final UserService userService;
     private final ShowtimeService showtimeService;
     private final MovieService movieService;
+    private final ScreeningRoomDAO screeningRoomDAO;
 
     public BookingEngineServiceImpl() {
         this.bookingDAO = new BookingDAO();
@@ -67,11 +67,11 @@ public class BookingEngineServiceImpl implements BookingEngineService {
         this.paymentDAO = new PaymentDAO();
         this.seatHoldingDAO = new SeatHoldingDAO();
         this.voucherService = new VoucherServiceImpl();
-        this.screeningRoomDAO = new ScreeningRoomDAO();
         this.emailService = new EmailServiceImpl();
         this.userService = new UserServiceImpl();
         this.showtimeService = new ShowtimeServiceImpl();
         this.movieService = new MovieServiceImpl();
+        this.screeningRoomDAO = new ScreeningRoomDAO();
     }
 
     public BookingEngineServiceImpl(BookingDAO bookingDAO, TicketDAO ticketDAO,
@@ -96,11 +96,11 @@ public class BookingEngineServiceImpl implements BookingEngineService {
         this.paymentDAO = paymentDAO;
         this.seatHoldingDAO = seatHoldingDAO;
         this.voucherService = voucherService;
-        this.screeningRoomDAO = screeningRoomDAO;
         this.emailService = null;
         this.userService = null;
         this.showtimeService = null;
         this.movieService = null;
+        this.screeningRoomDAO = screeningRoomDAO;
     }
 
     @Override
