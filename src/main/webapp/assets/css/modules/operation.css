@@ -617,3 +617,371 @@
     .operation-heading { padding: 18px; }
     .inventory-stat { padding: 15px; }
 }
+
+/* ==========================================================================
+   POS MULTI-STEP WIZARD & CINEMA HEADER
+   ========================================================================== */
+
+.header-chips {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.pos-cinema-chip {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 16px;
+    background: #f1f5f9;
+    border: 1px solid #cbd5e1;
+    border-radius: 9px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    white-space: nowrap;
+}
+
+.cinema-dot {
+    width: 10px;
+    height: 10px;
+    background: #e50914;
+    border-radius: 50%;
+    box-shadow: 0 0 0 3px rgba(229, 9, 20, 0.25);
+    animation: posPulse 2s infinite;
+}
+
+@keyframes posPulse {
+    0% { box-shadow: 0 0 0 0 rgba(229, 9, 20, 0.5); }
+    70% { box-shadow: 0 0 0 6px rgba(229, 9, 20, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(229, 9, 20, 0); }
+}
+
+.pos-cinema-chip strong {
+    display: block;
+    color: #0f172a;
+    font-size: 13px;
+    font-weight: 800;
+}
+
+.pos-cinema-chip small {
+    display: block;
+    color: #475569;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 700;
+}
+
+/* Stepper Navigation */
+.pos-stepper {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #fff;
+    border-radius: 12px;
+    padding: 14px 24px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    border: 1px solid #e8eaf0;
+}
+
+.stepper-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    user-select: none;
+    padding: 6px 12px;
+    border-radius: 8px;
+}
+
+.stepper-item:hover {
+    background: #f7f8fb;
+}
+
+.stepper-item .step-circle {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: #f0f2f7;
+    color: #64748b;
+    font-weight: 700;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.25s ease;
+    border: 2px solid #e2e8f0;
+}
+
+.stepper-item.is-active .step-circle {
+    background: #e50914;
+    color: #fff;
+    border-color: #e50914;
+    box-shadow: 0 0 0 4px rgba(229, 9, 20, 0.18);
+}
+
+.stepper-item.is-completed .step-circle {
+    background: #10b981;
+    color: #fff;
+    border-color: #10b981;
+}
+
+.stepper-item .step-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.stepper-item .step-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #334155;
+    transition: color 0.2s;
+}
+
+.stepper-item.is-active .step-title {
+    color: #e50914;
+}
+
+.stepper-item.is-completed .step-title {
+    color: #0f766e;
+}
+
+.stepper-item .step-sub {
+    font-size: 11px;
+    color: #94a3b8;
+}
+
+.stepper-line {
+    flex: 1;
+    height: 2px;
+    background: #e2e8f0;
+    margin: 0 16px;
+    position: relative;
+}
+
+/* Multi-step panels */
+.pos-step-panel {
+    display: none;
+}
+
+.pos-step-panel.is-active {
+    display: block;
+    animation: fadeIn 0.25s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Step Navigation Footer Actions */
+.pos-step-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    background: #fff;
+    border-radius: 10px;
+    border: 1px solid #e8eaf0;
+    margin-top: 18px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+}
+
+.pos-step-nav .nav-summary-pill {
+    font-size: 13px;
+    color: #475569;
+    background: #f8fafc;
+    padding: 6px 14px;
+    border-radius: 20px;
+    border: 1px solid #e2e8f0;
+}
+
+.pos-step-nav .nav-summary-pill strong {
+    color: #0f172a;
+}
+
+.btn-step-prev {
+    background: #475569 !important;
+    color: #fff !important;
+}
+
+.btn-step-prev:hover {
+    background: #334155 !important;
+}
+
+.btn-step-next {
+    background: #e50914 !important;
+    color: #fff !important;
+    padding: 10px 24px !important;
+    font-size: 13px !important;
+    font-weight: 700 !important;
+}
+
+.btn-step-next:hover {
+    background: #c90812 !important;
+}
+
+/* Movie Showtime Cards in Step 1 */
+.pos-movies-showtimes {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 16px;
+    margin-top: 16px;
+}
+
+.pos-movie-card {
+    display: flex;
+    background: #fff;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid #e8eaf0;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.pos-movie-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+}
+
+.pos-movie-poster-wrap {
+    width: 105px;
+    min-width: 105px;
+    position: relative;
+    background: #181923;
+}
+
+.pos-movie-poster {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.pos-age-badge {
+    position: absolute;
+    top: 6px;
+    left: 6px;
+    font-size: 9px;
+    font-weight: 800;
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: #fff;
+    background: #e50914;
+}
+
+.pos-movie-content {
+    padding: 12px 14px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.pos-movie-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 4px;
+    line-height: 1.3;
+}
+
+.pos-movie-meta {
+    font-size: 11px;
+    color: #64748b;
+    margin-bottom: 10px;
+}
+
+.pos-showtime-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: auto;
+}
+
+.pos-time-btn {
+    padding: 7px 12px;
+    background: #f8fafc;
+    border: 1px solid #cbd5e1;
+    border-radius: 7px;
+    color: #1e293b;
+    font-weight: 700;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.pos-time-btn:hover {
+    background: #fee2e2;
+    border-color: #f87171;
+    color: #b91c1c;
+    transform: translateY(-1px);
+}
+
+.pos-time-btn.is-active {
+    background: #e50914;
+    border-color: #e50914;
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(229, 9, 20, 0.35);
+}
+
+.pos-time-btn .btn-pick-label {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 6px;
+    background: #e2e8f0;
+    color: #334155;
+    border-radius: 4px;
+    margin-left: 2px;
+    transition: all 0.15s;
+}
+
+.pos-time-btn:hover .btn-pick-label {
+    background: #e50914;
+    color: #fff;
+}
+
+.pos-time-btn.is-active .btn-pick-label {
+    background: #fff;
+    color: #e50914;
+}
+
+/* Step 4: Checkout Layout */
+.pos-checkout-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 340px;
+    gap: 20px;
+    align-items: start;
+}
+
+.checkout-section-card {
+    background: #fff;
+    border-radius: 10px;
+    padding: 18px 20px;
+    border: 1px solid #e8eaf0;
+    margin-bottom: 16px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+}
+
+.checkout-section-card h3 {
+    font-size: 14px;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+@media (max-width: 900px) {
+    .pos-checkout-layout {
+        grid-template-columns: 1fr;
+    }
+}

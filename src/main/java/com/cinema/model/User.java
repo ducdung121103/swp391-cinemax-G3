@@ -39,5 +39,13 @@ public class User extends BaseEntity {
     private Role role;
     private MembershipTier membershipTier;
     private Cinema cinema;
+
+    public String getPhoneNumber() {
+        return phone;
+    }
+
+    public void setPhoneNumber(String phoneNumber) {
+        this.phone = phoneNumber;
+    }
 }
 

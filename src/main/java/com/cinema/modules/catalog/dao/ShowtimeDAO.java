@@ -134,11 +134,7 @@ public class ShowtimeDAO {
      */
     public List<Showtime> findSellableByCinemaAndDate(Long cinemaId, LocalDate date) {
         List<Showtime> list = new ArrayList<>();
-        String sql = "SELECT st.*, m.title as movie_title, sr.name as room_name " +
-                     "FROM showtimes st " +
-                     "JOIN movies m ON st.movie_id = m.id " +
-                     "JOIN screening_rooms sr ON st.screening_room_id = sr.id " +
-                     "JOIN cinemas c ON c.id = sr.cinema_id " +
+        String sql = selectSql() +
                      "WHERE sr.cinema_id = ? AND CAST(st.start_time AS DATE) = ? " +
                      "AND st.start_time > GETDATE() AND st.status IN ('SCHEDULED', 'OPENING') " +
                      "AND st.is_deleted = 0 AND sr.is_deleted = 0 AND sr.status = 'ACTIVE' " +
@@ -249,19 +245,32 @@ public class ShowtimeDAO {
         Movie m = new Movie();
         m.setId(rs.getLong("movie_id"));
         m.setTitle(rs.getString("movie_title"));
+        try {
+            m.setPosterUrl(rs.getString("poster_url"));
+        } catch (SQLException ignored) {}
+        try {
+            m.setDurationMinutes(rs.getInt("duration_minutes"));
+        } catch (SQLException ignored) {}
+        try {
+            m.setAgeRating(rs.getString("age_rating"));
+        } catch (SQLException ignored) {}
         st.setMovie(m);
 
         ScreeningRoom sr = new ScreeningRoom();
         sr.setId(rs.getLong("screening_room_id"));
         sr.setName(rs.getString("room_name"));
-        long cinemaId = rs.getLong("cinema_id");
-        if (!rs.wasNull()) {
-            sr.setCinemaId(cinemaId);
-            Cinema cinema = new Cinema();
-            cinema.setId(cinemaId);
-            cinema.setName(rs.getString("cinema_name"));
-            sr.setCinema(cinema);
-        }
+        try {
+            long cinemaId = rs.getLong("cinema_id");
+            if (!rs.wasNull()) {
+                sr.setCinemaId(cinemaId);
+                Cinema cinema = new Cinema();
+                cinema.setId(cinemaId);
+                try {
+                    cinema.setName(rs.getString("cinema_name"));
+                } catch (SQLException ignored) {}
+                sr.setCinema(cinema);
+            }
+        } catch (SQLException ignored) {}
         st.setScreeningRoom(sr);
 
         return st;
@@ -269,8 +278,8 @@ public class ShowtimeDAO {
 
     private String selectSql() {
         return "SELECT st.id, st.movie_id, st.screening_room_id, st.start_time, st.end_time, " +
-               "st.experience_format, st.status, m.title AS movie_title, sr.name AS room_name, " +
-               "sr.cinema_id, c.name AS cinema_name " +
+               "st.experience_format, st.status, m.title AS movie_title, m.poster_url, m.duration_minutes, m.age_rating, " +
+               "sr.name AS room_name, sr.cinema_id, c.name AS cinema_name " +
                "FROM showtimes st " +
                "JOIN movies m ON st.movie_id = m.id " +
                "JOIN screening_rooms sr ON st.screening_room_id = sr.id " +

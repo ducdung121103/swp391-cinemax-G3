@@ -25,6 +25,11 @@ public class FnBCatalogServiceImpl implements FnBCatalogService {
     }
 
     @Override
+    public List<FnBItem> getItems(String keyword) throws SQLException {
+        return catalogDAO.findItems(keyword);
+    }
+
+    @Override
     public List<FnBCategory> getCategories() throws SQLException {
         return catalogDAO.findCategories();
     }
@@ -42,6 +47,12 @@ public class FnBCatalogServiceImpl implements FnBCatalogService {
     public void setItemActive(long itemId, boolean active) throws SQLException {
         requirePositive(itemId, "Mã sản phẩm không hợp lệ.");
         save(() -> catalogDAO.setItemActive(itemId, active));
+    }
+
+    @Override
+    public void deleteItem(long itemId) throws SQLException {
+        requirePositive(itemId, "Mã sản phẩm không hợp lệ.");
+        save(() -> catalogDAO.deleteItem(itemId));
     }
 
     @Override
@@ -64,6 +75,12 @@ public class FnBCatalogServiceImpl implements FnBCatalogService {
     public void setCategoryActive(long categoryId, boolean active) throws SQLException {
         requirePositive(categoryId, "Mã danh mục không hợp lệ.");
         save(() -> catalogDAO.setCategoryActive(categoryId, active));
+    }
+
+    @Override
+    public void deleteCategory(long categoryId) throws SQLException {
+        requirePositive(categoryId, "Mã danh mục không hợp lệ.");
+        save(() -> catalogDAO.deleteCategory(categoryId));
     }
 
     private void validateItem(FnBItem item) {

@@ -1,93 +1,69 @@
 package com.cinema.modules.booking.controller;
 
-import com.cinema.model.Seat;
-import com.cinema.model.Showtime;
-import com.cinema.modules.catalog.service.ShowtimeService;
-import com.cinema.modules.catalog.service.impl.ShowtimeServiceImpl;
-import com.cinema.modules.infrastructure.service.ScreeningRoomService;
-import com.cinema.modules.infrastructure.service.impl.ScreeningRoomServiceImpl;
-import com.cinema.modules.operation.dao.PosSeatDAO;
+import com.cinema.model.User;
+import com.cinema.modules.booking.dto.BookingPageData;
+import com.cinema.modules.booking.service.BookingFlowService;
+import com.cinema.modules.booking.service.impl.BookingFlowServiceImpl;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 /**
- * Sơ đồ ghế cho khách sau khi đã xem chi tiết phim của suất đã chọn.
+ * Controller tiếp nhận yêu cầu mở màn hình Chọn ghế & Đặt vé Online của khách hàng.
+ * Bắt buộc khách hàng phải đăng nhập tài khoản trước khi đặt vé để quản lý thông tin khách.
  */
 @WebServlet(name = "SeatSelectionServlet", urlPatterns = {"/booking/seats"})
 public class SeatSelectionServlet extends HttpServlet {
-    private static final DateTimeFormatter SHOWTIME_TEXT = DateTimeFormatter.ofPattern("HH:mm dd/MM/yyyy");
 
-    private final ShowtimeService showtimeService = new ShowtimeServiceImpl();
-    private final ScreeningRoomService screeningRoomService = new ScreeningRoomServiceImpl();
-    private final PosSeatDAO posSeatDAO = new PosSeatDAO();
+    private final BookingFlowService bookingFlowService = new BookingFlowServiceImpl();
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        Showtime showtime = loadScheduled(req.getParameter("showtimeId"));
-        if (showtime == null) {
-            resp.sendRedirect(req.getContextPath() + "/showtimes");
+        String showtimeId = req.getParameter("showtimeId");
+
+        // 1. Bắt buộc đăng nhập để lấy thông tin khách hàng đặt vé
+        HttpSession session = req.getSession(true);
+        User currentUser = (User) session.getAttribute("currentUser");
+        if (currentUser == null) {
+            String returnUrl = req.getContextPath() + "/booking/seats?showtimeId="
+                    + (showtimeId != null ? showtimeId.trim() : "");
+            resp.sendRedirect(req.getContextPath() + "/login?msg=login_required&redirect="
+                    + URLEncoder.encode(returnUrl, StandardCharsets.UTF_8));
             return;
         }
 
-        List<Seat> seats = screeningRoomService.getRoomSeatMatrix(showtime.getScreeningRoomId());
-        Set<Long> availableIds = new HashSet<>();
         try {
-            String sessionId = req.getSession().getId();
-            for (Seat seat : posSeatDAO.findForShowtime(showtime.getId(), showtime.getScreeningRoomId(), sessionId)) {
-                if ("AVAILABLE".equals(seat.getStatus())) {
-                    availableIds.add(seat.getId());
-                }
+            BookingPageData pageData = bookingFlowService.loadBookingPage(showtimeId, session.getId());
+            if (pageData == null || pageData.getShowtime() == null) {
+                resp.sendRedirect(req.getContextPath() + "/showtimes");
+                return;
             }
+
+            req.setAttribute("currentUser", currentUser);
+            req.setAttribute("pageData", pageData);
+            req.setAttribute("showtime", pageData.getShowtime());
+            req.setAttribute("showtimeText", pageData.getShowtimeText());
+            req.setAttribute("currentCinema", pageData.getCurrentCinema());
+            req.setAttribute("seatMap", pageData.getSeatMap());
+            req.setAttribute("seatPrices", pageData.getSeatPrices());
+            req.setAttribute("seatColumnCount", pageData.getSeatColumnCount());
+            req.setAttribute("availableSeatCount", pageData.getAvailableSeatCount());
+            req.setAttribute("fnbItems", pageData.getFnbItems());
+            req.setAttribute("studentDiscount", pageData.getStudentDiscount());
+            req.setAttribute("seniorDiscount", pageData.getSeniorDiscount());
+
+            req.getRequestDispatcher("/WEB-INF/views/customer/booking/seats.jsp").forward(req, resp);
         } catch (SQLException e) {
-            req.setAttribute("seatError", "Không tải được ghế trống của suất này.");
+            req.setAttribute("seatError", "Không tải được sơ đồ ghế của suất chiếu này.");
+            req.getRequestDispatcher("/WEB-INF/views/customer/booking/seats.jsp").forward(req, resp);
         }
-
-        req.setAttribute("showtime", showtime);
-        req.setAttribute("showtimeText", showtime.getStartTime().format(SHOWTIME_TEXT));
-        req.setAttribute("seatRows", groupByRow(seats));
-        req.setAttribute("availableIds", availableIds);
-        req.getRequestDispatcher("/WEB-INF/views/customer/booking/seats.jsp").forward(req, resp);
-    }
-
-    private Showtime loadScheduled(String raw) {
-        if (raw == null || raw.isBlank()) {
-            return null;
-        }
-        try {
-            Showtime showtime = showtimeService.getShowtimeById(Long.parseLong(raw.trim()));
-            if (showtime == null || showtime.getStartTime() == null || showtime.getScreeningRoomId() == null) {
-                return null;
-            }
-            return "SCHEDULED".equals(showtime.getStatus()) ? showtime : null;
-        } catch (NumberFormatException e) {
-            return null;
-        }
-    }
-
-    private List<List<Seat>> groupByRow(List<Seat> seats) {
-        List<List<Seat>> rows = new ArrayList<>();
-        List<Seat> current = null;
-        String rowName = null;
-        for (Seat seat : seats) {
-            String next = seat.getSeatRow() == null ? "" : seat.getSeatRow();
-            if (current == null || !next.equals(rowName)) {
-                current = new ArrayList<>();
-                rows.add(current);
-                rowName = next;
-            }
-            current.add(seat);
-        }
-        return rows;
     }
 }

@@ -14,7 +14,8 @@ import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 
 /**
- * AuthorizationFilter thực thi kiểm soát phân quyền dựa trên Vai trò (Role-Based Access Control - RBAC).
+ * AuthorizationFilter thực thi kiểm soát phân quyền dựa trên Vai trò
+ * (Role-Based Access Control - RBAC).
  */
 public class AuthorizationFilter implements Filter {
 
@@ -48,19 +49,23 @@ public class AuthorizationFilter implements Filter {
         // 2. MANAGER được vào hạ tầng, catalog, hóa đơn, báo cáo của rạp mình
         if (RoleConstant.MANAGER.equalsIgnoreCase(role)) {
             if (uri.contains("/admin/reports/revenue")) {
-                res.sendError(HttpServletResponse.SC_FORBIDDEN, "Báo cáo Doanh thu chỉ dành riêng cho Quản trị viên (Admin)!");
+                res.sendError(HttpServletResponse.SC_FORBIDDEN,
+                        "Báo cáo Doanh thu chỉ dành riêng cho Quản trị viên (Admin)!");
                 return;
             }
             if (uri.contains("/admin/reports/occupancy") || uri.contains("/admin/infrastructure/occupancy")) {
-                res.sendError(HttpServletResponse.SC_FORBIDDEN, "Báo cáo Tỷ lệ Lấp đầy chỉ dành riêng cho Quản trị viên (Admin)!");
+                res.sendError(HttpServletResponse.SC_FORBIDDEN,
+                        "Báo cáo Tỷ lệ Lấp đầy chỉ dành riêng cho Quản trị viên (Admin)!");
                 return;
             }
             if (uri.contains("/admin/catalog/movies") || uri.contains("/admin/movies")) {
-                res.sendError(HttpServletResponse.SC_FORBIDDEN, "Chỉ Admin hệ thống mới được quyền quản lý danh mục Phim!");
+                res.sendError(HttpServletResponse.SC_FORBIDDEN,
+                        "Chỉ Admin hệ thống mới được quyền quản lý danh mục Phim!");
                 return;
             }
             if (uri.contains("/admin/reviews")) {
-                res.sendError(HttpServletResponse.SC_FORBIDDEN, "Chỉ Admin hệ thống mới được quyền kiểm duyệt đánh giá phim!");
+                res.sendError(HttpServletResponse.SC_FORBIDDEN,
+                        "Chỉ Admin hệ thống mới được quyền kiểm duyệt đánh giá phim!");
                 return;
             }
             if (uri.contains("/admin/operation/fnb-catalog")) {
@@ -76,13 +81,15 @@ public class AuthorizationFilter implements Filter {
             return;
         }
 
-        // 3. STAFF chỉ được vào POS và Scanner QR
+        // 3. STAFF được vào POS, Bảng điều khiển Tổng quan (xem Giao dịch gần đây), và
+        // In vé
         if (RoleConstant.STAFF.equalsIgnoreCase(role)) {
-            if (uri.contains("/operation/pos") || uri.contains("/admin/operation/scanner")) {
+            if (uri.contains("/operation/pos") || uri.contains("/admin/dashboard")
+                    || uri.contains("/operation/ticket-print")) {
                 chain.doFilter(request, response);
                 return;
             } else {
-                res.sendError(HttpServletResponse.SC_FORBIDDEN, "Nhân viên chỉ có quyền truy cập Quầy POS và Soát vé!");
+                res.sendError(HttpServletResponse.SC_FORBIDDEN, "Nhân viên không có quyền truy cập trang này!");
                 return;
             }
         }

@@ -51,7 +51,15 @@ public class VNPayServiceImpl implements VNPayService {
                 ? orderInfo : "Thanh toan don ve CineMax " + orderCode);
         vnpParams.put("vnp_OrderType", "other");
         vnpParams.put("vnp_Locale", "vn");
-        vnpParams.put("vnp_ReturnUrl", VNPayConfig.getReturnUrl());
+        String returnUrl = VNPayConfig.getReturnUrl();
+        if (request != null && request.getContextPath() != null) {
+            String scheme = request.getScheme();
+            String serverName = request.getServerName();
+            int port = request.getServerPort();
+            String portPart = (port == 80 || port == 443) ? "" : (":" + port);
+            returnUrl = scheme + "://" + serverName + portPart + request.getContextPath() + "/vnpay-return";
+        }
+        vnpParams.put("vnp_ReturnUrl", returnUrl);
         vnpParams.put("vnp_IpAddr", VNPayConfig.getIpAddress(request));
         vnpParams.put("vnp_CreateDate", createDate);
         vnpParams.put("vnp_ExpireDate", expireDate);

@@ -5,6 +5,8 @@ import com.cinema.modules.operation.dto.PosQuoteResult;
 import com.cinema.modules.operation.dto.PosCheckoutCommand;
 import com.cinema.modules.operation.dto.PosCheckoutResult;
 import com.cinema.modules.operation.dto.PosCounterPageData;
+import com.cinema.modules.booking.service.VNPayService;
+import com.cinema.modules.booking.service.impl.VNPayServiceImpl;
 import com.cinema.modules.operation.service.CheckoutConfirmationRequiredException;
 import com.cinema.modules.operation.service.PosCounterService;
 import com.cinema.modules.operation.service.impl.PosCounterServiceImpl;
@@ -17,6 +19,7 @@ import jakarta.servlet.http.HttpSession;
 import com.google.gson.Gson;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
@@ -27,6 +30,7 @@ import java.util.Map;
 public class PosCounterServlet extends HttpServlet {
     private static final String VIEW = "/WEB-INF/views/admin/operation/pos-counter.jsp";
     private final PosCounterService posCounterService = new PosCounterServiceImpl();
+    private final VNPayService vnpayService = new VNPayServiceImpl();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -44,6 +48,7 @@ public class PosCounterServlet extends HttpServlet {
             request.setAttribute("today", page.getToday());
             request.setAttribute("selectedDate", page.getSelectedDate());
             request.setAttribute("cinemaId", page.getCinemaId());
+            request.setAttribute("currentCinema", page.getCurrentCinema());
             request.setAttribute("cinemas", page.getCinemas());
             request.setAttribute("showtimes", page.getShowtimes());
             request.setAttribute("fnbItems", page.getFnbItems());
@@ -95,6 +100,27 @@ public class PosCounterServlet extends HttpServlet {
                 PosQuoteResult quote = posCounterService.quote(toCommand(request, staff));
                 response.setContentType("application/json;charset=UTF-8");
                 response.getWriter().write(new Gson().toJson(quote));
+                return;
+            }
+            if ("vnpay_url".equalsIgnoreCase(request.getParameter("mode"))) {
+                PosQuoteResult quote = posCounterService.quote(toCommand(request, staff));
+                if (quote.getGrandTotal() == null || quote.getGrandTotal().compareTo(BigDecimal.ZERO) <= 0) {
+                    writeQuoteError(response, HttpServletResponse.SC_BAD_REQUEST, "Số tiền thanh toán phải lớn hơn 0đ.");
+                    return;
+                }
+                String tempTxnRef = "POS-" + System.currentTimeMillis();
+                String paymentUrl = vnpayService.createPaymentUrl(
+                        request,
+                        tempTxnRef,
+                        quote.getGrandTotal(),
+                        "Thanh toan POS CineMax " + tempTxnRef);
+                Map<String, Object> res = new LinkedHashMap<>();
+                res.put("success", true);
+                res.put("paymentUrl", paymentUrl);
+                res.put("grandTotal", quote.getGrandTotal());
+                res.put("qrUrl", "https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=" + URLEncoder.encode(paymentUrl, StandardCharsets.UTF_8));
+                response.setContentType("application/json;charset=UTF-8");
+                response.getWriter().write(new Gson().toJson(res));
                 return;
             }
             PosCheckoutResult checkout = posCounterService.checkout(toCommand(request, staff));
@@ -191,7 +217,8 @@ public class PosCounterServlet extends HttpServlet {
     }
 
     private boolean isQuoteRequest(HttpServletRequest request) {
-        return "quote".equalsIgnoreCase(request.getParameter("mode"));
+        String mode = request.getParameter("mode");
+        return "quote".equalsIgnoreCase(mode) || "vnpay_url".equalsIgnoreCase(mode);
     }
 
     private void writeQuoteError(HttpServletResponse response, int status, String message)

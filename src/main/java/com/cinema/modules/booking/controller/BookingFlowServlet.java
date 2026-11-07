@@ -2,22 +2,13 @@ package com.cinema.modules.booking.controller;
 
 import com.cinema.common.dto.ApiResponse;
 import com.cinema.common.util.JsonUtil;
-import com.cinema.common.util.ValidationUtil;
-import com.cinema.model.Seat;
-import com.cinema.model.Showtime;
 import com.cinema.model.User;
-import com.cinema.modules.booking.dto.BookingResult;
-import com.cinema.modules.booking.dto.CreateBookingDTO;
-import com.cinema.modules.booking.service.BookingEngineService;
-import com.cinema.modules.booking.service.VNPayService;
-import com.cinema.modules.booking.service.impl.BookingEngineServiceImpl;
-import com.cinema.modules.booking.service.impl.VNPayServiceImpl;
-import com.cinema.modules.catalog.service.PricingService;
-import com.cinema.modules.catalog.service.ShowtimeService;
-import com.cinema.modules.catalog.service.impl.PricingServiceImpl;
-import com.cinema.modules.catalog.service.impl.ShowtimeServiceImpl;
-import com.cinema.modules.infrastructure.service.ScreeningRoomService;
-import com.cinema.modules.infrastructure.service.impl.ScreeningRoomServiceImpl;
+import com.cinema.modules.booking.dto.BookingCheckoutCommand;
+import com.cinema.modules.booking.dto.BookingCheckoutResult;
+import com.cinema.modules.booking.dto.BookingQuoteCommand;
+import com.cinema.modules.booking.dto.BookingQuoteResult;
+import com.cinema.modules.booking.service.BookingFlowService;
+import com.cinema.modules.booking.service.impl.BookingFlowServiceImpl;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -26,71 +17,63 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
 import java.io.IOException;
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
 
 /**
- * Controller Ä‘iá»u hÆ°á»›ng luá»“ng Giá»¯ gháº¿ & Thanh toÃ¡n trá»±c tuyáº¿n (TV 4).
- 
- * Refactor update: Lam ro trach nhiem lop cho de bao tri.*/
+ * Controller điều hướng Giữ ghế & Thanh toán trực tuyến (TV 4 & Online Booking).
+ * Bắt buộc đăng nhập để lấy thông tin khách và gắn tài khoản vào vé đã mua.
+ */
 @WebServlet(name = "BookingFlowServlet", urlPatterns = {"/booking/hold", "/booking/checkout"})
 public class BookingFlowServlet extends HttpServlet {
-    private final BookingEngineService bookingEngineService = new BookingEngineServiceImpl();
-    private final ScreeningRoomService screeningRoomService = new ScreeningRoomServiceImpl();
-    private final ShowtimeService showtimeService = new ShowtimeServiceImpl();
-    private final PricingService pricingService = new PricingServiceImpl();
-    private final VNPayService vnpayService = new VNPayServiceImpl();
+
+    private final BookingFlowService bookingFlowService = new BookingFlowServiceImpl();
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         String showtimeId = req.getParameter("showtimeId");
-        req.setAttribute("showtimeId", showtimeId);
-        String[] seatIdArr = req.getParameterValues("seatIds");
-        if (seatIdArr != null && seatIdArr.length > 0) {
-            List<String> codes = new ArrayList<>();
-            for (String raw : seatIdArr) {
-                try {
-                    Seat seat = screeningRoomService.getSeatById(Long.parseLong(raw));
-                    if (seat != null && seat.getSeatCode() != null) {
-                        codes.add(seat.getSeatCode());
-                    }
-                } catch (NumberFormatException ignored) {
-                }
-            }
-            if (!codes.isEmpty()) {
-                req.setAttribute("seatLabel", String.join(", ", codes));
-            }
+        if (showtimeId != null && !showtimeId.isBlank()) {
+            resp.sendRedirect(req.getContextPath() + "/booking/seats?showtimeId="
+                    + URLEncoder.encode(showtimeId.trim(), StandardCharsets.UTF_8));
+            return;
         }
-        req.getRequestDispatcher("/WEB-INF/views/customer/booking/checkout.jsp").forward(req, resp);
+        resp.sendRedirect(req.getContextPath() + "/showtimes");
     }
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        req.setCharacterEncoding("UTF-8");
         String path = req.getServletPath();
         resp.setContentType("application/json; charset=UTF-8");
 
         HttpSession session = req.getSession(true);
         User currentUser = (User) session.getAttribute("currentUser");
 
-        if ("/booking/hold".equals(path)) {
-            // Giá»¯ gháº¿ táº¡m thá»i 5 phÃºt qua AJAX
-            Long showtimeId = Long.parseLong(req.getParameter("showtimeId"));
-            String[] seatIdArr = req.getParameterValues("seatIds");
-            List<Long> seatIds = new ArrayList<>();
-            if (seatIdArr != null) {
-                for (String s : seatIdArr) seatIds.add(Long.parseLong(s));
+        // Bắt buộc khách hàng phải đăng nhập
+        if (currentUser == null) {
+            if (isAjaxRequest(req)) {
+                resp.getWriter().write(JsonUtil.toJson(ApiResponse.error("LOGIN_REQUIRED",
+                        "Vui lòng đăng nhập tài khoản để tiếp tục đặt vé.")));
+            } else {
+                resp.sendRedirect(req.getContextPath() + "/login?msg=login_required");
             }
+            return;
+        }
 
+        if ("/booking/hold".equals(path)) {
             try {
-                // Kiểm tra nghiệp vụ chọn ghế đôi Sweetbox
-                List<Seat> seats = screeningRoomService.getSeatsByIds(seatIds);
-                ValidationUtil.validateCoupleSeats(seats);
-
-                boolean held = bookingEngineService.holdSeats(showtimeId, seatIds, session.getId());
-                resp.getWriter().write(JsonUtil.toJson(ApiResponse.success(held, "Giữ ghế thành công trong 5 phút")));
+                boolean held = bookingFlowService.holdSeats(
+                        req.getParameter("showtimeId"),
+                        parseSeatIds(req.getParameterValues("seatIds")),
+                        session.getId());
+                Map<String, Object> respData = new HashMap<>();
+                respData.put("success", held);
+                respData.put("status", "SUCCESS");
+                respData.put("code", "200");
+                respData.put("data", held);
+                respData.put("message", "Ghế đã được giữ thành công trong 5 phút");
+                resp.getWriter().write(JsonUtil.toJson(respData));
             } catch (IllegalArgumentException e) {
                 resp.getWriter().write(JsonUtil.toJson(ApiResponse.error("INVALID_SEAT_SELECTION", e.getMessage())));
             } catch (Exception e) {
@@ -100,75 +83,125 @@ public class BookingFlowServlet extends HttpServlet {
         }
 
         if ("/booking/checkout".equals(path)) {
-            // Thanh toÃ¡n Ä‘Æ¡n hÃ ng
-            Long showtimeId = Long.parseLong(req.getParameter("showtimeId"));
-            String[] seatIdArr = req.getParameterValues("seatIds");
-            List<Long> seatIds = new ArrayList<>();
-            if (seatIdArr != null) {
-                for (String s : seatIdArr) seatIds.add(Long.parseLong(s));
-            }
+            boolean isAjax = isAjaxRequest(req);
+            String showtimeId = req.getParameter("showtimeId");
 
-            Showtime showtime = showtimeService.getShowtimeById(showtimeId);
-            if (showtime == null) {
-                resp.getWriter().write(JsonUtil.toJson(ApiResponse.error("SHOWTIME_NOT_FOUND", "KhÃ´ng tÃ¬m tháº¥y thÃ´ng tin suáº¥t chiáº¿u")));
+            // Xử lý báo giá thời gian thực
+            if ("quote".equalsIgnoreCase(req.getParameter("mode"))) {
+                try {
+                    BookingQuoteCommand command = BookingQuoteCommand.builder()
+                            .showtimeId(showtimeId)
+                            .seatIds(parseSeatIds(req.getParameterValues("seatIds")))
+                            .ticketClass(req.getParameter("ticketClass"))
+                            .fnbQuantities(parseFnbItems(req.getParameterMap()))
+                            .build();
+                    BookingQuoteResult quote = bookingFlowService.quote(command);
+                    resp.getWriter().write(JsonUtil.toJson(quote));
+                } catch (Exception e) {
+                    resp.getWriter().write(JsonUtil.toJson(ApiResponse.error("QUOTE_FAILED", e.getMessage())));
+                }
                 return;
             }
 
-            // Kiểm tra nghiệp vụ chọn ghế đôi Sweetbox
-            List<Seat> seats = screeningRoomService.getSeatsByIds(seatIds);
+            // Xử lý thanh toán và tạo đơn hàng
             try {
-                ValidationUtil.validateCoupleSeats(seats);
-            } catch (IllegalArgumentException e) {
-                resp.getWriter().write(JsonUtil.toJson(ApiResponse.error("INVALID_SEAT_SELECTION", e.getMessage())));
-                return;
-            }
+                BookingCheckoutCommand command = BookingCheckoutCommand.builder()
+                        .user(currentUser)
+                        .showtimeId(showtimeId)
+                        .seatIds(parseSeatIds(req.getParameterValues("seatIds")))
+                        .ticketClass(req.getParameter("ticketClass"))
+                        .fnbQuantities(parseFnbItems(req.getParameterMap()))
+                        .voucherId(req.getParameter("voucherId"))
+                        .paymentMethod(req.getParameter("paymentMethod"))
+                        .sessionId(session.getId())
+                        .request(req)
+                        .build();
 
-            // Tính giá vé động cho từng ghế dựa trên loại ghế (surcharge từ DB) và suất chiếu
-            List<BigDecimal> ticketPrices = new ArrayList<>();
-            for (Long seatId : seatIds) {
-                Seat seat = screeningRoomService.getSeatById(seatId);
-                Long seatTypeId = (seat != null) ? seat.getSeatTypeId() : 1L;
-                BigDecimal price = pricingService.calculateTicketPrice(showtimeId, seatTypeId, showtime.getStartTime(), showtime.getExperienceFormat());
-                ticketPrices.add(price);
-            }
+                BookingCheckoutResult result = bookingFlowService.checkout(command);
 
-            String voucherIdParam = req.getParameter("voucherId");
-            Long voucherId = (voucherIdParam != null && !voucherIdParam.trim().isEmpty()) ? Long.parseLong(voucherIdParam.trim()) : null;
-
-            String paymentMethod = req.getParameter("paymentMethod");
-            if (paymentMethod == null || paymentMethod.isBlank()) {
-                paymentMethod = "VNPAY";
-            }
-
-            CreateBookingDTO dto = CreateBookingDTO.builder()
-                    .userId(currentUser != null ? currentUser.getId() : null)
-                    .showtimeId(showtimeId)
-                    .seatIds(seatIds)
-                    .ticketPrices(ticketPrices)
-                    .voucherId(voucherId)
-                    .channel("ONLINE")
-                    .paymentMethod(paymentMethod)
-                    .sessionId(session.getId())
-                    .build();
-
-            try {
-                BookingResult result = bookingEngineService.createBooking(dto);
-                if ("VNPAY".equalsIgnoreCase(dto.getPaymentMethod())) {
-                    String payUrl = vnpayService.createPaymentUrl(req, result.getBookingCode(),
-                            result.getFinalAmount(), "Thanh toan ve CineMax " + result.getBookingCode());
-                    Map<String, Object> responseData = new HashMap<>();
-                    responseData.put("success", true);
-                    responseData.put("paymentUrl", payUrl);
-                    responseData.put("bookingCode", result.getBookingCode());
-                    responseData.put("data", result);
-                    resp.getWriter().write(JsonUtil.toJson(responseData));
+                if ("VNPAY".equalsIgnoreCase(result.getPaymentMethod()) && result.getPaymentUrl() != null) {
+                    if (isAjax) {
+                        Map<String, Object> responseData = new HashMap<>();
+                        responseData.put("success", true);
+                        responseData.put("status", "SUCCESS");
+                        responseData.put("paymentUrl", result.getPaymentUrl());
+                        responseData.put("bookingCode", result.getBookingCode());
+                        responseData.put("data", result.getBookingResult());
+                        resp.getWriter().write(JsonUtil.toJson(responseData));
+                    } else {
+                        resp.sendRedirect(result.getPaymentUrl());
+                    }
                     return;
                 }
-                resp.getWriter().write(JsonUtil.toJson(ApiResponse.success(result, "Đặt vé thành công!")));
+
+                if (isAjax) {
+                    Map<String, Object> responseData = new HashMap<>();
+                    responseData.put("success", true);
+                    responseData.put("status", "SUCCESS");
+                    responseData.put("bookingCode", result.getBookingCode());
+                    responseData.put("data", result.getBookingResult());
+                    responseData.put("message", "Đặt vé và thanh toán thành công!");
+                    resp.getWriter().write(JsonUtil.toJson(responseData));
+                } else {
+                    resp.sendRedirect(req.getContextPath() + "/customer/bookings?code=" + result.getBookingCode());
+                }
             } catch (Exception e) {
-                resp.getWriter().write(JsonUtil.toJson(ApiResponse.error("BOOKING_FAILED", e.getMessage())));
+                sendError(req, resp, isAjax, showtimeId, e.getMessage());
             }
         }
     }
-}
 
+    private List<Long> parseSeatIds(String[] seatIdArr) {
+        List<Long> seatIds = new ArrayList<>();
+        if (seatIdArr != null) {
+            for (String raw : seatIdArr) {
+                if (raw != null && !raw.isBlank()) {
+                    try {
+                        seatIds.add(Long.parseLong(raw.trim()));
+                    } catch (NumberFormatException ignored) {}
+                }
+            }
+        }
+        return seatIds;
+    }
+
+    private Map<Long, Integer> parseFnbItems(Map<String, String[]> params) {
+        Map<Long, Integer> fnbItems = new LinkedHashMap<>();
+        for (Map.Entry<String, String[]> entry : params.entrySet()) {
+            if (entry.getKey().startsWith("fnb_")) {
+                String itemIdStr = entry.getKey().substring(4);
+                String val = (entry.getValue() != null && entry.getValue().length > 0) ? entry.getValue()[0] : null;
+                if (val != null && !val.isBlank()) {
+                    try {
+                        int qty = Integer.parseInt(val.trim());
+                        if (qty > 0) {
+                            fnbItems.put(Long.parseLong(itemIdStr), qty);
+                        }
+                    } catch (NumberFormatException ignored) {}
+                }
+            }
+        }
+        return fnbItems;
+    }
+
+    private boolean isAjaxRequest(HttpServletRequest req) {
+        String requestedWith = req.getHeader("X-Requested-With");
+        String accept = req.getHeader("Accept");
+        return "XMLHttpRequest".equalsIgnoreCase(requestedWith)
+                || (accept != null && accept.contains("application/json"))
+                || "true".equalsIgnoreCase(req.getParameter("ajax"));
+    }
+
+    private void sendError(HttpServletRequest req, HttpServletResponse resp, boolean isAjax, String showtimeId, String error) throws IOException {
+        if (isAjax) {
+            resp.getWriter().write(JsonUtil.toJson(ApiResponse.error("BOOKING_FAILED", error != null ? error : "Lỗi xử lý đặt vé.")));
+        } else {
+            String redirectUrl = req.getContextPath() + "/booking/seats?";
+            if (showtimeId != null) {
+                redirectUrl += "showtimeId=" + URLEncoder.encode(showtimeId, StandardCharsets.UTF_8) + "&";
+            }
+            redirectUrl += "error=" + URLEncoder.encode(error != null ? error : "Lỗi xử lý đặt vé", StandardCharsets.UTF_8);
+            resp.sendRedirect(redirectUrl);
+        }
+    }
+}

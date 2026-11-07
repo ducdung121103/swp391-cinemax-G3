@@ -56,4 +56,8 @@ public class ApiResponse<T> {
                 .timestamp(LocalDateTime.now().toString())
                 .build();
     }
+
+    public boolean isSuccess() {
+        return "SUCCESS".equalsIgnoreCase(status) || "200".equals(code);
+    }
 }
