@@ -105,6 +105,12 @@
                                         </a>
                                     </li>
                                     <li>
+                                        <a class="dropdown-item" href="${pageContext.request.contextPath}/customer/bookings">
+                                            <i class="fa-solid fa-ticket me-2 text-warning"></i> Lịch sử mua vé
+                                        </a>
+                                    </li>
+                                    <li><hr class="dropdown-divider border-secondary"></li>
+                                    <li>
                                         <a class="dropdown-item" href="${pageContext.request.contextPath}/logout">
                                             <i class="fa-solid fa-right-from-bracket me-2 text-danger"></i> Đăng Xuất
                                         </a>

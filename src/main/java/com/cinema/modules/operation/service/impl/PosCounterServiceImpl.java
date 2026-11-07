@@ -14,6 +14,7 @@ import com.cinema.modules.catalog.service.PricingService;
 import com.cinema.modules.catalog.service.ShowtimeService;
 import com.cinema.modules.catalog.service.impl.PricingServiceImpl;
 import com.cinema.modules.catalog.service.impl.ShowtimeServiceImpl;
+import com.cinema.modules.infrastructure.dao.CinemaDAO;
 import com.cinema.modules.infrastructure.service.ScreeningRoomService;
 import com.cinema.modules.infrastructure.service.impl.ScreeningRoomServiceImpl;
 import com.cinema.modules.operation.dao.PosSeatDAO;
@@ -52,15 +53,25 @@ public class PosCounterServiceImpl implements PosCounterService {
     private final SystemSettingDAO settings;
     private final PosOrderService posOrderService;
     private final PosSeatDAO posSeatDAO;
+    private final CinemaDAO cinemaDAO;
 
     public PosCounterServiceImpl() {
         this(new FnBMenuServiceImpl(), new ShowtimeServiceImpl(), new ScreeningRoomServiceImpl(),
-                new PricingServiceImpl(), new SystemSettingDAO(), new PosOrderServiceImpl(), new PosSeatDAO());
+                new PricingServiceImpl(), new SystemSettingDAO(), new PosOrderServiceImpl(), new PosSeatDAO(),
+                new CinemaDAO());
     }
 
     public PosCounterServiceImpl(FnBMenuService fnbMenuService, ShowtimeService showtimeService,
                                  ScreeningRoomService screeningRoomService, PricingService pricingService,
                                  SystemSettingDAO settings, PosOrderService posOrderService, PosSeatDAO posSeatDAO) {
+        this(fnbMenuService, showtimeService, screeningRoomService, pricingService, settings, posOrderService,
+                posSeatDAO, new CinemaDAO());
+    }
+
+    public PosCounterServiceImpl(FnBMenuService fnbMenuService, ShowtimeService showtimeService,
+                                 ScreeningRoomService screeningRoomService, PricingService pricingService,
+                                 SystemSettingDAO settings, PosOrderService posOrderService, PosSeatDAO posSeatDAO,
+                                 CinemaDAO cinemaDAO) {
         this.fnbMenuService = fnbMenuService;
         this.showtimeService = showtimeService;
         this.screeningRoomService = screeningRoomService;
@@ -68,6 +79,7 @@ public class PosCounterServiceImpl implements PosCounterService {
         this.settings = settings;
         this.posOrderService = posOrderService;
         this.posSeatDAO = posSeatDAO;
+        this.cinemaDAO = cinemaDAO;
     }
 
     @Override
@@ -111,7 +123,9 @@ public class PosCounterServiceImpl implements PosCounterService {
         long availableSeatCount = 0;
         int seatColumnCount = 10;
 
+        Cinema currentCinema = null;
         if (cinemaId != null) {
+            currentCinema = cinemaDAO.findById(cinemaId);
             showtimes = showtimeService.getSellableShowtimesByCinemaAndDate(cinemaId, selectedDate);
             fnbItems = fnbMenuService.getAvailableItems(cinemaId);
             if (requestedShowtimeId != null && !requestedShowtimeId.isBlank()) {
@@ -151,6 +165,7 @@ public class PosCounterServiceImpl implements PosCounterService {
                 .today(today)
                 .selectedDate(selectedDate)
                 .cinemaId(cinemaId)
+                .currentCinema(currentCinema)
                 .selectedShowtimeId(selectedShowtimeId)
                 .cinemas(cinemas)
                 .showtimes(showtimes)

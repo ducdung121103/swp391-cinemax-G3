@@ -43,7 +43,7 @@
                 </div>
 
                 <div class="d-grid gap-2">
-                    <a href="${pageContext.request.contextPath}/profile" class="btn btn-cinema-primary py-2 fw-semibold">
+                    <a href="${pageContext.request.contextPath}/customer/bookings?code=${orderCode}" class="btn btn-cinema-primary py-2 fw-semibold">
                         <i class="fa-solid fa-ticket me-2"></i> Xem Vé Điện Tử & Lịch Sử
                     </a>
                     <a href="${pageContext.request.contextPath}/home" class="btn btn-outline-secondary py-2 text-white">

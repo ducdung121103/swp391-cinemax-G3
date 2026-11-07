@@ -37,15 +37,25 @@
     <div class="row g-3">
         <c:forEach var="showtime" items="${showtimes}">
             <div class="col-md-6 col-lg-4">
-                <a class="text-decoration-none" href="${pageContext.request.contextPath}/movie/detail?id=${showtime.movieId}&amp;showtimeId=${showtime.id}">
-                    <div class="card p-3 text-white h-100" style="background:#141820;border:1px solid #2E3550;">
-                        <div class="fw-bold">${showtime.movie.title}</div>
+                <div class="card p-3 text-white h-100 d-flex flex-column justify-content-between shadow-sm" style="background:#141820;border:1px solid #2E3550;border-radius:12px;">
+                    <div>
+                        <div class="fw-bold fs-5 text-white">${showtime.movie.title}</div>
                         <div class="text-secondary small mt-1">
-                            ${showtime.screeningRoom.cinema.name} · ${showtime.screeningRoom.name}
+                            <i class="fa-solid fa-location-dot me-1 text-danger"></i>${showtime.screeningRoom.cinema.name} · ${showtime.screeningRoom.name}
                         </div>
-                        <div class="mt-2" style="color:#F5C518;">${showtime.startTime} · ${showtime.experienceFormat}</div>
+                        <div class="mt-2" style="color:#F5C518;font-weight:600;">
+                            <i class="fa-regular fa-clock me-1"></i>${showtime.startTime} · ${showtime.experienceFormat}
+                        </div>
                     </div>
-                </a>
+                    <div class="d-flex gap-2 mt-3 pt-2 border-top border-secondary border-opacity-25">
+                        <a href="${pageContext.request.contextPath}/booking/seats?showtimeId=${showtime.id}" class="btn btn-cinema-primary btn-sm flex-grow-1">
+                            <i class="fa-solid fa-chair me-1"></i> Chọn ghế &rarr;
+                        </a>
+                        <a href="${pageContext.request.contextPath}/movie/detail?id=${showtime.movieId}&amp;showtimeId=${showtime.id}" class="btn btn-outline-secondary btn-sm">
+                            Chi tiết
+                        </a>
+                    </div>
+                </div>
             </div>
         </c:forEach>
         <c:if test="${empty showtimes}">

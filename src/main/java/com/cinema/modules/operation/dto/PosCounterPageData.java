@@ -24,6 +24,7 @@ public class PosCounterPageData {
     private LocalDate today;
     private LocalDate selectedDate;
     private Long cinemaId;
+    private Cinema currentCinema;
     private Long selectedShowtimeId;
     private List<Cinema> cinemas;
     private List<Showtime> showtimes;

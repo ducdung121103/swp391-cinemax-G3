@@ -27,9 +27,11 @@ public class FnBCatalogServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         try {
+            String keyword = request.getParameter("keyword");
             request.setAttribute("fnbCatalogUrl", catalogUrl(request));
-            request.setAttribute("items", catalogService.getItems());
+            request.setAttribute("items", catalogService.getItems(keyword));
             request.setAttribute("categories", catalogService.getCategories());
+            request.setAttribute("keyword", keyword);
             request.getRequestDispatcher(VIEW).forward(request, response);
         } catch (SQLException e) {
             throw new ServletException("Không thể tải danh mục F&B.", e);
@@ -70,6 +72,11 @@ public class FnBCatalogServlet extends HttpServlet {
                     "true".equals(request.getParameter("active")));
             return;
         }
+        if ("deleteItem".equals(action)) {
+            catalogService.deleteItem(
+                    parseRequiredLong(request.getParameter("id"), "Mã sản phẩm không hợp lệ."));
+            return;
+        }
         if ("saveCategory".equals(action)) {
             FnBCategory category = new FnBCategory();
             category.setId(parseOptionalId(request.getParameter("id"), "Mã danh mục không hợp lệ."));
@@ -82,6 +89,11 @@ public class FnBCatalogServlet extends HttpServlet {
             catalogService.setCategoryActive(
                     parseRequiredLong(request.getParameter("id"), "Mã danh mục không hợp lệ."),
                     "true".equals(request.getParameter("active")));
+            return;
+        }
+        if ("deleteCategory".equals(action)) {
+            catalogService.deleteCategory(
+                    parseRequiredLong(request.getParameter("id"), "Mã danh mục không hợp lệ."));
             return;
         }
         throw new IllegalArgumentException("Thao tác không hợp lệ.");

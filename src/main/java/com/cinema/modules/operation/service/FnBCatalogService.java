@@ -9,13 +9,19 @@ import java.util.List;
 public interface FnBCatalogService {
     List<FnBItem> getItems() throws SQLException;
 
+    List<FnBItem> getItems(String keyword) throws SQLException;
+
     List<FnBCategory> getCategories() throws SQLException;
 
     void saveItem(FnBItem item) throws SQLException;
 
     void setItemActive(long itemId, boolean active) throws SQLException;
 
+    void deleteItem(long itemId) throws SQLException;
+
     void saveCategory(FnBCategory category) throws SQLException;
 
     void setCategoryActive(long categoryId, boolean active) throws SQLException;
+
+    void deleteCategory(long categoryId) throws SQLException;
 }

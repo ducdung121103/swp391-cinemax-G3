@@ -218,8 +218,7 @@ public class AuthServlet extends HttpServlet {
                 && redirectParam.startsWith(req.getContextPath())) {
             // Äá»‘i vá»›i STAFF, chá»‰ cho phÃ©p redirect Ä‘áº¿n URL mÃ  STAFF cÃ³ quyá»n (pos hoáº·c scanner)
             if (!RoleConstant.STAFF.equalsIgnoreCase(role)
-                    || redirectParam.contains("/operation/pos")
-                    || redirectParam.contains("/admin/operation/scanner")) {
+                    || redirectParam.contains("/operation/pos")) {
                 resp.sendRedirect(redirectParam);
                 return;
             }

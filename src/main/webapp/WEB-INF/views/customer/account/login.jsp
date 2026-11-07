@@ -46,6 +46,12 @@
                 Đặt lại mật khẩu thành công! Vui lòng đăng nhập bằng mật khẩu mới.
             </div>
         </c:if>
+        <c:if test="${param.msg == 'login_required'}">
+            <div class="alert alert-warning py-2 small fw-bold d-flex align-items-center gap-2" style="background: rgba(245, 197, 24, 0.15); border: 1px solid rgba(245, 197, 24, 0.4); color: #f5c518;">
+                <i class="fa-solid fa-right-to-bracket"></i>
+                Vui lòng đăng nhập tài khoản để tiếp tục đặt vé xem phim.
+            </div>
+        </c:if>
         <c:if test="${not empty errorMessage}">
             <div class="alert alert-danger py-2 small fw-bold d-flex align-items-center gap-2">
                 <i class="fa-solid fa-triangle-exclamation"></i>

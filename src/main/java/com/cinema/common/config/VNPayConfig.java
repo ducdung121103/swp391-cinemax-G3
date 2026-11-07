@@ -41,11 +41,11 @@ public class VNPayConfig {
     }
 
     public static String getTmnCode() {
-        return properties.getProperty("vnp.tmn.code", "ZXDFWHE3");
+        return properties.getProperty("vnp.tmn.code", "BLWIAD43");
     }
 
     public static String getHashSecret() {
-        return properties.getProperty("vnp.hash.secret", "2QXUI4J4840R47M811F74I8445S7N34R");
+        return properties.getProperty("vnp.hash.secret", "BDOSMABQOEFPYMMCHXDPIUNROKGYSZYK");
     }
 
     public static String getPayUrl() {

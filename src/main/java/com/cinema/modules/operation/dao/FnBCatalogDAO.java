@@ -38,6 +38,30 @@ public class FnBCatalogDAO {
         return items;
     }
 
+    public List<FnBItem> findItems(String keyword) throws SQLException {
+        if (keyword == null || keyword.isBlank()) {
+            return findItems();
+        }
+        String sql = "SELECT f.*, c.name AS category_name "
+                + "FROM fnb_items f JOIN fnb_categories c ON c.id = f.category_id "
+                + "WHERE f.is_deleted = 0 AND (f.name LIKE ? OR f.item_code LIKE ? OR c.name LIKE ?) "
+                + "ORDER BY f.id DESC";
+        List<FnBItem> items = new ArrayList<>();
+        String pattern = "%" + keyword.trim() + "%";
+        try (Connection connection = DBContext.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, pattern);
+            statement.setString(2, pattern);
+            statement.setString(3, pattern);
+            try (ResultSet result = statement.executeQuery()) {
+                while (result.next()) {
+                    items.add(mapItem(result));
+                }
+            }
+        }
+        return items;
+    }
+
     public List<FnBCategory> findCategories() throws SQLException {
         List<FnBCategory> categories = new ArrayList<>();
         try (Connection connection = DBContext.getConnection();
@@ -73,6 +97,15 @@ public class FnBCatalogDAO {
                 itemId, active);
     }
 
+    public void deleteItem(long itemId) throws SQLException {
+        String sql = "UPDATE fnb_items SET is_deleted = 1, is_active = 0, updated_at = GETDATE() WHERE id = ? AND is_deleted = 0";
+        try (Connection connection = DBContext.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setLong(1, itemId);
+            statement.executeUpdate();
+        }
+    }
+
     public void saveCategory(FnBCategory category) throws SQLException {
         boolean insert = category.getId() == null;
         String sql = insert ? INSERT_CATEGORY_SQL : UPDATE_CATEGORY_SQL;
@@ -90,6 +123,15 @@ public class FnBCatalogDAO {
     public void setCategoryActive(long categoryId, boolean active) throws SQLException {
         updateStatus("UPDATE fnb_categories SET is_active = ?, updated_at = GETDATE() "
                 + "WHERE id = ? AND is_deleted = 0", categoryId, active);
+    }
+
+    public void deleteCategory(long categoryId) throws SQLException {
+        String sql = "UPDATE fnb_categories SET is_deleted = 1, is_active = 0, updated_at = GETDATE() WHERE id = ? AND is_deleted = 0";
+        try (Connection connection = DBContext.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setLong(1, categoryId);
+            statement.executeUpdate();
+        }
     }
 
     private void updateStatus(String sql, long id, boolean active) throws SQLException {
