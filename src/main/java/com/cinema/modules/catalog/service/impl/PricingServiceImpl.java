@@ -115,7 +115,8 @@ public class PricingServiceImpl implements PricingService {
     public String saveDiscountPercents(int studentPercent, int seniorPercent, User actor) {
         if (actor == null || actor.getRole() == null) return "FORBIDDEN";
         String role = actor.getRole().getRoleName();
-        if (!RoleConstant.ADMIN.equalsIgnoreCase(role) && !RoleConstant.MANAGER.equalsIgnoreCase(role)) return "FORBIDDEN";
+        // Chỉ Admin được đổi % giảm đối tượng (chính sách toàn chuỗi).
+        if (!RoleConstant.ADMIN.equalsIgnoreCase(role)) return "FORBIDDEN";
         if (studentPercent < 0 || studentPercent > 100 || seniorPercent < 0 || seniorPercent > 100) return "INVALID";
         Integer updatedBy = actor.getId() == null ? null : actor.getId().intValue();
         boolean student = systemSettingDAO.upsertSetting("STUDENT_TICKET_DISCOUNT_PERCENT", String.valueOf(studentPercent),
