@@ -5,7 +5,7 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Tạo lịch chiếu - Cinema Admin</title>
+    <title>Thêm suất chiếu - Cinema Admin</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/base.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/admin-layout.css">
@@ -18,10 +18,6 @@
         .back-link { color: #e50914; font-weight: 700; text-decoration: none; }
         .alert { padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; }
         .alert-danger { background: #fed7d7; color: #742a2a; }
-        .movie-pick { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
-        .movie-pick a { display: block; padding: 14px 16px; border: 1px solid #e2e8f0; border-radius: 12px; text-decoration: none; color: #0f172a; background: #fff; }
-        .movie-pick a:hover { border-color: #e50914; }
-        .movie-pick small { display: block; margin-top: 4px; color: #64748b; }
         .choice-row { display: flex; flex-wrap: wrap; gap: 12px; align-items: end; margin-bottom: 18px; }
         label { display: block; font-size: 12px; color: #4a5568; margin-bottom: 4px; }
         .field, .field-readonly { width: 100%; padding: 8px 12px; border: 1px solid #cbd5e0; border-radius: 8px; background: #fff; }
@@ -58,46 +54,12 @@
         <div class="admin-content">
             <section class="admin-card planner">
                 <div class="planner-head">
-                    <h2>Tạo lịch chiếu</h2>
+                    <h2>Thêm suất chiếu</h2>
                     <a class="back-link" href="${pageContext.request.contextPath}${listPath}?cinemaId=${selectedCinemaId}">Quay lại danh sách</a>
                 </div>
                 <div class="planner-body">
                     <c:if test="${not empty error}"><div class="alert alert-danger">${error}</div></c:if>
 
-                    <c:if test="${actor.role.roleName == 'ADMIN' && empty selectedMovie}">
-                        <form method="get" action="${pageContext.request.contextPath}${listPath}/create" class="choice-row">
-                            <input type="hidden" name="movieId" value="${selectedMovie.id}" />
-                            <div>
-                                <label>Rạp</label>
-                                <select class="field" name="cinemaId" onchange="this.form.submit()">
-                                    <c:forEach var="cinema" items="${cinemas}">
-                                        <option value="${cinema.id}" ${selectedCinemaId == cinema.id ? 'selected' : ''}>${cinema.name}</option>
-                                    </c:forEach>
-                                </select>
-                            </div>
-                        </form>
-                    </c:if>
-
-                    <c:choose>
-                        <c:when test="${empty selectedMovie}">
-                            <p class="hint">Chọn phim mới chưa có suất ở rạp này.</p>
-                            <c:choose>
-                                <c:when test="${empty newMovies}">
-                                    <p class="hint">Mọi phim trong danh sách đã có lịch chiếu.</p>
-                                </c:when>
-                                <c:otherwise>
-                                    <div class="movie-pick">
-                                        <c:forEach var="movie" items="${newMovies}">
-                                            <a href="${pageContext.request.contextPath}${listPath}/create?movieId=${movie.id}&amp;cinemaId=${selectedCinemaId}">
-                                                ${movie.title}
-                                                <small>${movie.durationMinutes} phút</small>
-                                            </a>
-                                        </c:forEach>
-                                    </div>
-                                </c:otherwise>
-                            </c:choose>
-                        </c:when>
-                        <c:otherwise>
                             <c:set var="cinemaName" value="" />
                             <c:forEach var="cinema" items="${cinemas}">
                                 <c:if test="${cinema.id == selectedCinemaId}"><c:set var="cinemaName" value="${cinema.name}" /></c:if>
@@ -126,7 +88,6 @@
                                         <input class="field-readonly" value="${empty selectedMovie.releaseDate ? 'Đang cập nhật' : selectedMovie.releaseDate}" readonly />
                                     </div>
                                 </div>
-                                <p class="hint" style="margin-top: 12px;"><a href="${pageContext.request.contextPath}${listPath}/create?cinemaId=${selectedCinemaId}">Đổi phim</a></p>
                             </div>
 
                             <form method="get" action="${pageContext.request.contextPath}${listPath}/create" class="choice-row">
@@ -297,8 +258,6 @@
                                     <button class="save-btn" id="saveBtn" type="submit" ${freeCount == 0 ? 'disabled' : ''}>Tạo các suất đã chọn</button>
                                 </div>
                             </form>
-                        </c:otherwise>
-                    </c:choose>
                 </div>
             </section>
         </div>
