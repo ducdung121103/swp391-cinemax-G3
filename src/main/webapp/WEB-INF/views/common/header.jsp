@@ -91,12 +91,20 @@
                                     <span>${sessionScope.currentUser.fullName}</span>
                                 </button>
                                 <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end">
-                                    <c:if test="${sessionScope.currentUser.role.roleName != 'CUSTOMER'}">
+                                    <c:set var="headerRole" value="${not empty sessionScope.currentUser.role.roleName ? sessionScope.currentUser.role.roleName : (sessionScope.currentUser.roleId == 1 ? 'ADMIN' : (sessionScope.currentUser.roleId == 2 ? 'MANAGER' : (sessionScope.currentUser.roleId == 3 ? 'STAFF' : 'CUSTOMER')))}" />
+                                    <c:if test="${headerRole != 'CUSTOMER' && sessionScope.currentUser.roleId != 4}">
                                         <li>
                                             <a class="dropdown-item text-warning" href="${pageContext.request.contextPath}/admin/dashboard">
                                                 <i class="fa-solid fa-gauge-high me-2"></i> Trang Quản Trị
                                             </a>
                                         </li>
+                                        <c:if test="${headerRole == 'STAFF' || sessionScope.currentUser.roleId == 3}">
+                                            <li>
+                                                <a class="dropdown-item text-info" href="${pageContext.request.contextPath}/operation/pos">
+                                                    <i class="fa-solid fa-cash-register me-2"></i> Quầy Bán Vé (POS)
+                                                </a>
+                                            </li>
+                                        </c:if>
                                         <li><hr class="dropdown-divider border-secondary"></li>
                                     </c:if>
                                     <li>

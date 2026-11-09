@@ -33,7 +33,16 @@ public class AuthorizationFilter implements Filter {
             return;
         }
 
-        String role = (currentUser.getRole() != null) ? currentUser.getRole().getRoleName() : RoleConstant.CUSTOMER;
+        String role = RoleConstant.CUSTOMER;
+        if (currentUser.getRole() != null && currentUser.getRole().getRoleName() != null) {
+            role = currentUser.getRole().getRoleName();
+        } else if (currentUser.getRoleId() != null) {
+            long rId = currentUser.getRoleId();
+            if (rId == 1) role = RoleConstant.ADMIN;
+            else if (rId == 2) role = RoleConstant.MANAGER;
+            else if (rId == 3) role = RoleConstant.STAFF;
+            else role = RoleConstant.CUSTOMER;
+        }
         String uri = req.getRequestURI();
 
         // 1. ADMIN có toàn quyền (trừ quầy POS trực tiếp)
@@ -85,6 +94,7 @@ public class AuthorizationFilter implements Filter {
         // In vé
         if (RoleConstant.STAFF.equalsIgnoreCase(role)) {
             if (uri.contains("/operation/pos") || uri.contains("/admin/dashboard")
+                    || uri.endsWith("/admin") || uri.endsWith("/admin/")
                     || uri.contains("/operation/ticket-print")) {
                 chain.doFilter(request, response);
                 return;

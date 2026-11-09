@@ -618,7 +618,19 @@
             document.getElementById('modal-format-duration').textContent = (item.experienceFormat || '2D') + ' • ' + (item.durationMinutes ? item.durationMinutes + ' phút' : '');
             document.getElementById('modal-cinema-name').textContent = item.cinemaName || 'CineMax Chain';
             document.getElementById('modal-room-name').textContent = item.roomName || 'Phòng chiếu';
-            document.getElementById('modal-showtime').innerHTML = item.formattedShowtime || '--';
+            let stText = item.formattedShowtime;
+            if (!stText && item.showtimeStartTime) {
+                try {
+                    const d = new Date(item.showtimeStartTime);
+                    const hh = String(d.getHours()).padStart(2, '0');
+                    const mm = String(d.getMinutes()).padStart(2, '0');
+                    const dd = String(d.getDate()).padStart(2, '0');
+                    const MM = String(d.getMonth() + 1).padStart(2, '0');
+                    const yyyy = d.getFullYear();
+                    stText = hh + ':' + mm + ' • ' + dd + '/' + MM + '/' + yyyy;
+                } catch (e) {}
+            }
+            document.getElementById('modal-showtime').innerHTML = stText || '--';
             document.getElementById('modal-seat-codes').textContent = (item.tickets || []).map(t => t.seatCode).join(', ') || 'Chưa có ghế';
             document.getElementById('modal-final-amount').textContent = formatMoney(item.finalAmount);
 

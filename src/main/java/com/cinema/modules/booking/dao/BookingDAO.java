@@ -3,6 +3,7 @@ package com.cinema.modules.booking.dao;
 import com.cinema.common.context.DBContext;
 import com.cinema.model.Booking;
 import com.cinema.modules.booking.dto.CustomerBookingHistoryDTO;
+import com.cinema.modules.booking.dto.TicketReceipt;
 import com.cinema.modules.booking.dto.ShowtimeReminderDTO;
 
 import java.sql.Connection;
@@ -11,9 +12,12 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * DAO quản lý bảng bookings (TV 4).
@@ -316,15 +320,31 @@ public class BookingDAO {
         Timestamp startTs = rs.getTimestamp("start_time");
         Timestamp endTs = rs.getTimestamp("end_time");
 
+        LocalDateTime createdAtLdt = createdAtTs != null ? createdAtTs.toLocalDateTime() : null;
+        LocalDateTime startLdt = startTs != null ? startTs.toLocalDateTime() : null;
+        LocalDateTime endLdt = endTs != null ? endTs.toLocalDateTime() : null;
+
         Long customerId = rs.getObject("customer_id") != null ? rs.getLong("customer_id") : null;
         String customerName = rs.getString("customer_name");
         String customerPhone = rs.getString("customer_phone");
         String customerEmail = rs.getString("customer_email");
 
+        String displayCustomerName = (customerName != null && !customerName.isBlank()) ? customerName : "Khách lẻ tại quầy";
+        String formattedShowtime = "";
+        if (startLdt != null) {
+            formattedShowtime = startLdt.format(DateTimeFormatter.ofPattern("HH:mm")) + " · " + startLdt.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+        }
+        String formattedCreatedAt = createdAtLdt != null ? createdAtLdt.format(DateTimeFormatter.ofPattern("HH:mm - dd/MM/yyyy")) : "";
+
+        List<TicketReceipt> tickets = ticketDAO.findReceiptItems(conn, bookingId);
+        String seatCodes = (tickets != null && !tickets.isEmpty()) ?
+                tickets.stream().map(TicketReceipt::getSeatCode).filter(c -> c != null && !c.isBlank()).collect(Collectors.joining(", "))
+                : "Chưa có ghế";
+
         return CustomerBookingHistoryDTO.builder()
                 .bookingId(bookingId)
                 .bookingCode(rs.getString("booking_code"))
-                .createdAt(createdAtTs != null ? createdAtTs.toLocalDateTime() : null)
+                .createdAt(createdAtLdt)
                 .status(rs.getString("status"))
                 .channel(rs.getString("channel"))
                 .totalTicketsAmount(rs.getBigDecimal("total_tickets_amount"))
@@ -336,18 +356,24 @@ public class BookingDAO {
                 .customerName(customerName)
                 .customerPhone(customerPhone)
                 .customerEmail(customerEmail)
+                .displayCustomerName(displayCustomerName)
+                .formattedShowtime(formattedShowtime)
+                .formattedCreatedAt(formattedCreatedAt)
+                .seatCodesString(seatCodes)
+                .ticketCount(tickets != null ? tickets.size() : 0)
+                .upcoming(startLdt != null && startLdt.isAfter(LocalDateTime.now()))
                 .movieId(rs.getLong("movie_id"))
                 .movieTitle(rs.getString("movie_title"))
                 .posterUrl(rs.getString("poster_url"))
                 .durationMinutes((Integer) rs.getObject("duration_minutes"))
                 .ageRating(rs.getString("age_rating"))
-                .showtimeStartTime(startTs != null ? startTs.toLocalDateTime() : null)
-                .showtimeEndTime(endTs != null ? endTs.toLocalDateTime() : null)
+                .showtimeStartTime(startLdt)
+                .showtimeEndTime(endLdt)
                 .experienceFormat(rs.getString("experience_format"))
                 .roomName(rs.getString("room_name"))
                 .cinemaName(rs.getString("cinema_name"))
                 .cinemaAddress(rs.getString("cinema_address"))
-                .tickets(ticketDAO.findReceiptItems(conn, bookingId))
+                .tickets(tickets)
                 .fnbItems(orderItemDAO.findReceiptItems(conn, bookingId))
                 .build();
     }

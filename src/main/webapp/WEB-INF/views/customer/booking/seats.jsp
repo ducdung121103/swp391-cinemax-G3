@@ -289,7 +289,10 @@
         color: #94a3b8;
         height: 100%;
     }
-    .legend-box.held { background: #3b2a0c; border-color: #d97706; }
+    .legend-box.held {
+        background: repeating-linear-gradient(45deg, #334155, #334155 3px, #1e293b 3px, #1e293b 6px);
+        border: 1px dashed #64748b;
+    }
 
     /* Screen Label */
     .screen-label {
@@ -402,9 +405,10 @@
         cursor: not-allowed;
     }
     .seat-option.is-held span {
-        background: #3b2a0c;
-        border-color: #b45309;
-        color: #f59e0b;
+        background: repeating-linear-gradient(45deg, #1e293b, #1e293b 4px, #0f172a 4px, #0f172a 8px) !important;
+        border: 1px dashed #64748b !important;
+        color: #94a3b8 !important;
+        opacity: 0.8;
     }
     .seat-option.is-unavailable {
         cursor: not-allowed;
@@ -877,6 +881,24 @@
                     </c:otherwise>
                 </c:choose>
 
+                <!-- DANH SÁCH GHẾ ĐÃ CHỌN, GIÁ TỪNG GHẾ & TỔNG TẠM TÍNH -->
+                <div class="selected-seats-breakdown-card mt-4 p-3 rounded-3" id="step1-seats-breakdown" style="background: #141b2b; border: 1px solid #232f48;">
+                    <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="fa-solid fa-couch text-danger fs-5"></i>
+                            <span class="fw-bold text-white fs-6">Ghế đã chọn:</span>
+                            <span class="badge bg-danger rounded-pill px-2 py-1" id="step1-breakdown-count">0 ghế</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="text-secondary small">Tổng tạm tính:</span>
+                            <strong class="text-warning fs-5 fw-bold" id="step1-breakdown-total">0 đ</strong>
+                        </div>
+                    </div>
+                    <div class="d-flex flex-wrap gap-2 pt-2 border-top border-secondary border-opacity-25" id="step1-selected-seat-items">
+                        <span class="text-secondary small fst-italic">Chưa chọn ghế nào. Vui lòng nhấp vào ghế trên sơ đồ để chọn chỗ ngồi.</span>
+                    </div>
+                </div>
+
                 <!-- Footer điều hướng bước 1 -->
                 <div class="wizard-step-nav">
                     <c:url var="changeShowtimeUrl" value="/showtimes">
@@ -888,7 +910,7 @@
                         <i class="fa-solid fa-arrow-left me-1"></i> Đổi suất chiếu
                     </a>
                     <span class="nav-summary-pill">
-                        Đang chọn: <strong id="step1-seat-count">0</strong> ghế (<span id="step1-seat-codes">Chưa chọn ghế</span>)
+                        Đang chọn: <strong id="step1-seat-count">0</strong> ghế (<span id="step1-seat-codes">Chưa chọn ghế</span>) &bull; Tạm tính: <strong id="step1-nav-total" class="text-warning">0 đ</strong>
                     </span>
                     <button type="button" id="btn-proceed-step2" class="btn btn-cinema-primary" onclick="proceedToStep2()">
                         Tiếp tục: Chọn bắp nước <i class="fa-solid fa-arrow-right ms-1"></i>
@@ -1159,6 +1181,10 @@
         // Elements
         const step1SeatCount = document.getElementById('step1-seat-count');
         const step1SeatCodes = document.getElementById('step1-seat-codes');
+        const step1NavTotal = document.getElementById('step1-nav-total');
+        const step1BreakdownCount = document.getElementById('step1-breakdown-count');
+        const step1BreakdownTotal = document.getElementById('step1-breakdown-total');
+        const step1SelectedSeatItems = document.getElementById('step1-selected-seat-items');
         const checkoutSeatCount = document.getElementById('checkout-seat-count');
         const selectedSeatCount = document.getElementById('selected-seat-count');
         const selectedSeatList = document.getElementById('selected-seat-list');
@@ -1462,6 +1488,43 @@
                         selectedSeatList.appendChild(row);
                     }
                 });
+            }
+
+            // Cập nhật bảng tổng hợp ghế đã chọn ở Bước 1
+            if (step1BreakdownCount) step1BreakdownCount.textContent = selectedSeats.length + ' ghế';
+            if (step1BreakdownTotal) step1BreakdownTotal.textContent = formatMoney(baseTicketTotal);
+            if (step1NavTotal) step1NavTotal.textContent = formatMoney(baseTicketTotal);
+
+            if (step1SelectedSeatItems) {
+                step1SelectedSeatItems.replaceChildren();
+                if (selectedSeats.length === 0) {
+                    const emptySpan = document.createElement('span');
+                    emptySpan.className = 'text-secondary small fst-italic';
+                    emptySpan.textContent = 'Chưa chọn ghế nào. Vui lòng nhấp vào ghế trên sơ đồ để chọn chỗ ngồi.';
+                    step1SelectedSeatItems.appendChild(emptySpan);
+                } else {
+                    selectedSeats.forEach(seat => {
+                        const basePrice = Number(seat.dataset.price || 0);
+                        const seatTypeId = Number(seat.dataset.seatTypeId);
+                        let typeBadgeClass = 'bg-secondary text-white';
+                        let typeName = 'Ghế thường';
+                        if (seatTypeId === 2) {
+                            typeBadgeClass = 'bg-warning text-dark';
+                            typeName = 'Ghế VIP';
+                        } else if (seatTypeId === 3) {
+                            typeBadgeClass = 'bg-danger text-white';
+                            typeName = 'Sweetbox';
+                        }
+                        const tag = document.createElement('div');
+                        tag.className = 'd-inline-flex align-items-center gap-2 px-3 py-2 rounded-2 shadow-sm';
+                        tag.style.background = '#1e2738';
+                        tag.style.border = '1px solid #334155';
+                        tag.innerHTML = '<span class="badge ' + typeBadgeClass + ' px-2 py-1">' + typeName + '</span>' +
+                                        '<strong class="text-white fs-6">Ghế ' + (seat.dataset.seatCode || '') + '</strong>' +
+                                        '<span class="text-warning fw-bold">' + formatMoney(basePrice) + '</span>';
+                        step1SelectedSeatItems.appendChild(tag);
+                    });
+                }
             }
 
             // F&B

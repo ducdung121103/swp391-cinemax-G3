@@ -22,7 +22,7 @@
         .legend-seat.couple { border-color: #f472b6; background: #fce7f3; border-bottom: 3px solid #db2777; }
         .legend-seat.selected { border-color: #b91c1c; background: #e50914; }
         .legend-seat.sold { border-color: #aeb3bf; background: #d9dce3; }
-        .legend-seat.held { border-color: #d1a648; background: #fff0c5; }
+        .legend-seat.held { border-color: #64748b; background: repeating-linear-gradient(45deg, #f1f5f9, #f1f5f9 3px, #cbd5e1 3px, #cbd5e1 6px); }
 
         /* Phân biệt loại ghế trên sơ đồ POS */
         .seat-option.seat-std span {
@@ -86,11 +86,12 @@
             cursor: not-allowed;
         }
         .seat-option.is-held span {
-            color: #88620e !important;
-            background: #fff0c5 !important;
-            border-color: #e4c56e !important;
-            border-bottom: 3px solid #d1a648 !important;
+            color: #475569 !important;
+            background: repeating-linear-gradient(45deg, #f1f5f9, #f1f5f9 4px, #e2e8f0 4px, #e2e8f0 8px) !important;
+            border: 1px dashed #94a3b8 !important;
+            border-bottom: 3px solid #64748b !important;
             cursor: not-allowed;
+            opacity: 0.85;
         }
     </style>
 </head>
@@ -190,7 +191,7 @@
                         <span class="operation-eyebrow">GIAO DỊCH HOÀN TẤT</span>
                         <h2 id="receipt-title">Đơn hàng đã được tạo và thanh toán</h2>
                         <p>Mã đơn <strong><c:out value="${checkoutResult.bookingCode}" /></strong><span class="receipt-divider">·</span>Trạng thái <strong><c:out value="${checkoutResult.status}" /></strong></p>
-                        <p class="receipt-showtime">Rạp: <strong><c:out value="${not empty currentCinema ? currentCinema.name : checkoutShowtime.screeningRoom.cinema.name}" /></strong> · <c:out value="${checkoutShowtime.movie.title}" /> · <c:out value="${checkoutShowtime.startTime}" /> · <c:out value="${checkoutShowtime.screeningRoom.name}" /></p>
+                        <p class="receipt-showtime">Rạp: <strong><c:out value="${not empty currentCinema ? currentCinema.name : checkoutShowtime.screeningRoom.cinema.name}" /></strong> · <c:out value="${checkoutShowtime.movie.title}" /> · <c:out value="${not empty checkoutShowtime.formattedStartTime ? checkoutShowtime.formattedStartTime : checkoutShowtime.startTime}" /> · <c:out value="${checkoutShowtime.screeningRoom.name}" /></p>
                         <p class="receipt-showtime">Thanh toán: <strong><c:choose><c:when test="${checkoutResult.paymentMethod eq 'CASH'}">Tiền mặt</c:when><c:when test="${checkoutResult.paymentMethod eq 'VNPAY_POS' or checkoutResult.paymentMethod eq 'VNPAY'}">Cổng VNPAY</c:when><c:otherwise><c:out value="${checkoutResult.paymentMethod}" /></c:otherwise></c:choose></strong></p>
                     </div>
                     <div class="receipt-total"><small>Tổng thanh toán</small><strong><fmt:formatNumber value="${checkoutResult.finalAmount}" pattern="#,##0" groupingUsed="true" /><span>đ</span></strong></div>
