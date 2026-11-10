@@ -418,6 +418,17 @@
                                         <i class="fa-solid fa-receipt me-1"></i> Xem Thông Tin Vé
                                     </button>
 
+                                    <c:if test="${item.status eq 'PENDING' and item.paymentMethod eq 'VNPAY'}">
+                                        <button type="button" class="btn btn-warning btn-sm w-100 fw-bold"
+                                                onclick="retryVnpayPayment('${item.bookingCode}')">
+                                            <i class="fa-solid fa-credit-card me-1"></i> Tiếp tục thanh toán
+                                        </button>
+                                        <button type="button" class="btn btn-outline-danger btn-sm w-100"
+                                                onclick="cancelPendingPayment('${item.bookingCode}')">
+                                            Hủy đơn và giải phóng ghế
+                                        </button>
+                                    </c:if>
+
                                     <c:if test="${not empty item.movieId}">
                                         <a href="${pageContext.request.contextPath}/movie/detail?id=${item.movieId}" class="btn btn-outline-secondary btn-sm w-100 text-white">
                                             <i class="fa-solid fa-film me-1"></i> Thông tin phim
@@ -658,16 +669,13 @@
                 item.tickets.forEach((t, idx) => {
                     const card = document.createElement('div');
                     card.className = 'ticket-seat-card';
-                    card.innerHTML = `
-                        <div>
-                            <span class="badge bg-danger me-2">Vé #` + (idx + 1) + `</span>
-                            <span class="fs-5 fw-bold text-warning">Ghế ` + t.seatCode + `</span>
-                        </div>
-                        <div class="text-end">
-                            <span class="text-white fw-bold">` + formatMoney(t.ticketPrice) + `</span>
-                            <small class="d-block text-success"><i class="fa-solid fa-check"></i> Đã đặt</small>
-                        </div>
-                    `;
+                    const paymentStatus = item.status === 'PENDING'
+                        ? '<small class="d-block text-warning">Chờ thanh toán</small>'
+                        : '<small class="d-block text-success"><i class="fa-solid fa-check"></i> Đã thanh toán</small>';
+                    card.innerHTML = '<div><span class="badge bg-danger me-2">Vé #' + (idx + 1) +
+                        '</span><span class="fs-5 fw-bold text-warning">Ghế ' + t.seatCode +
+                        '</span></div><div class="text-end"><span class="text-white fw-bold">' +
+                        formatMoney(t.ticketPrice) + '</span>' + paymentStatus + '</div>';
                     seatContainer.appendChild(card);
                 });
             } else {
@@ -678,6 +686,45 @@
         } catch (err) {
             console.error('Error fetching booking detail:', err);
             alert('Lỗi kết nối máy chủ khi tải vé.');
+        }
+    }
+
+    async function retryVnpayPayment(bookingCode) {
+        try {
+            const response = await fetch('${pageContext.request.contextPath}/booking/retry-payment', {
+                method: 'POST',
+                headers: { 'Accept': 'application/json', 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
+                body: new URLSearchParams({ bookingCode, ajax: 'true' })
+            });
+            const data = await response.json();
+            if (data.paymentUrl) {
+                window.location.href = data.paymentUrl;
+                return;
+            }
+            alert(data.message || 'Không thể tạo lại liên kết thanh toán. Vui lòng tải lại trang.');
+            window.location.reload();
+        } catch (error) {
+            alert('Không thể kết nối để tiếp tục thanh toán. Vui lòng thử lại.');
+        }
+    }
+
+    async function cancelPendingPayment(bookingCode) {
+        if (!confirm('Hủy đơn chưa thanh toán và giải phóng ghế đã giữ?')) return;
+        try {
+            const response = await fetch('${pageContext.request.contextPath}/booking/cancel-payment', {
+                method: 'POST',
+                headers: { 'Accept': 'application/json', 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
+                body: new URLSearchParams({ bookingCode, ajax: 'true' })
+            });
+            const data = await response.json();
+            if (data.success) {
+                window.location.reload();
+                return;
+            }
+            alert(data.message || 'Không thể hủy đơn. Vui lòng tải lại trang.');
+            window.location.reload();
+        } catch (error) {
+            alert('Không thể kết nối để hủy đơn. Vui lòng tải lại trang.');
         }
     }
 

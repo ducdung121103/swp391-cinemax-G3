@@ -44,6 +44,7 @@ public class ShowtimeReminderListener implements ServletContextListener {
             return thread;
         });
         scheduler.scheduleAtFixedRate(this::remind, 1, 5, TimeUnit.MINUTES);
+        scheduler.scheduleAtFixedRate(this::expireVnpayBookings, 1, 1, TimeUnit.MINUTES);
     }
 
     @Override
@@ -61,6 +62,14 @@ public class ShowtimeReminderListener implements ServletContextListener {
             }
         } catch (Exception e) {
             LOGGER.log(Level.WARNING, "Job nhắc suất chiếu lỗi", e);
+        }
+    }
+
+    private void expireVnpayBookings() {
+        try {
+            bookingEngineService.expirePendingVnpayBookings();
+        } catch (Exception e) {
+            LOGGER.log(Level.WARNING, "Job giải phóng booking VNPay quá hạn lỗi", e);
         }
     }
 

@@ -1014,7 +1014,7 @@
                             <strong><c:out value="${not empty currentUser.fullName ? currentUser.fullName : 'Khách hàng CineMax'}" /></strong>
                         </div>
                         <div class="summary-line">
-                            <span>Email nhận vé điện tử:</span>
+                            <span>Email:</span>
                             <strong><c:out value="${currentUser.email}" /></strong>
                         </div>
                         <div class="summary-line">

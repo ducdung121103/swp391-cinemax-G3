@@ -2,8 +2,9 @@ package com.cinema.modules.booking.service.impl;
 
 import com.cinema.common.transaction.TransactionManager;
 import com.cinema.common.util.ValidationUtil;
-import com.cinema.model.Booking;
 import com.cinema.model.Movie;
+import com.cinema.model.Booking;
+import com.cinema.model.Payment;
 import com.cinema.model.ScreeningRoom;
 import com.cinema.model.Seat;
 import com.cinema.model.Showtime;
@@ -33,6 +34,7 @@ import com.cinema.modules.infrastructure.dao.ScreeningRoomDAO;
 
 import java.math.BigDecimal;
 import java.sql.Connection;
+import java.sql.SQLException;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -153,6 +155,8 @@ public class BookingEngineServiceImpl implements BookingEngineService {
                 ValidationUtil.validateCoupleSeats(seats);
             }
         }
+        boolean awaitingVnpay = "ONLINE".equalsIgnoreCase(dto.getChannel())
+                && "VNPAY".equalsIgnoreCase(dto.getPaymentMethod());
         BookingResult result = TransactionManager.executeInTransaction(conn -> {
             List<Long> lockOrder = new ArrayList<>(dto.getSeatIds());
             lockOrder.sort(Comparator.naturalOrder());
@@ -194,6 +198,9 @@ public class BookingEngineServiceImpl implements BookingEngineService {
                 throw new IllegalStateException(
                         "Giá hoặc tồn kho đã thay đổi. Vui lòng lấy lại báo giá trước khi thanh toán.");
             }
+            if (awaitingVnpay && finalAmount.signum() <= 0) {
+                throw new IllegalArgumentException("Số tiền thanh toán VNPay phải lớn hơn 0.");
+            }
 
             // 4. Tạo Booking Master
             Booking b = Booking.builder()
@@ -206,7 +213,7 @@ public class BookingEngineServiceImpl implements BookingEngineService {
                     .totalFnbAmount(fnbTotal)
                     .discountAmount(discount)
                     .finalAmount(finalAmount)
-                    .status("CONFIRMED")
+                    .status(awaitingVnpay ? "PENDING" : "CONFIRMED")
                     .build();
             Long bookingId = bookingDAO.insertBooking(conn, b);
 
@@ -214,7 +221,8 @@ public class BookingEngineServiceImpl implements BookingEngineService {
             List<TicketReceipt> ticketReceipts = new ArrayList<>();
             List<FnbReceipt> fnbReceipts = new ArrayList<>();
             if (dto.getSeatIds() != null && !dto.getSeatIds().isEmpty()) {
-                ticketDAO.insertTickets(conn, bookingId, dto.getShowtimeId(), dto.getSeatIds(), dto.getTicketPrices());
+                ticketDAO.insertTickets(conn, bookingId, dto.getShowtimeId(), dto.getSeatIds(),
+                        dto.getTicketPrices(), awaitingVnpay ? "PENDING" : "VALID");
                 List<TicketReceipt> insertedTickets = ticketDAO.findReceiptItems(conn, bookingId);
                 if (insertedTickets != null) {
                     ticketReceipts.addAll(insertedTickets);
@@ -231,7 +239,12 @@ public class BookingEngineServiceImpl implements BookingEngineService {
             }
 
             // 7. Ghi nhận Thanh toán
-            paymentDAO.insertPayment(conn, bookingId, dto.getPaymentMethod() != null ? dto.getPaymentMethod() : "VNPAY", finalAmount);
+            if (awaitingVnpay) {
+                paymentDAO.insertPendingVnpayPayment(conn, bookingId, finalAmount);
+            } else {
+                paymentDAO.insertPayment(conn, bookingId,
+                        dto.getPaymentMethod() != null ? dto.getPaymentMethod() : "VNPAY", finalAmount);
+            }
 
             // 8. Tăng số lượt sử dụng voucher một cách nguyên tử trong cùng transaction
             if (dto.getVoucherId() != null) {
@@ -247,8 +260,8 @@ public class BookingEngineServiceImpl implements BookingEngineService {
                     .bookingId(bookingId)
                     .bookingCode(b.getBookingCode())
                     .finalAmount(finalAmount)
-                    .status("SUCCESS")
-                    .message("Đặt vé và thanh toán thành công!")
+                    .status(awaitingVnpay ? "PENDING" : "SUCCESS")
+                    .message(awaitingVnpay ? "Đang chờ thanh toán VNPay." : "Đặt vé và thanh toán thành công!")
                     .tickets(ticketReceipts)
                     .totalTicketsAmount(ticketsTotal)
                     .totalFnbAmount(fnbTotal)
@@ -258,8 +271,191 @@ public class BookingEngineServiceImpl implements BookingEngineService {
                     .fnbItems(fnbReceipts)
                     .build();
         });
-        sendConfirmationAfterCommit(dto, result);
+        if ("SUCCESS".equals(result.getStatus())) {
+            sendConfirmationAfterCommit(dto, result);
+        }
         return result;
+    }
+
+    @Override
+    public boolean finalizeVnpayPayment(String bookingCode, BigDecimal amount, String transactionNo,
+                                       boolean succeeded) {
+        if (bookingCode == null || bookingCode.isBlank() || amount == null || amount.signum() <= 0) {
+            return false;
+        }
+        FinalizationOutcome outcome = TransactionManager.executeInTransaction(conn ->
+                finalizeVnpayPayment(conn, bookingCode, amount, transactionNo, succeeded));
+        if (outcome.bookingResult != null) {
+            CreateBookingDTO notification = CreateBookingDTO.builder()
+                    .userId(outcome.userId)
+                    .showtimeId(outcome.showtimeId)
+                    .build();
+            sendConfirmationAfterCommit(notification, outcome.bookingResult);
+        }
+        return outcome.succeeded;
+    }
+
+    @Override
+    public BookingResult renewPendingVnpayBooking(String bookingCode, Long userId) {
+        if (bookingCode == null || bookingCode.isBlank() || userId == null) return null;
+        return TransactionManager.executeInTransaction(conn -> {
+            Booking booking = bookingDAO.findByCode(conn, bookingCode.trim());
+            if (booking == null || booking.getId() == null || !userId.equals(booking.getUserId())
+                    || !"PENDING".equalsIgnoreCase(booking.getStatus())
+                    || booking.getFinalAmount() == null || booking.getFinalAmount().signum() <= 0) {
+                return null;
+            }
+            Payment payment = paymentDAO.findByBookingIdForUpdate(conn, booking.getId());
+            if (payment == null || !"VNPAY".equalsIgnoreCase(payment.getPaymentMethod())
+                    || !"PENDING".equalsIgnoreCase(payment.getStatus())
+                    || payment.getAmount() == null
+                    || payment.getAmount().compareTo(booking.getFinalAmount()) != 0
+                    || !bookingDAO.refreshPendingVnpayExpiry(conn, booking.getId(), userId)) {
+                return null;
+            }
+            return BookingResult.builder()
+                    .bookingId(booking.getId())
+                    .bookingCode(booking.getBookingCode())
+                    .finalAmount(booking.getFinalAmount())
+                    .status("PENDING")
+                    .paymentMethod("VNPAY")
+                    .build();
+        });
+    }
+
+    @Override
+    public boolean cancelPendingVnpayBooking(String bookingCode, Long userId) {
+        if (bookingCode == null || bookingCode.isBlank() || userId == null) return false;
+        return TransactionManager.executeInTransaction(conn -> {
+            Booking booking = bookingDAO.findByCode(conn, bookingCode.trim());
+            if (booking == null || !userId.equals(booking.getUserId())
+                    || !"PENDING".equalsIgnoreCase(booking.getStatus())
+                    || booking.getFinalAmount() == null) {
+                return false;
+            }
+            FinalizationOutcome outcome = finalizeVnpayPayment(
+                    conn, bookingCode.trim(), booking.getFinalAmount(), null, false);
+            return outcome.expired;
+        });
+    }
+
+    @Override
+    public int expirePendingVnpayBookings() {
+        return TransactionManager.executeInTransaction(conn -> {
+            int expired = 0;
+            for (String bookingCode : bookingDAO.findExpiredVnpayBookingCodes(conn)) {
+                Booking booking = bookingDAO.findByCode(conn, bookingCode);
+                if (booking == null || booking.getFinalAmount() == null) continue;
+                FinalizationOutcome outcome = finalizeVnpayPayment(
+                        conn, bookingCode, booking.getFinalAmount(), null, false);
+                if (!outcome.succeeded && outcome.expired) expired++;
+            }
+            return expired;
+        });
+    }
+
+    private FinalizationOutcome finalizeVnpayPayment(Connection conn, String bookingCode, BigDecimal amount,
+                                                      String transactionNo, boolean succeeded) throws SQLException {
+        Booking booking = bookingDAO.findByCode(conn, bookingCode);
+        if (booking == null || booking.getId() == null || booking.getFinalAmount() == null
+                || booking.getFinalAmount().compareTo(amount) != 0) {
+            return FinalizationOutcome.notFinalized();
+        }
+
+        Payment payment = paymentDAO.findByBookingIdForUpdate(conn, booking.getId());
+        if (payment == null || !"VNPAY".equalsIgnoreCase(payment.getPaymentMethod())
+                || payment.getAmount() == null || payment.getAmount().compareTo(amount) != 0) {
+            return FinalizationOutcome.notFinalized();
+        }
+
+        if ("CONFIRMED".equalsIgnoreCase(booking.getStatus())
+                && "SUCCESS".equalsIgnoreCase(payment.getStatus())) {
+            boolean sameTransaction = transactionNo != null
+                    && transactionNo.equals(payment.getTransactionNo());
+            return succeeded && sameTransaction
+                    ? FinalizationOutcome.alreadyFinalized() : FinalizationOutcome.notFinalized();
+        }
+        if (!"PENDING".equalsIgnoreCase(booking.getStatus())
+                || !"PENDING".equalsIgnoreCase(payment.getStatus())) {
+            return FinalizationOutcome.notFinalized();
+        }
+
+        if (succeeded) {
+            if (transactionNo == null || transactionNo.isBlank()) {
+                return FinalizationOutcome.notFinalized();
+            }
+            List<Long> seatIds = ticketDAO.findSeatIdsByBooking(conn, booking.getId());
+            if (!paymentDAO.updatePendingVnpayPayment(
+                            conn, booking.getId(), amount, transactionNo, "SUCCESS")
+                    || !bookingDAO.updatePendingStatus(conn, booking.getId(), "CONFIRMED")) {
+                throw new IllegalStateException("Không thể xác nhận trạng thái thanh toán VNPay.");
+            }
+            int activatedTickets = ticketDAO.activatePendingTickets(conn, booking.getId());
+            if (activatedTickets == 0) {
+                throw new IllegalStateException("Không tìm thấy vé chờ thanh toán cho đơn VNPay.");
+            }
+            seatHoldingDAO.releaseHoldings(conn, booking.getShowtimeId(), seatIds);
+            booking.setStatus("CONFIRMED");
+            BookingResult receipt = BookingResult.builder()
+                    .bookingId(booking.getId())
+                    .bookingCode(booking.getBookingCode())
+                    .finalAmount(booking.getFinalAmount())
+                    .status("SUCCESS")
+                    .paymentMethod("VNPAY")
+                    .tickets(ticketDAO.findReceiptItems(conn, booking.getId()))
+                    .totalTicketsAmount(booking.getTotalTicketsAmount())
+                    .totalFnbAmount(booking.getTotalFnbAmount())
+                    .discountAmount(booking.getDiscountAmount())
+                    .build();
+            return FinalizationOutcome.confirmed(booking.getUserId(), booking.getShowtimeId(), receipt);
+        }
+
+        if (!paymentDAO.updatePendingVnpayPayment(conn, booking.getId(), amount, transactionNo, "FAILED")
+                || !bookingDAO.updatePendingStatus(conn, booking.getId(), "CANCELLED")) {
+            throw new IllegalStateException("Không thể hủy đơn thanh toán VNPay chưa hoàn tất.");
+        }
+        List<Long> seatIds = ticketDAO.findSeatIdsByBooking(conn, booking.getId());
+        orderItemDAO.restoreFnbStock(conn, booking.getId());
+        ticketDAO.deleteBookingTickets(conn, booking.getId());
+        if (booking.getVoucherId() != null
+                && !voucherService.reverseVoucherUsage(conn, booking.getVoucherId())) {
+            throw new IllegalStateException("Không thể hoàn lại lượt sử dụng voucher cho đơn VNPay.");
+        }
+        seatHoldingDAO.releaseHoldings(conn, booking.getShowtimeId(), seatIds);
+        return FinalizationOutcome.expired();
+    }
+
+    private static final class FinalizationOutcome {
+        private final boolean succeeded;
+        private final boolean expired;
+        private final Long userId;
+        private final Long showtimeId;
+        private final BookingResult bookingResult;
+
+        private FinalizationOutcome(boolean succeeded, boolean expired, Long userId, Long showtimeId,
+                                    BookingResult bookingResult) {
+            this.succeeded = succeeded;
+            this.expired = expired;
+            this.userId = userId;
+            this.showtimeId = showtimeId;
+            this.bookingResult = bookingResult;
+        }
+
+        private static FinalizationOutcome notFinalized() {
+            return new FinalizationOutcome(false, false, null, null, null);
+        }
+
+        private static FinalizationOutcome alreadyFinalized() {
+            return new FinalizationOutcome(true, false, null, null, null);
+        }
+
+        private static FinalizationOutcome confirmed(Long userId, Long showtimeId, BookingResult result) {
+            return new FinalizationOutcome(true, false, userId, showtimeId, result);
+        }
+
+        private static FinalizationOutcome expired() {
+            return new FinalizationOutcome(false, true, null, null, null);
+        }
     }
 
     @Override

@@ -69,12 +69,12 @@ public class BookingDAO {
     }
 
     public Booking findByCode(Connection conn, String bookingCode) throws SQLException {
-        String sql = "SELECT * FROM bookings WHERE booking_code = ? AND is_deleted = 0";
+        String sql = "SELECT * FROM bookings WITH (UPDLOCK, HOLDLOCK) WHERE booking_code = ? AND is_deleted = 0";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, bookingCode);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    return Booking.builder()
+                    Booking booking = Booking.builder()
                             .bookingCode(rs.getString("booking_code"))
                             .userId(rs.getObject("user_id") != null ? rs.getLong("user_id") : null)
                             .staffId(rs.getObject("staff_id") != null ? rs.getLong("staff_id") : null)
@@ -87,10 +87,48 @@ public class BookingDAO {
                             .finalAmount(rs.getBigDecimal("final_amount"))
                             .status(rs.getString("status"))
                             .build();
+                    booking.setId(rs.getLong("id"));
+                    return booking;
                 }
             }
         }
         return null;
+    }
+
+    public boolean updatePendingStatus(Connection conn, Long bookingId, String status) throws SQLException {
+        String sql = "UPDATE bookings SET status = ?, updated_at = GETDATE() "
+                + "WHERE id = ? AND status = 'PENDING' AND is_deleted = 0";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, status);
+            ps.setLong(2, bookingId);
+            return ps.executeUpdate() == 1;
+        }
+    }
+
+    public boolean refreshPendingVnpayExpiry(Connection conn, Long bookingId, Long userId) throws SQLException {
+        String sql = "UPDATE bookings SET updated_at = GETDATE() "
+                + "WHERE id = ? AND user_id = ? AND status = 'PENDING' AND is_deleted = 0 "
+                + "AND EXISTS (SELECT 1 FROM payments WHERE booking_id = bookings.id "
+                + "AND payment_method = 'VNPAY' AND status = 'PENDING')";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setLong(1, bookingId);
+            ps.setLong(2, userId);
+            return ps.executeUpdate() == 1;
+        }
+    }
+
+    public List<String> findExpiredVnpayBookingCodes(Connection conn) throws SQLException {
+        String sql = "SELECT b.booking_code FROM bookings b WITH (UPDLOCK, READPAST) "
+                + "JOIN payments p WITH (UPDLOCK, READPAST) ON p.booking_id = b.id "
+                + "WHERE b.status = 'PENDING' AND b.is_deleted = 0 "
+                + "AND p.payment_method = 'VNPAY' AND p.status = 'PENDING' "
+                + "AND b.updated_at <= DATEADD(MINUTE, -15, GETDATE())";
+        List<String> codes = new java.util.ArrayList<>();
+        try (PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) codes.add(rs.getString("booking_code"));
+        }
+        return codes;
     }
 
     public boolean updateStatusByCode(Connection conn, String bookingCode, String status) throws SQLException {
