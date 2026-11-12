@@ -13,7 +13,6 @@ import com.cinema.modules.infrastructure.dao.ScreeningRoomDAO;
 import com.cinema.modules.infrastructure.service.ScreeningRoomService;
 
 import java.math.BigDecimal;
-import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.ArrayList;
@@ -68,7 +67,8 @@ public class ScreeningRoomServiceImpl implements ScreeningRoomService {
     }
 
     @Override
-    public boolean isRoomAvailable(Long roomId, LocalDateTime startTime, LocalDateTime endTime, Long excludeShowtimeId) {
+    public boolean isRoomAvailable(Long roomId, LocalDateTime startTime, LocalDateTime endTime,
+            Long excludeShowtimeId) {
         return screeningRoomDAO.isAvailable(roomId, startTime, endTime, excludeShowtimeId);
     }
 
@@ -133,10 +133,12 @@ public class ScreeningRoomServiceImpl implements ScreeningRoomService {
 
     @Override
     public String deleteCinema(User actor, Long cinemaId) {
-        if (actor == null || actor.getRole() == null || !RoleConstant.ADMIN.equalsIgnoreCase(actor.getRole().getRoleName())) {
+        if (actor == null || actor.getRole() == null
+                || !RoleConstant.ADMIN.equalsIgnoreCase(actor.getRole().getRoleName())) {
             return "UNAUTHORIZED";
         }
-        if (cinemaId == null) return "NOT_FOUND";
+        if (cinemaId == null)
+            return "NOT_FOUND";
         if (cinemaDAO.hasFutureShowtimes(cinemaId)) {
             return "ACTIVE_SHOWTIMES";
         }
@@ -188,9 +190,11 @@ public class ScreeningRoomServiceImpl implements ScreeningRoomService {
         if (actor == null || actor.getRole() == null) {
             return "UNAUTHORIZED";
         }
-        if (roomId == null) return "NOT_FOUND";
+        if (roomId == null)
+            return "NOT_FOUND";
         ScreeningRoom room = screeningRoomDAO.findById(roomId);
-        if (room == null) return "NOT_FOUND";
+        if (room == null)
+            return "NOT_FOUND";
 
         String role = actor.getRole().getRoleName();
         if (RoleConstant.ADMIN.equalsIgnoreCase(role)) {
@@ -250,9 +254,8 @@ public class ScreeningRoomServiceImpl implements ScreeningRoomService {
             // Trường hợp 1: Chuyển các ghế được chọn thành COUPLE (Sweetbox)
             if (seatIds.size() % 2 != 0) {
                 throw new IllegalArgumentException(
-                    "Ghế đôi Sweetbox bắt buộc phải chọn theo số lượng chẵn (2, 4, 6... ghế; bạn đang chọn " 
-                    + seatIds.size() + " ghế, không hợp lệ)!"
-                );
+                        "Ghế đôi Sweetbox bắt buộc phải chọn theo số lượng chẵn (2, 4, 6... ghế; bạn đang chọn "
+                                + seatIds.size() + " ghế, không hợp lệ)!");
             }
 
             List<Seat> targetSeats = screeningRoomDAO.findSeatsByIds(seatIds);
@@ -269,7 +272,8 @@ public class ScreeningRoomServiceImpl implements ScreeningRoomService {
             }
         }
 
-        // Trường hợp 2: Kiểm tra toàn phòng sau khi áp dụng để đảm bảo không làm rách/lẻ các cặp ghế đôi hiện có
+        // Trường hợp 2: Kiểm tra toàn phòng sau khi áp dụng để đảm bảo không làm
+        // rách/lẻ các cặp ghế đôi hiện có
         if (roomId != null) {
             List<Seat> allSeats = screeningRoomDAO.findSeatsByRoom(roomId);
             if (allSeats != null && !allSeats.isEmpty()) {
@@ -277,8 +281,8 @@ public class ScreeningRoomServiceImpl implements ScreeningRoomService {
                 List<Seat> simulatedCoupleSeats = new ArrayList<>();
 
                 for (Seat s : allSeats) {
-                    Long currentTypeId = targetIdSet.contains(s.getId()) && seatTypeId != null 
-                            ? seatTypeId 
+                    Long currentTypeId = targetIdSet.contains(s.getId()) && seatTypeId != null
+                            ? seatTypeId
                             : s.getSeatTypeId();
                     if (currentTypeId != null && currentTypeId == 3L) {
                         Seat copy = new Seat();
@@ -324,13 +328,13 @@ public class ScreeningRoomServiceImpl implements ScreeningRoomService {
                         .filter(s -> seatRow.trim().equalsIgnoreCase(s.getSeatRow()))
                         .collect(Collectors.toList());
                 if (rowSeats.isEmpty()) {
-                    throw new IllegalArgumentException("Không tìm thấy hàng ghế " + seatRow + " trong phòng chiếu này!");
+                    throw new IllegalArgumentException(
+                            "Không tìm thấy hàng ghế " + seatRow + " trong phòng chiếu này!");
                 }
                 if (rowSeats.size() % 2 != 0) {
                     throw new IllegalArgumentException(
-                        "Không thể chuyển toàn bộ hàng " + seatRow + " thành ghế đôi Sweetbox vì hàng này có " 
-                        + rowSeats.size() + " ghế (số lẻ), không thể chia đều thành các cặp đôi!"
-                    );
+                            "Không thể chuyển toàn bộ hàng " + seatRow + " thành ghế đôi Sweetbox vì hàng này có "
+                                    + rowSeats.size() + " ghế (số lẻ), không thể chia đều thành các cặp đôi!");
                 }
                 for (Seat s : rowSeats) {
                     s.setSeatTypeId(3L);
@@ -351,7 +355,8 @@ public class ScreeningRoomServiceImpl implements ScreeningRoomService {
     // ITERATION 2: SEAT MAINTENANCE & MAINTENANCE SCHEDULES
     // =========================================================================
     /**
-     * Helper tạo bản sao ghế mô phỏng sang loại COUPLE (Sweetbox) phục vụ kiểm định nghiệp vụ.
+     * Helper tạo bản sao ghế mô phỏng sang loại COUPLE (Sweetbox) phục vụ kiểm định
+     * nghiệp vụ.
      */
     private Seat createSimulatedCoupleSeat(Seat source) {
         Seat copy = new Seat();
@@ -369,7 +374,6 @@ public class ScreeningRoomServiceImpl implements ScreeningRoomService {
         copy.setSeatType(st);
         return copy;
     }
-
 
     @Override
     public boolean toggleSeatsMaintenance(Long roomId, List<Long> seatIds, boolean underMaintenance) {

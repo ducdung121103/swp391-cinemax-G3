@@ -8,7 +8,6 @@ import com.cinema.modules.infrastructure.dto.BookingDetailDTO;
 import com.cinema.modules.infrastructure.dto.RevenueBreakdownDTO;
 import com.cinema.modules.infrastructure.dto.RevenueFilterDTO;
 import com.cinema.modules.infrastructure.dto.RevenueKpiDTO;
-import com.cinema.modules.infrastructure.dto.RevenueTimeSeriesDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,9 +19,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 /**

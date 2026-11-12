@@ -18,6 +18,7 @@ import java.io.IOException;
  */
 @WebServlet(name = "ProfileServlet", urlPatterns = {"/customer/account/profile", "/account/profile", "/profile"})
 public class ProfileServlet extends HttpServlet {
+    private static final long serialVersionUID = 1L;
     private final UserService userService = new UserServiceImpl();
 
     @Override

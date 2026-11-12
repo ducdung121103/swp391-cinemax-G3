@@ -17,7 +17,6 @@ import java.math.BigDecimal;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -26,6 +25,7 @@ import java.util.List;
  */
 @WebServlet(name = "SeatGridServlet", urlPatterns = {"/admin/infrastructure/seats", "/admin/seats"})
 public class SeatGridServlet extends HttpServlet {
+    private static final long serialVersionUID = 1L;
     private final ScreeningRoomService screeningRoomService = new ScreeningRoomServiceImpl();
 
     // LUỒNG DỮ LIỆU (SWP391 Architecture Tracing):
@@ -129,9 +129,12 @@ public class SeatGridServlet extends HttpServlet {
         req.setCharacterEncoding("UTF-8");
         String action = req.getParameter("action");
         String roomIdParam = req.getParameter("roomId");
-        Long roomId = (roomIdParam != null && !roomIdParam.trim().isEmpty()) ? Long.parseLong(roomIdParam.trim()) : null;
+        Long roomId = null;
 
         try {
+            if (roomIdParam != null && !roomIdParam.trim().isEmpty()) {
+                roomId = Long.parseLong(roomIdParam.trim());
+            }
             if ("updateSelectedSeats".equalsIgnoreCase(action)) {
                 String seatIdsRaw = req.getParameter("seatIds");
                 String seatTypeIdStr = req.getParameter("seatTypeId");
@@ -209,11 +212,12 @@ public class SeatGridServlet extends HttpServlet {
         } catch (Exception e) {
             e.printStackTrace();
             String errorMsg = URLEncoder.encode(e.getMessage() != null ? e.getMessage() : "Đã có lỗi xảy ra", StandardCharsets.UTF_8);
-            resp.sendRedirect(req.getContextPath() + "/admin/infrastructure/seats?roomId=" + roomId + "&error=" + errorMsg);
+            String redirectUrl = req.getContextPath() + "/admin/infrastructure/seats" + (roomId != null ? "?roomId=" + roomId + "&error=" + errorMsg : "?error=" + errorMsg);
+            resp.sendRedirect(redirectUrl);
             return;
         }
 
-        resp.sendRedirect(req.getContextPath() + "/admin/infrastructure/seats?roomId=" + roomId);
+        resp.sendRedirect(req.getContextPath() + "/admin/infrastructure/seats" + (roomId != null ? "?roomId=" + roomId : ""));
     }
 
     private List<Long> parseSeatIds(String seatIdsRaw) {

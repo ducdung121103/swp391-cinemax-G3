@@ -24,6 +24,8 @@ import java.util.List;
  */
 @WebServlet(name = "UserAdminServlet", urlPatterns = {"/admin/identity/users"})
 public class UserAdminServlet extends HttpServlet {
+    private static final long serialVersionUID = 1L;
+
     private static final int PAGE_SIZE = 20;
 
     private final UserService userService = new UserServiceImpl();

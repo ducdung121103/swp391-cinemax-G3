@@ -1,10 +1,7 @@
 package com.cinema.modules.infrastructure.controller;
 
 import com.cinema.common.dto.PageResult;
-import com.cinema.common.constant.RoleConstant;
 import com.cinema.model.Cinema;
-import com.cinema.model.User;
-import com.cinema.model.Movie;
 import com.cinema.model.ScreeningRoom;
 import com.cinema.modules.infrastructure.dao.InfrastructureReportDAO;
 import com.cinema.modules.infrastructure.dto.BookingDetailDTO;
@@ -41,6 +38,7 @@ import java.util.List;
         "/admin/reports/revenue"
 })
 public class ReportAdminServlet extends HttpServlet {
+    private static final long serialVersionUID = 1L;
 
     private static final Logger logger = LoggerFactory.getLogger(ReportAdminServlet.class);
 

@@ -26,6 +26,7 @@ import java.io.IOException;
  * Refactor update: Lam ro trach nhiem lop cho de bao tri.*/
 @WebServlet(name = "AuthServlet", urlPatterns = {"/login", "/logout", "/register", "/verify-otp", "/forgot-password", "/reset-password"})
 public class AuthServlet extends HttpServlet {
+    private static final long serialVersionUID = 1L;
 
     private final UserService userService = new UserServiceImpl();
 

@@ -22,6 +22,7 @@ import java.util.List;
  */
 @WebServlet(name = "CinemaAdminServlet", urlPatterns = {"/admin/infrastructure/cinemas", "/admin/cinemas", "/admin/branches"})
 public class CinemaAdminServlet extends HttpServlet {
+    private static final long serialVersionUID = 1L;
     private final ScreeningRoomService screeningRoomService = new ScreeningRoomServiceImpl();
 
     // LUỒNG DỮ LIỆU (SWP391 Architecture Tracing):

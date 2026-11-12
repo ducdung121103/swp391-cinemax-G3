@@ -1,6 +1,7 @@
 package com.cinema.common.dao;
 
 import com.cinema.common.context.DBContext;
+import com.cinema.common.transaction.TransactionManager;
 import com.cinema.model.SystemSetting;
 
 import java.sql.Connection;
@@ -132,22 +133,19 @@ public class SystemSettingDAO {
     public boolean batchUpdateSettings(Map<String, String> keyValues, Integer updatedBy) {
         if (keyValues == null || keyValues.isEmpty()) return true;
 
-        String sql = "UPDATE system_settings SET setting_value = ?, updated_by = ?, updated_at = GETDATE() WHERE setting_key = ?";
-        try (Connection conn = DBContext.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            for (Map.Entry<String, String> entry : keyValues.entrySet()) {
-                ps.setString(1, entry.getValue() != null ? entry.getValue().trim() : "");
-                if (updatedBy != null) ps.setInt(2, updatedBy); else ps.setNull(2, java.sql.Types.INTEGER);
-                ps.setString(3, entry.getKey().trim());
-                ps.addBatch();
+        return TransactionManager.executeInTransaction(conn -> {
+            String sql = "UPDATE system_settings SET setting_value = ?, updated_by = ?, updated_at = GETDATE() WHERE setting_key = ?";
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                for (Map.Entry<String, String> entry : keyValues.entrySet()) {
+                    ps.setString(1, entry.getValue() != null ? entry.getValue().trim() : "");
+                    if (updatedBy != null) ps.setInt(2, updatedBy); else ps.setNull(2, java.sql.Types.INTEGER);
+                    ps.setString(3, entry.getKey().trim());
+                    ps.addBatch();
+                }
+                ps.executeBatch();
+                return true;
             }
-            ps.executeBatch();
-            return true;
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return false;
-        }
+        });
     }
 
     /**

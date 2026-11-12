@@ -23,10 +23,22 @@ import java.util.Map;
  */
 @WebServlet(name = "SettingAdminServlet", urlPatterns = {"/admin/infrastructure/settings", "/admin/settings"})
 public class SettingAdminServlet extends HttpServlet {
+    private static final long serialVersionUID = 1L;
     private final SystemSettingDAO systemSettingDAO = new SystemSettingDAO();
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        HttpSession session = req.getSession(false);
+        User currentUser = (session != null) ? (User) session.getAttribute("currentUser") : null;
+        boolean isAdmin = currentUser != null && (
+            (currentUser.getRole() != null && "ADMIN".equalsIgnoreCase(currentUser.getRole().getRoleName())) ||
+            (currentUser.getRoleId() != null && currentUser.getRoleId() == 1L)
+        );
+        if (!isAdmin) {
+            resp.sendRedirect(req.getContextPath() + "/admin/dashboard?error=" + URLEncoder.encode("Chỉ Quản trị viên (Admin) mới có quyền truy cập Cấu hình hệ thống!", StandardCharsets.UTF_8));
+            return;
+        }
+
         List<SystemSetting> settings = systemSettingDAO.findAllSettings();
 
         // Gom các giá trị vào Map để View settings.jsp dễ dàng bind dữ liệu
@@ -54,7 +66,15 @@ public class SettingAdminServlet extends HttpServlet {
 
         HttpSession session = req.getSession(false);
         User currentUser = (session != null) ? (User) session.getAttribute("currentUser") : null;
-        Integer updatedBy = (currentUser != null && currentUser.getId() != null) ? currentUser.getId().intValue() : 1;
+        boolean isAdmin = currentUser != null && (
+            (currentUser.getRole() != null && "ADMIN".equalsIgnoreCase(currentUser.getRole().getRoleName())) ||
+            (currentUser.getRoleId() != null && currentUser.getRoleId() == 1L)
+        );
+        if (!isAdmin) {
+            resp.sendRedirect(req.getContextPath() + "/admin/dashboard?error=" + URLEncoder.encode("Chỉ Quản trị viên (Admin) mới có quyền thay đổi Cấu hình hệ thống!", StandardCharsets.UTF_8));
+            return;
+        }
+        Integer updatedBy = (currentUser.getId() != null) ? currentUser.getId().intValue() : 1;
 
         try {
             if ("saveAll".equalsIgnoreCase(action) || action == null || action.isBlank()) {
@@ -92,7 +112,10 @@ public class SettingAdminServlet extends HttpServlet {
                 updateBatch.put("CLEANING_BUFFER_MINUTES", String.valueOf(bufferMinutes));
                 updateBatch.put("CANCELLATION_DEADLINE_HOURS", String.valueOf(cancelDeadline));
 
-                systemSettingDAO.batchUpdateSettings(updateBatch, updatedBy);
+                boolean success = systemSettingDAO.batchUpdateSettings(updateBatch, updatedBy);
+                if (!success) {
+                    throw new RuntimeException("Cập nhật tham số hệ thống thất bại!");
+                }
                 resp.sendRedirect(req.getContextPath() + "/admin/infrastructure/settings?msg=success");
                 return;
             }

@@ -1,6 +1,5 @@
 package com.cinema.modules.infrastructure.controller;
 
-import com.cinema.common.constant.RoleConstant;
 import com.cinema.model.Cinema;
 import com.cinema.model.User;
 import com.cinema.model.ScreeningRoom;
@@ -23,6 +22,8 @@ import java.util.List;
  */
 @WebServlet(name = "RoomAdminServlet", urlPatterns = {"/admin/infrastructure/rooms", "/admin/rooms"})
 public class RoomAdminServlet extends HttpServlet {
+    private static final long serialVersionUID = 1L;
+
     private final ScreeningRoomService screeningRoomService = new ScreeningRoomServiceImpl();
 
     // LUỒNG DỮ LIỆU (SWP391 Architecture Tracing):
@@ -99,7 +100,7 @@ public class RoomAdminServlet extends HttpServlet {
                         .status(status != null ? status : "ACTIVE")
                         .build();
 
-                Long newRoomId = screeningRoomService.createRoom(room);
+                screeningRoomService.createRoom(room);
                 resp.sendRedirect(req.getContextPath() + "/admin/infrastructure/rooms?cinemaId=" + cinemaId + "&msg=created");
                 return;
 

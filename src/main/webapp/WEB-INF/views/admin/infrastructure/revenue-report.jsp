@@ -437,12 +437,12 @@
                         </span>
                         <div style="display:flex; gap:6px;">
                             <c:if test="${bookingsPaged.pageNumber > 1}">
-                                <a href="?from=${filter.from}&to=${filter.to}&cinemaId=${filter.cinemaId}&movieId=${filter.movieId}&channel=${filter.channel}&groupBy=${filter.groupBy}&page=${bookingsPaged.pageNumber - 1}" class="btn-export">
+                                <a href="?from=${filter.from}&to=${filter.to}&cinemaId=${filter.cinemaId}&page=${bookingsPaged.pageNumber - 1}" class="btn-export">
                                     <i class="fa-solid fa-chevron-left"></i> Trước
                                 </a>
                             </c:if>
                             <c:if test="${bookingsPaged.pageNumber < bookingsPaged.totalPages}">
-                                <a href="?from=${filter.from}&to=${filter.to}&cinemaId=${filter.cinemaId}&movieId=${filter.movieId}&channel=${filter.channel}&groupBy=${filter.groupBy}&page=${bookingsPaged.pageNumber + 1}" class="btn-export">
+                                <a href="?from=${filter.from}&to=${filter.to}&cinemaId=${filter.cinemaId}&page=${bookingsPaged.pageNumber + 1}" class="btn-export">
                                     Sau <i class="fa-solid fa-chevron-right"></i>
                                 </a>
                             </c:if>

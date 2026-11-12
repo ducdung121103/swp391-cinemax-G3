@@ -2,7 +2,6 @@ package com.cinema.modules.infrastructure.controller;
 
 import com.cinema.model.Cinema;
 import com.cinema.model.ScreeningRoom;
-import com.cinema.model.User;
 import com.cinema.modules.infrastructure.dao.InfrastructureReportDAO;
 import com.cinema.modules.infrastructure.service.ScreeningRoomService;
 import com.cinema.modules.infrastructure.service.impl.ScreeningRoomServiceImpl;
@@ -11,7 +10,6 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -23,6 +21,7 @@ import java.util.List;
  */
 @WebServlet(name = "AdminDashboardServlet", urlPatterns = {"/admin/dashboard"})
 public class AdminDashboardServlet extends HttpServlet {
+    private static final long serialVersionUID = 1L;
 
     private final ScreeningRoomService screeningRoomService = new ScreeningRoomServiceImpl();
     private final InfrastructureReportDAO reportDAO = new InfrastructureReportDAO();
@@ -35,9 +34,6 @@ public class AdminDashboardServlet extends HttpServlet {
     // 5. Response: Forward /WEB-INF/views/admin/infrastructure/dashboard.jsp
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        HttpSession session = req.getSession(false);
-        User currentUser = (session != null) ? (User) session.getAttribute("currentUser") : null;
-
         // 1. KPI chỉ số toàn cục từ database
         BigDecimal totalRevenue = reportDAO.getTotalRevenue();
         int totalConfirmedBookings = reportDAO.getTotalConfirmedBookings();
