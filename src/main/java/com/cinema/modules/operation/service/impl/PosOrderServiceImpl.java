@@ -23,6 +23,7 @@ public class PosOrderServiceImpl implements PosOrderService {
         this.bookingEngineService = bookingEngineService;
     }
 
+    /** Kiểm tra dữ liệu bán tại quầy, gắn kênh POS rồi giao dịch tạo đơn cho Booking Engine. */
     @Override
     public BookingResult processCounterCheckout(CreateBookingDTO request) {
         if (request == null) {

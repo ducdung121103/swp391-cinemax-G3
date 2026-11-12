@@ -83,6 +83,7 @@ public class BookingFlowServiceImpl implements BookingFlowService {
         this.bookingDAO = bookingDAO;
     }
 
+    /** Tải thông tin suất chiếu, sơ đồ và giá ghế, menu F&B cùng cấu hình ưu đãi cho trang đặt vé. */
     @Override
     public BookingPageData loadBookingPage(String rawShowtimeId, String sessionId) throws SQLException {
         if (rawShowtimeId == null || rawShowtimeId.isBlank()) {
@@ -162,6 +163,7 @@ public class BookingFlowServiceImpl implements BookingFlowService {
                 .build();
     }
 
+    /** Kiểm tra đầu vào và quy tắc ghế đôi trước khi yêu cầu Booking Engine giữ ghế tạm thời. */
     @Override
     public boolean holdSeats(String rawShowtimeId, List<Long> seatIds, String sessionId) {
         if (rawShowtimeId == null || rawShowtimeId.isBlank()) {
@@ -178,6 +180,7 @@ public class BookingFlowServiceImpl implements BookingFlowService {
         return bookingEngineService.holdSeats(showtimeId, seatIds, sessionId);
     }
 
+    /** Tính báo giá vé sau ưu đãi hạng vé, cộng F&B; chưa tạo đơn hoặc ghi nhận thanh toán. */
     @Override
     public BookingQuoteResult quote(BookingQuoteCommand command) {
         if (command == null || command.getShowtimeId() == null || command.getShowtimeId().isBlank()) {
@@ -229,6 +232,7 @@ public class BookingFlowServiceImpl implements BookingFlowService {
                 .build();
     }
 
+    /** Kiểm tra lựa chọn, tính giá cuối và tạo booking; nếu chọn VNPay thì sinh URL thanh toán. */
     @Override
     public BookingCheckoutResult checkout(BookingCheckoutCommand command) {
         if (command == null || command.getShowtimeId() == null || command.getShowtimeId().isBlank()) {
@@ -303,6 +307,7 @@ public class BookingFlowServiceImpl implements BookingFlowService {
                 .build();
     }
 
+    /** Gia hạn đơn VNPay đang chờ thanh toán và tạo lại URL thanh toán cho đúng chủ đơn. */
     @Override
     public String retryVnpayPayment(String bookingCode, Long userId,
                                     jakarta.servlet.http.HttpServletRequest request) {
@@ -314,11 +319,13 @@ public class BookingFlowServiceImpl implements BookingFlowService {
                 pendingBooking.getFinalAmount(), "Thanh toan ve CineMax " + pendingBooking.getBookingCode());
     }
 
+    /** Chuyển yêu cầu hủy đơn VNPay đang chờ của khách tới Booking Engine. */
     @Override
     public boolean cancelPendingVnpayBooking(String bookingCode, Long userId) {
         return bookingEngineService.cancelPendingVnpayBooking(bookingCode, userId);
     }
 
+    /** Lấy danh sách lịch sử đặt vé của khách hàng theo tài khoản. */
     @Override
     public List<CustomerBookingHistoryDTO> getCustomerBookingHistory(Long userId) {
         if (userId == null) {
@@ -327,6 +334,7 @@ public class BookingFlowServiceImpl implements BookingFlowService {
         return bookingDAO.findHistoryByUserId(userId);
     }
 
+    /** Tra cứu chi tiết đơn theo mã và tài khoản để bảo đảm khách chỉ xem đơn của mình. */
     @Override
     public CustomerBookingHistoryDTO getCustomerBookingDetail(String bookingCode, Long userId) {
         if (bookingCode == null || bookingCode.isBlank()) {
@@ -335,6 +343,7 @@ public class BookingFlowServiceImpl implements BookingFlowService {
         return bookingDAO.findHistoryDetailByCode(bookingCode, userId);
     }
 
+    /** Đọc phần trăm giảm theo hạng vé từ cấu hình hệ thống; hạng thường không được giảm. */
     private int getDiscountPercentForClass(String ticketClass) {
         if ("STUDENT".equalsIgnoreCase(ticketClass)) {
             return systemSettingDAO.getIntSetting("STUDENT_TICKET_DISCOUNT_PERCENT", 15);
@@ -345,6 +354,7 @@ public class BookingFlowServiceImpl implements BookingFlowService {
         return 0;
     }
 
+    /** Tính tổng giá các mặt hàng F&B còn bán tại rạp, bỏ qua mã hàng không hợp lệ hoặc không khả dụng. */
     private BigDecimal calculateFnbTotal(Long cinemaId, Map<Long, Integer> quantities) {
         if (quantities == null || quantities.isEmpty() || cinemaId == null) {
             return BigDecimal.ZERO;

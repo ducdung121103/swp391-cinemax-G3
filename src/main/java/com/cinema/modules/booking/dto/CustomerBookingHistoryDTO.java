@@ -95,6 +95,15 @@ public class CustomerBookingHistoryDTO {
         return showtimeStartTime.format(TIME_ONLY) + " &bull; " + showtimeStartTime.format(DATE_ONLY);
     }
 
+    public String getFormattedShowtimeRange() {
+        if (showtimeStartTime == null) return "";
+        String timeRange = showtimeStartTime.format(TIME_ONLY);
+        if (showtimeEndTime != null) {
+            timeRange += " - " + showtimeEndTime.format(TIME_ONLY);
+        }
+        return timeRange + " &bull; " + showtimeStartTime.format(DATE_ONLY);
+    }
+
     public String getSeatCodesString() {
         if (seatCodesString != null && !seatCodesString.isBlank()) {
             return seatCodesString;
@@ -116,4 +125,3 @@ public class CustomerBookingHistoryDTO {
         return showtimeStartTime != null && showtimeStartTime.isAfter(LocalDateTime.now());
     }
 }
-

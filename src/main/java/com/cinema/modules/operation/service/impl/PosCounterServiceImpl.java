@@ -82,6 +82,7 @@ public class PosCounterServiceImpl implements PosCounterService {
         this.cinemaDAO = cinemaDAO;
     }
 
+    /** Chuẩn bị dữ liệu màn hình POS theo chi nhánh/ngày/suất, gồm ghế, giá vé và sản phẩm F&B. */
     @Override
     public PosCounterPageData loadPage(User staff, String requestedCinemaId, String requestedDate,
                                        String requestedShowtimeId, String sessionId) throws SQLException {
@@ -182,6 +183,7 @@ public class PosCounterServiceImpl implements PosCounterService {
                 .build();
     }
 
+    /** Tính báo giá POS từ giá động của vé và F&B, đồng thời kiểm tra hàng hóa còn tồn kho. */
     @Override
     public PosQuoteResult quote(PosCheckoutCommand command) {
         if (command == null || command.getStaff() == null) {
@@ -226,6 +228,7 @@ public class PosCounterServiceImpl implements PosCounterService {
                 baseTicketTotal.subtract(ticketTotal), ticketTotal.add(fnbTotal));
     }
 
+    /** Kiểm tra quyền bán, suất chiếu, ghế, tiền và xác nhận trước khi tạo đơn qua PosOrderService. */
     @Override
     public PosCheckoutResult checkout(PosCheckoutCommand command) {
         if (command == null || command.getStaff() == null) {

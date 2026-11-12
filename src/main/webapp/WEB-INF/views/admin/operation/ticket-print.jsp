@@ -397,7 +397,7 @@
                                             <td><strong>${rb.movieTitle}</strong></td>
                                             <td>
                                                 <span style="font-size: 13px; color: #334155;">
-                                                    ${rb.formattedShowtime} · <strong>${rb.roomName}</strong>
+                                                    ${rb.formattedShowtimeRange} · <strong>${rb.roomName}</strong>
                                                 </span>
                                             </td>
                                             <td style="text-align: center;">

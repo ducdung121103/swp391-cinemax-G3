@@ -105,6 +105,7 @@ public class BookingEngineServiceImpl implements BookingEngineService {
         this.screeningRoomDAO = screeningRoomDAO;
     }
 
+    /** Giữ các ghế cho phiên đặt vé trong một transaction sau khi kiểm tra quy tắc ghế đôi. */
     @Override
     public boolean holdSeats(Long showtimeId, List<Long> seatIds, String sessionId) {
         if (screeningRoomDAO != null && seatIds != null && !seatIds.isEmpty()) {
@@ -121,6 +122,7 @@ public class BookingEngineServiceImpl implements BookingEngineService {
         });
     }
 
+    /** Giải phóng các ghế đã giữ khi khách bỏ chọn hoặc quy trình đặt vé kết thúc. */
     @Override
     public boolean releaseHoldSeats(Long showtimeId, List<Long> seatIds) {
         return TransactionManager.executeInTransaction(conn -> {
@@ -129,6 +131,7 @@ public class BookingEngineServiceImpl implements BookingEngineService {
         });
     }
 
+    /** Tạo booking trong một transaction: kiểm tra ghế, tính tiền, ghi vé/F&B/thanh toán và áp dụng voucher. */
     @Override
     public BookingResult createBooking(CreateBookingDTO dto) {
         if (dto == null || dto.getShowtimeId() == null) {
@@ -277,6 +280,7 @@ public class BookingEngineServiceImpl implements BookingEngineService {
         return result;
     }
 
+    /** Đối soát kết quả callback VNPay và xác nhận hoặc hủy booking cùng các tài nguyên liên quan. */
     @Override
     public boolean finalizeVnpayPayment(String bookingCode, BigDecimal amount, String transactionNo,
                                        boolean succeeded) {
@@ -295,6 +299,7 @@ public class BookingEngineServiceImpl implements BookingEngineService {
         return outcome.succeeded;
     }
 
+    /** Kiểm tra quyền sở hữu và trạng thái đơn, sau đó gia hạn thời gian chờ thanh toán VNPay. */
     @Override
     public BookingResult renewPendingVnpayBooking(String bookingCode, Long userId) {
         if (bookingCode == null || bookingCode.isBlank() || userId == null) return null;
@@ -323,6 +328,7 @@ public class BookingEngineServiceImpl implements BookingEngineService {
         });
     }
 
+    /** Hủy đơn VNPay đang chờ của khách và hoàn lại các tài nguyên đã giữ trong đơn. */
     @Override
     public boolean cancelPendingVnpayBooking(String bookingCode, Long userId) {
         if (bookingCode == null || bookingCode.isBlank() || userId == null) return false;
@@ -339,6 +345,7 @@ public class BookingEngineServiceImpl implements BookingEngineService {
         });
     }
 
+    /** Tìm và xử lý các đơn VNPay quá hạn; trả về số đơn được chuyển sang trạng thái hết hạn. */
     @Override
     public int expirePendingVnpayBookings() {
         return TransactionManager.executeInTransaction(conn -> {
@@ -354,6 +361,7 @@ public class BookingEngineServiceImpl implements BookingEngineService {
         });
     }
 
+    /** Cập nhật trạng thái thanh toán và booking trên cùng connection để duy trì tính nguyên tử. */
     private FinalizationOutcome finalizeVnpayPayment(Connection conn, String bookingCode, BigDecimal amount,
                                                       String transactionNo, boolean succeeded) throws SQLException {
         Booking booking = bookingDAO.findByCode(conn, bookingCode);
@@ -458,12 +466,14 @@ public class BookingEngineServiceImpl implements BookingEngineService {
         }
     }
 
+    /** Tìm các booking cần gửi nhắc lịch trong khoảng thời gian yêu cầu. */
     @Override
     public List<ShowtimeReminderDTO> findBookingsNeedingReminder(int withinMinutes) {
         int window = withinMinutes <= 0 ? 120 : withinMinutes;
         return bookingDAO.findBookingsNeedingReminder(window);
     }
 
+    /** Gửi email xác nhận sau khi transaction tạo booking đã commit thành công. */
     private void sendConfirmationAfterCommit(CreateBookingDTO dto, BookingResult result) {
         if (emailService == null || dto == null || dto.getUserId() == null || result == null) return;
         if (!"SUCCESS".equals(result.getStatus())) return;
@@ -482,6 +492,7 @@ public class BookingEngineServiceImpl implements BookingEngineService {
         }
     }
 
+    /** Định dạng giờ chiếu kèm tên rạp và phòng để hiển thị trong email xác nhận. */
     private String formatShowtime(Showtime showtime) {
         if (showtime == null || showtime.getStartTime() == null) return "Đang cập nhật";
         String when = showtime.getStartTime().format(SHOWTIME_FORMAT);
@@ -494,16 +505,19 @@ public class BookingEngineServiceImpl implements BookingEngineService {
         return place.isBlank() ? when : when + " · " + place;
     }
 
+    /** Đếm số vé đã được tạo cho một suất chiếu. */
     @Override
     public int countTicketsByShowtime(Long showtimeId) {
         return ticketDAO.countByShowtime(showtimeId);
     }
 
+    /** Tra cứu vé bằng mã barcode để phục vụ nghiệp vụ soát vé tại rạp. */
     @Override
     public Ticket getTicketByBarcode(String barcode) {
         return ticketDAO.findByBarcode(barcode);
     }
 
+    /** Cập nhật trạng thái vé, chẳng hạn chuyển vé sang đã sử dụng sau khi soát. */
     @Override
     public boolean updateTicketStatus(Long ticketId, String status) {
         return ticketDAO.updateStatus(ticketId, status);
