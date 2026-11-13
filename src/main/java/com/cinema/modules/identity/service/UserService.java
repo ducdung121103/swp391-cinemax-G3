@@ -47,8 +47,24 @@ public interface UserService {
 
     // ── Iteration 2: Password Management ─────────────────────────────────────
 
-    /** Đổi mật khẩu (yêu cầu nhập mật khẩu cũ đúng). */
+    /**
+     * Đổi mật khẩu trực tiếp (yêu cầu mật khẩu cũ đúng).
+     * Luồng hồ sơ khách nên dùng requestPasswordChangeOtp + confirmPasswordChangeWithOtp.
+     */
     boolean changePassword(Long userId, String oldPassword, String newPassword);
+
+    /**
+     * Bước 1 đổi mật khẩu có OTP: kiểm tra mật khẩu cũ, sinh OTP 30 phút, gửi email.
+     * @param newPasswordHashOut mảng length >= 1; khi trả "OK" sẽ ghi BCrypt hash mật khẩu mới vào [0]
+     * @return OK, BAD_PASSWORD, WEAK_PASSWORD, INACTIVE, FAILED
+     */
+    String requestPasswordChangeOtp(Long userId, String oldPassword, String newPassword, String[] newPasswordHashOut);
+
+    /** Bước 2: xác nhận OTP rồi cập nhật password_hash đã chuẩn bị. */
+    boolean confirmPasswordChangeWithOtp(Long userId, String otpCode, String newPasswordHash);
+
+    /** Gửi lại OTP đổi mật khẩu (30 phút) cho user đang ACTIVE. */
+    boolean resendPasswordChangeOtp(Long userId);
 
     /**
      * Gửi email chứa link reset password (token 15 phút) — M-01.2 Forgot Password.

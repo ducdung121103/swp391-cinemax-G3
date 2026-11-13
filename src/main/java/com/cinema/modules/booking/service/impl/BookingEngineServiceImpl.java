@@ -1,6 +1,7 @@
 package com.cinema.modules.booking.service.impl;
 
 import com.cinema.common.transaction.TransactionManager;
+import com.cinema.common.util.QrCodeUtil;
 import com.cinema.common.util.ValidationUtil;
 import com.cinema.model.Movie;
 import com.cinema.model.Booking;
@@ -476,7 +477,13 @@ public class BookingEngineServiceImpl implements BookingEngineService {
             String when = formatShowtime(showtime);
             String seats = String.join(", ", ticketDAO.findSeatCodesByBooking(result.getBookingId()));
             if (seats.isBlank()) seats = "Đang cập nhật";
-            emailService.sendBookingConfirmationEmail(user.getEmail(), result.getBookingCode(), movieTitle, when, seats, null);
+            String qrPayload = QrCodeUtil.bookingPayload(result.getBookingCode());
+            String qrBase64 = QrCodeUtil.toPngBase64(qrPayload, 240);
+            if (qrBase64 == null) {
+                LOGGER.warning("Không sinh được QR e-ticket cho đơn " + result.getBookingCode());
+            }
+            emailService.sendBookingConfirmationEmail(
+                    user.getEmail(), result.getBookingCode(), movieTitle, when, seats, qrBase64);
         } catch (Exception e) {
             LOGGER.log(Level.WARNING, "Không gửi được email xác nhận vé " + result.getBookingCode(), e);
         }

@@ -269,6 +269,31 @@ public class UserDAO {
     }
 
     /**
+     * Xác thực OTP theo userId rồi xóa OTP — không đổi status (dùng cho đổi mật khẩu).
+     */
+    public boolean verifyAndClearOtp(Long userId, String otpCode) {
+        if (userId == null || otpCode == null || otpCode.isBlank()) return false;
+        String checkSql = "SELECT id FROM users " +
+                          "WHERE id = ? AND otp_code = ? AND otp_expires_at > GETDATE() AND is_deleted = 0";
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement check = conn.prepareStatement(checkSql)) {
+            check.setLong(1, userId);
+            check.setString(2, otpCode.trim());
+            try (ResultSet rs = check.executeQuery()) {
+                if (!rs.next()) return false;
+            }
+            String clearSql = "UPDATE users SET otp_code = NULL, otp_expires_at = NULL, updated_at = GETDATE() WHERE id = ?";
+            try (PreparedStatement clear = conn.prepareStatement(clearSql)) {
+                clear.setLong(1, userId);
+                return clear.executeUpdate() > 0;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    /**
      * Xác thực OTP và kích hoạt tài khoản (status ACTIVE, email_verified = 1).
      * Chỉ thành công khi OTP đúng VÀ chưa hết hạn.
      *
