@@ -115,6 +115,18 @@
             <version>${gson.version}</version>
         </dependency>
 
+        <!-- ZXing for E-Ticket QR generation (M-09.1 booking confirmation email) -->
+        <dependency>
+            <groupId>com.google.zxing</groupId>
+            <artifactId>core</artifactId>
+            <version>3.5.3</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.zxing</groupId>
+            <artifactId>javase</artifactId>
+            <version>3.5.3</version>
+        </dependency>
+
         <!-- Apache POI for Excel (.xlsx) Report Exports (M-10.1, M-10.2) -->
         <dependency>
             <groupId>org.apache.poi</groupId>

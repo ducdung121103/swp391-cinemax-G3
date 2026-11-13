@@ -14,6 +14,11 @@ public interface EmailService {
     void sendOtpEmail(String toEmail, String otpCode);
 
     /**
+     * Gửi OTP xác nhận đổi mật khẩu khi đã đăng nhập (hiệu lực 30 phút).
+     */
+    void sendPasswordChangeOtpEmail(String toEmail, String otpCode);
+
+    /**
      * Gửi email đặt lại mật khẩu kèm token (thời hạn 15 phút) - M-01.2.
      * @param toEmail       Địa chỉ email người nhận
      * @param resetToken    UUID token reset password
@@ -22,13 +27,13 @@ public interface EmailService {
     void sendPasswordResetEmail(String toEmail, String resetToken, String resetUrl);
 
     /**
-     * Gửi email xác nhận đặt vé kèm QR e-ticket sau thanh toán thành công - M-09.1.
+     * Gửi email xác nhận đặt vé kèm QR e-ticket (inline CID) sau thanh toán thành công - M-09.1.
      * @param toEmail       Email khách hàng
      * @param bookingCode   Mã đặt vé
      * @param movieTitle    Tên phim
      * @param showtime      Thông tin suất chiếu (ngày, giờ, phòng, rạp)
      * @param seatInfo      Thông tin ghế
-     * @param qrImageBase64 Ảnh QR dạng base64 (tuỳ chọn, có thể null nếu gửi sau)
+     * @param qrImageBase64 Ảnh QR PNG dạng Base64; null thì gửi email không kèm QR
      */
     void sendBookingConfirmationEmail(String toEmail, String bookingCode,
                                       String movieTitle, String showtime,

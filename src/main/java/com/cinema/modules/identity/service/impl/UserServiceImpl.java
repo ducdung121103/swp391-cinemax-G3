@@ -21,8 +21,9 @@ public class UserServiceImpl implements UserService {
 
     private static final Logger LOGGER = Logger.getLogger(UserServiceImpl.class.getName());
 
-    private static final int OTP_EXPIRY_MINUTES     = 10;  // OTP hết hạn sau 10 phút
-    private static final int RESET_TOKEN_MINUTES    = 15;  // Reset token hết hạn sau 15 phút
+    private static final int OTP_EXPIRY_MINUTES              = 10;  // OTP đăng ký
+    private static final int PASSWORD_CHANGE_OTP_MINUTES     = 30;  // OTP đổi mật khẩu
+    private static final int RESET_TOKEN_MINUTES             = 15;  // Reset token quên mật khẩu
 
     private final UserDAO      userDAO      = new UserDAO();
     private final EmailService emailService = new EmailServiceImpl();
@@ -170,6 +171,57 @@ public class UserServiceImpl implements UserService {
         if (!PasswordUtil.checkPassword(oldPassword, user.getPasswordHash())) return false;
         String newHash = PasswordUtil.hashPassword(newPassword);
         return userDAO.updatePassword(userId, newHash);
+    }
+
+    @Override
+    public String requestPasswordChangeOtp(Long userId, String oldPassword, String newPassword,
+                                           String[] newPasswordHashOut) {
+        if (userId == null || oldPassword == null) return "FAILED";
+        if (!ValidationUtil.isValidPassword(newPassword)) return "WEAK_PASSWORD";
+        User user = userDAO.findById(userId);
+        if (user == null) return "FAILED";
+        if (!"ACTIVE".equalsIgnoreCase(user.getStatus())) return "INACTIVE";
+        if (!PasswordUtil.checkPassword(oldPassword, user.getPasswordHash())) return "BAD_PASSWORD";
+
+        String otp = generateOtp();
+        LocalDateTime expiry = LocalDateTime.now().plusMinutes(PASSWORD_CHANGE_OTP_MINUTES);
+        if (!userDAO.saveOtp(userId, otp, expiry)) return "FAILED";
+
+        String newHash = PasswordUtil.hashPassword(newPassword);
+        if (newPasswordHashOut != null && newPasswordHashOut.length > 0) {
+            newPasswordHashOut[0] = newHash;
+        }
+        emailService.sendPasswordChangeOtpEmail(user.getEmail(), otp);
+        LOGGER.info("[PWD-OTP] Đã gửi OTP đổi mật khẩu cho userId=" + userId);
+        return "OK";
+    }
+
+    @Override
+    public boolean confirmPasswordChangeWithOtp(Long userId, String otpCode, String newPasswordHash) {
+        if (userId == null || otpCode == null || newPasswordHash == null || newPasswordHash.isBlank()) {
+            return false;
+        }
+        User user = userDAO.findById(userId);
+        if (user == null || !"ACTIVE".equalsIgnoreCase(user.getStatus())) return false;
+        if (!userDAO.verifyAndClearOtp(userId, otpCode.trim())) return false;
+        boolean updated = userDAO.updatePassword(userId, newPasswordHash);
+        if (updated) {
+            LOGGER.info("[PWD-OTP] Đổi mật khẩu thành công userId=" + userId);
+        }
+        return updated;
+    }
+
+    @Override
+    public boolean resendPasswordChangeOtp(Long userId) {
+        if (userId == null) return false;
+        User user = userDAO.findById(userId);
+        if (user == null || !"ACTIVE".equalsIgnoreCase(user.getStatus())) return false;
+        String otp = generateOtp();
+        LocalDateTime expiry = LocalDateTime.now().plusMinutes(PASSWORD_CHANGE_OTP_MINUTES);
+        if (!userDAO.saveOtp(userId, otp, expiry)) return false;
+        emailService.sendPasswordChangeOtpEmail(user.getEmail(), otp);
+        LOGGER.info("[PWD-OTP] Gửi lại OTP đổi mật khẩu userId=" + userId);
+        return true;
     }
 
     @Override

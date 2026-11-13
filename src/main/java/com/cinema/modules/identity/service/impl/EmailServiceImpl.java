@@ -1,12 +1,17 @@
 package com.cinema.modules.identity.service.impl;
 
 import com.cinema.modules.identity.service.EmailService;
+import jakarta.activation.DataHandler;
 import jakarta.mail.*;
 import jakarta.mail.internet.InternetAddress;
+import jakarta.mail.internet.MimeBodyPart;
 import jakarta.mail.internet.MimeMessage;
+import jakarta.mail.internet.MimeMultipart;
+import jakarta.mail.util.ByteArrayDataSource;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Base64;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -62,6 +67,13 @@ public class EmailServiceImpl implements EmailService {
     }
 
     @Override
+    public void sendPasswordChangeOtpEmail(String toEmail, String otpCode) {
+        String subject = "🔐 [CineMax] OTP xác nhận đổi mật khẩu";
+        String htmlBody = buildPasswordChangeOtpEmailHtml(otpCode);
+        sendHtmlEmail(toEmail, subject, htmlBody);
+    }
+
+    @Override
     public void sendPasswordResetEmail(String toEmail, String resetToken, String resetUrl) {
         String subject = "🔐 [CineMax] Yêu cầu đặt lại mật khẩu";
         String htmlBody = buildPasswordResetEmailHtml(toEmail, resetUrl);
@@ -73,7 +85,18 @@ public class EmailServiceImpl implements EmailService {
                                               String movieTitle, String showtime,
                                               String seatInfo, String qrImageBase64) {
         String subject = "🎫 [CineMax] Xác nhận đặt vé — " + movieTitle;
-        String htmlBody = buildBookingConfirmEmailHtml(toEmail, bookingCode, movieTitle, showtime, seatInfo);
+        boolean hasQr = qrImageBase64 != null && !qrImageBase64.isBlank();
+        String htmlBody = buildBookingConfirmEmailHtml(
+                bookingCode, movieTitle, showtime, seatInfo, hasQr);
+        if (hasQr) {
+            try {
+                byte[] qrPng = Base64.getDecoder().decode(qrImageBase64.trim());
+                sendHtmlEmailWithInlineImage(toEmail, subject, htmlBody, "qr-eticket", qrPng);
+                return;
+            } catch (IllegalArgumentException e) {
+                LOGGER.log(Level.WARNING, "[EMAIL] qrImageBase64 không hợp lệ, gửi email không kèm QR", e);
+            }
+        }
         sendHtmlEmail(toEmail, subject, htmlBody);
     }
 
@@ -94,11 +117,22 @@ public class EmailServiceImpl implements EmailService {
      * Nếu lỗi SMTP → chỉ log, không ném exception ra ngoài để tránh rollback transaction.
      */
     private void sendHtmlEmail(String toEmail, String subject, String htmlBody) {
-        // Nếu chưa cấu hình mail.properties → chỉ log ra console, không báo lỗi
-        if (username == null || username.isBlank() || username.equals("your-email@gmail.com")) {
-            LOGGER.warning("[EMAIL STUB] mail.properties chưa được cấu hình. Gửi đến: "
-                    + toEmail + " | Subject: " + subject);
-            System.out.println("[EMAIL STUB] → " + toEmail + " | " + subject);
+        sendMimeMessage(toEmail, subject, htmlBody, null, null);
+    }
+
+    private void sendHtmlEmailWithInlineImage(String toEmail, String subject, String htmlBody,
+                                              String contentId, byte[] pngBytes) {
+        sendMimeMessage(toEmail, subject, htmlBody, contentId, pngBytes);
+    }
+
+    private void sendMimeMessage(String toEmail, String subject, String htmlBody,
+                                 String inlineContentId, byte[] inlinePng) {
+        if (!isSmtpConfigured()) {
+            LOGGER.warning("[EMAIL STUB] SMTP chưa cấu hình (mail.local.properties). Gửi đến: "
+                    + toEmail + " | Subject: " + subject
+                    + (inlinePng != null ? " | có QR inline" : ""));
+            System.out.println("[EMAIL STUB] → " + toEmail + " | " + subject
+                    + (inlinePng != null ? " | QR=" + inlinePng.length + " bytes" : ""));
             return;
         }
 
@@ -124,7 +158,24 @@ public class EmailServiceImpl implements EmailService {
             message.setFrom(new InternetAddress(fromAddress, fromName, "UTF-8"));
             message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(toEmail));
             message.setSubject(subject, "UTF-8");
-            message.setContent(htmlBody, "text/html; charset=UTF-8");
+
+            if (inlineContentId != null && inlinePng != null && inlinePng.length > 0) {
+                MimeBodyPart htmlPart = new MimeBodyPart();
+                htmlPart.setContent(htmlBody, "text/html; charset=UTF-8");
+
+                MimeBodyPart imagePart = new MimeBodyPart();
+                imagePart.setDataHandler(new DataHandler(new ByteArrayDataSource(inlinePng, "image/png")));
+                imagePart.setHeader("Content-ID", "<" + inlineContentId + ">");
+                imagePart.setDisposition(MimeBodyPart.INLINE);
+                imagePart.setFileName("cinemax-eticket-qr.png");
+
+                MimeMultipart multipart = new MimeMultipart("related");
+                multipart.addBodyPart(htmlPart);
+                multipart.addBodyPart(imagePart);
+                message.setContent(multipart);
+            } else {
+                message.setContent(htmlBody, "text/html; charset=UTF-8");
+            }
 
             Transport.send(message);
             LOGGER.info("[EMAIL] Gửi thành công → " + toEmail + " | " + subject);
@@ -140,8 +191,28 @@ public class EmailServiceImpl implements EmailService {
 
     /** Template email gửi OTP xác thực tài khoản */
     private String buildOtpEmailHtml(String toEmail, String otpCode) {
-        // Tách từng chữ số để hiển thị ô vuông đẹp
-        String[] digits = otpCode.split("");
+        return buildDigitOtpEmail(
+                "Xác Thực Tài Khoản CineMax",
+                "<p style='color:" + TEXT_LIGHT + ";font-size:15px;'>Chào mừng bạn đến với <strong style='color:" + PRIMARY_COLOR + ";'>CineMax</strong>! 🎬</p>" +
+                "<p style='color:#9AA0B2;font-size:14px;'>Nhập mã OTP dưới đây để hoàn tất đăng ký tài khoản:</p>",
+                otpCode,
+                otpExpiryMinutes
+        );
+    }
+
+    /** Template OTP xác nhận đổi mật khẩu (30 phút). */
+    private String buildPasswordChangeOtpEmailHtml(String otpCode) {
+        return buildDigitOtpEmail(
+                "Xác Nhận Đổi Mật Khẩu",
+                "<p style='color:" + TEXT_LIGHT + ";font-size:15px;'>Bạn đang yêu cầu <strong>đổi mật khẩu</strong> tài khoản CineMax.</p>" +
+                "<p style='color:#9AA0B2;font-size:14px;'>Nhập mã OTP dưới đây để hoàn tất thay đổi:</p>",
+                otpCode,
+                30
+        );
+    }
+
+    private String buildDigitOtpEmail(String title, String introHtml, String otpCode, int expiryMinutes) {
+        String[] digits = otpCode == null ? new String[0] : otpCode.split("");
         StringBuilder digitBoxes = new StringBuilder();
         for (String d : digits) {
             digitBoxes.append(
@@ -151,13 +222,11 @@ public class EmailServiceImpl implements EmailService {
                 d + "</span>"
             );
         }
-
         return buildEmailWrapper(
-            "Xác Thực Tài Khoản CineMax",
-            "<p style='color:" + TEXT_LIGHT + ";font-size:15px;'>Chào mừng bạn đến với <strong style='color:" + PRIMARY_COLOR + ";'>CineMax</strong>! 🎬</p>" +
-            "<p style='color:#9AA0B2;font-size:14px;'>Nhập mã OTP dưới đây để hoàn tất đăng ký tài khoản:</p>" +
+            title,
+            introHtml +
             "<div style='text-align:center;margin:30px 0;'>" + digitBoxes + "</div>" +
-            "<p style='text-align:center;color:#9AA0B2;font-size:13px;'>⏰ Mã có hiệu lực trong <strong style='color:" + GOLD_COLOR + ";'>" + otpExpiryMinutes + " phút</strong> kể từ khi nhận email.</p>" +
+            "<p style='text-align:center;color:#9AA0B2;font-size:13px;'>⏰ Mã có hiệu lực trong <strong style='color:" + GOLD_COLOR + ";'>" + expiryMinutes + " phút</strong> kể từ khi nhận email.</p>" +
             "<hr style='border:none;border-top:1px solid #2E3550;margin:20px 0;'/>" +
             "<p style='color:#5C6380;font-size:12px;'>Nếu bạn không thực hiện yêu cầu này, hãy bỏ qua email này. Tài khoản của bạn vẫn an toàn.</p>"
         );
@@ -181,20 +250,42 @@ public class EmailServiceImpl implements EmailService {
         );
     }
 
-    /** Template email xác nhận đặt vé */
-    private String buildBookingConfirmEmailHtml(String toEmail, String bookingCode,
-                                                 String movieTitle, String showtime, String seatInfo) {
+    /** Template email xác nhận đặt vé (QR nhúng qua cid:qr-eticket khi có). */
+    private String buildBookingConfirmEmailHtml(String bookingCode, String movieTitle,
+                                                 String showtime, String seatInfo, boolean includeQr) {
+        String qrBlock = "";
+        if (includeQr) {
+            qrBlock =
+                "<div style='text-align:center;margin:28px 0 8px;'>" +
+                "  <img src='cid:qr-eticket' width='180' height='180' alt='E-Ticket QR'" +
+                "       style='background:#ffffff;padding:12px;border-radius:12px;display:inline-block;'/>" +
+                "  <p style='margin:12px 0 0;color:" + GOLD_COLOR + ";font-size:13px;font-weight:700;'>E-Ticket QR</p>" +
+                "  <p style='margin:4px 0 0;color:#9AA0B2;font-size:12px;'>Đưa mã này tại quầy / cổng soát vé</p>" +
+                "</div>";
+        }
+
         return buildEmailWrapper(
             "Xác Nhận Đặt Vé Thành Công 🎫",
             "<p style='color:" + TEXT_LIGHT + ";font-size:15px;'>Cảm ơn bạn đã đặt vé tại <strong style='color:" + PRIMARY_COLOR + ";'>CineMax</strong>!</p>" +
             "<div style='background:#1E2333;border-radius:12px;padding:20px;margin:20px 0;border-left:4px solid " + PRIMARY_COLOR + ";'>" +
-            "  <p style='margin:6px 0;color:" + TEXT_LIGHT + ";font-size:14px;'>🎬 <strong>Phim:</strong> " + movieTitle + "</p>" +
-            "  <p style='margin:6px 0;color:" + TEXT_LIGHT + ";font-size:14px;'>📅 <strong>Suất chiếu:</strong> " + showtime + "</p>" +
-            "  <p style='margin:6px 0;color:" + TEXT_LIGHT + ";font-size:14px;'>💺 <strong>Ghế:</strong> " + seatInfo + "</p>" +
-            "  <p style='margin:6px 0;color:" + GOLD_COLOR + ";font-size:14px;'>🎟️ <strong>Mã đặt vé:</strong> " + bookingCode + "</p>" +
+            "  <p style='margin:6px 0;color:" + TEXT_LIGHT + ";font-size:14px;'>🎬 <strong>Phim:</strong> " + escapeHtml(movieTitle) + "</p>" +
+            "  <p style='margin:6px 0;color:" + TEXT_LIGHT + ";font-size:14px;'>📅 <strong>Suất chiếu:</strong> " + escapeHtml(showtime) + "</p>" +
+            "  <p style='margin:6px 0;color:" + TEXT_LIGHT + ";font-size:14px;'>💺 <strong>Ghế:</strong> " + escapeHtml(seatInfo) + "</p>" +
+            "  <p style='margin:6px 0;color:" + GOLD_COLOR + ";font-size:14px;'>🎟️ <strong>Mã đặt vé:</strong> " + escapeHtml(bookingCode) + "</p>" +
             "</div>" +
-            "<p style='color:#9AA0B2;font-size:13px;'>Mang mã đặt vé đến rạp để soát vé. Chúc bạn xem phim vui!</p>"
+            qrBlock +
+            "<p style='color:#9AA0B2;font-size:13px;'>Giữ email này hoặc mang mã đặt vé đến rạp để soát vé. Chúc bạn xem phim vui!</p>"
         );
+    }
+
+    private static String escapeHtml(String value) {
+        if (value == null) return "";
+        return value
+                .replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;")
+                .replace("\"", "&quot;")
+                .replace("'", "&#39;");
     }
 
     private String buildShowtimeReminderEmailHtml(String fullName, String movieTitle,
@@ -247,6 +338,14 @@ public class EmailServiceImpl implements EmailService {
     // PRIVATE UTILITY
     // ────────────────────────────────────────────────────────────────────────────
 
+    private boolean isSmtpConfigured() {
+        if (username == null || username.isBlank() || password == null || password.isBlank()) return false;
+        if ("your-email@gmail.com".equalsIgnoreCase(username)) return false;
+        if ("your-app-password".equalsIgnoreCase(password)) return false;
+        if (password.toUpperCase().contains("REPLACE")) return false;
+        return true;
+    }
+
     private Properties loadMailProperties() {
         Properties props = new Properties();
         try (InputStream is = getClass().getClassLoader().getResourceAsStream("mail.properties")) {
@@ -257,6 +356,15 @@ public class EmailServiceImpl implements EmailService {
             }
         } catch (IOException e) {
             LOGGER.log(Level.WARNING, "[EMAIL] Lỗi đọc mail.properties", e);
+        }
+        // Override bằng mail.local.properties (gitignore) nếu có — tránh commit App Password.
+        try (InputStream local = getClass().getClassLoader().getResourceAsStream("mail.local.properties")) {
+            if (local != null) {
+                props.load(local);
+                LOGGER.info("[EMAIL] Đã nạp mail.local.properties (ghi đè cấu hình local).");
+            }
+        } catch (IOException e) {
+            LOGGER.log(Level.WARNING, "[EMAIL] Lỗi đọc mail.local.properties", e);
         }
         return props;
     }

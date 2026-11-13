@@ -25,6 +25,10 @@ public class ShowtimeDAO {
         sql.append("WHERE st.is_deleted = 0 AND st.status = 'SCHEDULED' AND CAST(st.start_time AS DATE) = ? ");
         List<Object> params = new ArrayList<>();
         params.add(date.toString());
+        // Ngày hôm nay: chỉ hiện suất chưa bắt đầu (tránh lỗi booking suất đã qua).
+        if (date != null && date.equals(LocalDate.now())) {
+            sql.append("AND st.start_time > GETDATE() ");
+        }
         if (movieId != null) {
             sql.append("AND st.movie_id = ? ");
             params.add(movieId);

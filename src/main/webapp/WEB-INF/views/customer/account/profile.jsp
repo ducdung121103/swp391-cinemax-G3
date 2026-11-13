@@ -13,7 +13,8 @@
     <c:if test="${flashKey == 'msg'}">
         <div class="alert alert-success">
             <c:choose>
-                <c:when test="${flashValue == 'password_changed'}">Đã đổi mật khẩu.</c:when>
+                <c:when test="${flashValue == 'password_changed'}">Đã đổi mật khẩu thành công.</c:when>
+                <c:when test="${flashValue == 'otp_sent'}">Mã OTP đã được gửi tới email của bạn.</c:when>
                 <c:otherwise>Đã lưu hồ sơ.</c:otherwise>
             </c:choose>
         </div>
@@ -28,6 +29,9 @@
                 <c:when test="${flashValue == 'WEAK_PASSWORD'}">Mật khẩu mới cần tối thiểu 8 ký tự, gồm chữ hoa, chữ thường, số và ký tự đặc biệt.</c:when>
                 <c:when test="${flashValue == 'PASSWORD_MISMATCH'}">Mật khẩu nhập lại không khớp.</c:when>
                 <c:when test="${flashValue == 'BAD_PASSWORD'}">Mật khẩu cũ không đúng.</c:when>
+                <c:when test="${flashValue == 'INACTIVE'}">Tài khoản không ở trạng thái hoạt động.</c:when>
+                <c:when test="${flashValue == 'OTP_SESSION_EXPIRED'}">Phiên đổi mật khẩu đã hết hạn. Vui lòng gửi lại yêu cầu.</c:when>
+                <c:when test="${flashValue == 'FAILED'}">Không gửi được OTP. Thử lại sau.</c:when>
                 <c:otherwise>Không lưu được. Thử lại.</c:otherwise>
             </c:choose>
         </div>
@@ -59,6 +63,10 @@
 
     <div class="card p-4 text-white" style="background:#141820;border:1px solid #2E3550;">
         <h5 class="mb-3">Đổi mật khẩu</h5>
+        <p class="text-secondary small mb-3">
+            <i class="fa-solid fa-shield-halved me-1 text-warning"></i>
+            Sau khi xác nhận, hệ thống gửi mã OTP tới email của bạn. Mã có hiệu lực <strong class="text-warning">30 phút</strong>.
+        </p>
         <form method="post" action="${pageContext.request.contextPath}/customer/account/profile">
             <input type="hidden" name="action" value="password" />
             <div class="mb-3">
@@ -73,7 +81,7 @@
                 <label class="form-label" for="confirmPassword">Nhập lại mật khẩu mới</label>
                 <input class="form-control" id="confirmPassword" name="confirmPassword" type="password" required />
             </div>
-            <button class="btn btn-outline-light" type="submit">Đổi mật khẩu</button>
+            <button class="btn btn-outline-light" type="submit">Gửi OTP &amp; Đổi mật khẩu</button>
         </form>
     </div>
 </div>
