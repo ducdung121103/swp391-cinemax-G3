@@ -34,9 +34,34 @@
         .alert { padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; }
         .alert-success { background: #c6f6d5; color: #22543d; }
         .alert-danger { background: #fed7d7; color: #742a2a; }
-        .filter-bar { margin-bottom: 16px; }
-        .filter-select, .slot-input {
+        .filter-bar {
+            display: flex; flex-wrap: wrap; gap: 12px; align-items: end;
+            margin-bottom: 18px; padding: 14px; border: 1px solid #e2e8f0;
+            border-radius: 12px; background: #f8fafc;
+        }
+        .filter-bar .filter-field { flex: 1 1 140px; min-width: 120px; }
+        .filter-bar .filter-actions {
+            display: flex; gap: 8px; flex: 0 0 auto; align-items: center;
+        }
+        .filter-select, .slot-input, .filter-date {
             padding: 8px 12px; border: 1px solid #cbd5e0; border-radius: 8px; background: #fff;
+            width: 100%; box-sizing: border-box;
+        }
+        .filter-apply, .filter-today {
+            height: 38px; padding: 0 14px; border-radius: 8px; font-weight: 700; cursor: pointer;
+            text-decoration: none; display: inline-flex; align-items: center;
+        }
+        .filter-apply {
+            border: 0; background: #14141e; color: #fff;
+        }
+        .filter-apply:hover { background: #e50914; }
+        .filter-today {
+            border: 1px solid #cbd5e0; background: #fff; color: #334155;
+        }
+        .filter-today:hover { background: #fff; border-color: #e50914; color: #e50914; }
+        .filter-empty {
+            padding: 18px; border: 1px dashed #cbd5e0; border-radius: 12px; color: #64748b;
+            margin-bottom: 8px;
         }
         label { display: block; font-size: 12px; color: #4a5568; margin-bottom: 4px; }
         .movie-frame {
@@ -111,18 +136,53 @@
                     <c:if test="${msg == 'kept'}"><div class="alert alert-success">Suất đã có vé nên không xóa. Đã chuyển sang Đã hủy.</div></c:if>
                     <c:if test="${not empty error}"><div class="alert alert-danger">${error}</div></c:if>
 
-                    <c:if test="${actor.role.roleName == 'ADMIN'}">
-                        <form method="get" action="${pageContext.request.contextPath}${listPath}" class="filter-bar">
-                            <label>Rạp</label>
-                            <select class="filter-select" name="cinemaId" onchange="this.form.submit()">
-                                <c:forEach var="cinema" items="${cinemas}">
-                                    <option value="${cinema.id}" ${selectedCinemaId == cinema.id ? 'selected' : ''}>${cinema.name}</option>
+                    <form method="get" action="${pageContext.request.contextPath}${listPath}" class="filter-bar">
+                        <c:if test="${actor.role.roleName == 'ADMIN'}">
+                            <div class="filter-field">
+                                <label>Rạp</label>
+                                <select class="filter-select" name="cinemaId">
+                                    <c:forEach var="cinema" items="${cinemas}">
+                                        <option value="${cinema.id}" ${selectedCinemaId == cinema.id ? 'selected' : ''}>${cinema.name}</option>
+                                    </c:forEach>
+                                </select>
+                            </div>
+                        </c:if>
+                        <div class="filter-field">
+                            <label>Ngày <span style="font-weight:400;color:#94a3b8">(để trống = tất cả)</span></label>
+                            <input class="filter-date" type="date" name="date" value="${selectedDate}" />
+                        </div>
+                        <div class="filter-field">
+                            <label>Phim</label>
+                            <select class="filter-select" name="movieId">
+                                <option value="">Tất cả phim</option>
+                                <c:forEach var="movie" items="${movies}">
+                                    <option value="${movie.id}" ${selectedMovieId == movie.id ? 'selected' : ''}>${movie.title}</option>
                                 </c:forEach>
                             </select>
-                        </form>
+                        </div>
+                        <div class="filter-field">
+                            <label>Phòng</label>
+                            <select class="filter-select" name="roomId">
+                                <option value="">Tất cả phòng</option>
+                                <c:forEach var="room" items="${rooms}">
+                                    <option value="${room.id}" ${selectedRoomId == room.id ? 'selected' : ''}>${room.name}</option>
+                                </c:forEach>
+                            </select>
+                        </div>
+                        <div class="filter-actions">
+                            <button class="filter-apply" type="submit">Áp dụng</button>
+                            <a class="filter-today"
+                               href="${pageContext.request.contextPath}${listPath}?date=${today}<c:if test='${not empty selectedCinemaId}'>&amp;cinemaId=${selectedCinemaId}</c:if><c:if test='${not empty selectedMovieId}'>&amp;movieId=${selectedMovieId}</c:if><c:if test='${not empty selectedRoomId}'>&amp;roomId=${selectedRoomId}</c:if>">Hôm nay</a>
+                            <a class="filter-today"
+                               href="${pageContext.request.contextPath}${listPath}?<c:if test='${not empty selectedCinemaId}'>cinemaId=${selectedCinemaId}&amp;</c:if><c:if test='${not empty selectedMovieId}'>movieId=${selectedMovieId}&amp;</c:if><c:if test='${not empty selectedRoomId}'>roomId=${selectedRoomId}</c:if>">Tất cả ngày</a>
+                        </div>
+                    </form>
+
+                    <c:if test="${empty moviesToShow}">
+                        <div class="filter-empty">Không có suất chiếu khớp bộ lọc. Đổi ngày/phim/phòng hoặc bấm Thêm suất từ danh sách phim sau khi chọn 1 phim.</div>
                     </c:if>
 
-                    <c:forEach var="movie" items="${movies}" varStatus="st">
+                    <c:forEach var="movie" items="${moviesToShow}" varStatus="st">
                         <article class="movie-frame">
                             <header class="movie-head">
                                 <span class="stt">${st.index + 1}</span>
@@ -136,7 +196,7 @@
                                         </c:choose>
                                     </p>
                                 </div>
-                                <a class="add-slot" href="${pageContext.request.contextPath}${listPath}/create?movieId=${movie.id}&amp;cinemaId=${selectedCinemaId}">Thêm suất</a>
+                                <a class="add-slot" href="${pageContext.request.contextPath}${listPath}/create?movieId=${movie.id}&amp;cinemaId=${selectedCinemaId}<c:if test='${not empty selectedDate}'>&amp;date=${selectedDate}</c:if>">Thêm suất</a>
                             </header>
                             <div class="slot-list">
                                 <c:set var="hasSlot" value="false" />
@@ -146,6 +206,9 @@
                                         <form class="slot-form" method="post" action="${pageContext.request.contextPath}${listPath}">
                                             <input type="hidden" name="showtimeId" value="${showtime.id}" />
                                             <input type="hidden" name="cinemaId" value="${selectedCinemaId}" />
+                                            <input type="hidden" name="date" value="${selectedDate}" />
+                                            <input type="hidden" name="movieId" value="${selectedMovieId}" />
+                                            <input type="hidden" name="roomId" value="${selectedRoomId}" />
                                             <div>
                                                 <label>Phòng</label>
                                                 <select class="slot-input" name="screeningRoomId" required>
