@@ -114,6 +114,7 @@ public class ShowtimeManagementServlet extends HttpServlet {
         LocalDate selectedDate = parseDateOrNull(req.getParameter("date"));
         Long selectedMovieId = parseLong(req.getParameter("movieId"));
         Long selectedRoomId = parseLong(req.getParameter("roomId"));
+        String selectedStatus = normalizeStatusFilter(req.getParameter("status"));
 
         List<Showtime> showtimes = cinemaId == null
                 ? List.of()
@@ -128,6 +129,11 @@ public class ShowtimeManagementServlet extends HttpServlet {
         if (selectedRoomId != null) {
             showtimes = showtimes.stream()
                     .filter(s -> selectedRoomId.equals(s.getScreeningRoomId()))
+                    .toList();
+        }
+        if (!selectedStatus.isEmpty()) {
+            showtimes = showtimes.stream()
+                    .filter(s -> matchesStatusFilter(s, selectedStatus))
                     .toList();
         }
 
@@ -153,10 +159,10 @@ public class ShowtimeManagementServlet extends HttpServlet {
             }
         }
 
-        req.setAttribute("today", LocalDate.now().toString());
         req.setAttribute("selectedDate", selectedDate == null ? "" : selectedDate.toString());
         req.setAttribute("selectedMovieId", selectedMovieId);
         req.setAttribute("selectedRoomId", selectedRoomId);
+        req.setAttribute("selectedStatus", selectedStatus);
         req.setAttribute("showtimes", showtimes);
         req.setAttribute("moviesToShow", moviesToShow);
         req.getRequestDispatcher("/WEB-INF/views/admin/catalog/showtimes.jsp").forward(req, resp);
@@ -272,12 +278,34 @@ public class ShowtimeManagementServlet extends HttpServlet {
         resp.sendRedirect(back);
     }
 
-    /** Giữ filter Ngày/Phim/Phòng khi redirect về list (Manager + Admin). */
+    /** Giữ filter Ngày/Phim/Phòng/Trạng thái khi redirect về list (Manager + Admin). */
     private String appendListFilters(String url, HttpServletRequest req) {
         url = append(url, "date", req.getParameter("date"));
         url = append(url, "movieId", req.getParameter("movieId"));
         url = append(url, "roomId", req.getParameter("roomId"));
+        url = append(url, "status", normalizeStatusFilter(req.getParameter("status")));
         return url;
+    }
+
+    /**
+     * ALL/blank = tất cả; ACTIVE = SCHEDULED + OPENING; còn lại khớp displayStatus Cách A.
+     */
+    private String normalizeStatusFilter(String raw) {
+        if (raw == null || raw.isBlank()) return "";
+        String value = raw.trim().toUpperCase();
+        return switch (value) {
+            case "ACTIVE", "SCHEDULED", "OPENING", "FINISHED", "CANCELLED" -> value;
+            default -> "";
+        };
+    }
+
+    private boolean matchesStatusFilter(Showtime showtime, String filter) {
+        if (showtime == null || filter == null || filter.isBlank()) return true;
+        String display = showtime.getDisplayStatus();
+        if ("ACTIVE".equals(filter)) {
+            return "SCHEDULED".equals(display) || "OPENING".equals(display);
+        }
+        return filter.equals(display);
     }
 
     private void writeJsonList(HttpServletRequest req, HttpServletResponse resp) throws IOException {
@@ -378,6 +406,10 @@ public class ShowtimeManagementServlet extends HttpServlet {
                     return "Quản lý chỉ xóa suất của rạp mình";
                 }
             }
+            if (existing.isEditLocked()) {
+                return "Không thể xóa/hủy suất trong vòng " + Showtime.EDIT_LOCK_MINUTES
+                        + " phút trước giờ chiếu hoặc khi suất đã bắt đầu/đã hủy";
+            }
             int tickets = bookingEngineService.countTicketsByShowtime(showtimeId);
             if (tickets < 0) return "Không kiểm tra được vé của suất này";
             if (tickets > 0) {
@@ -406,6 +438,10 @@ public class ShowtimeManagementServlet extends HttpServlet {
                 if (ownCinema == null || !ownCinema.equals(currentCinema) || !ownCinema.equals(room.getCinemaId())) {
                     return "FORBIDDEN";
                 }
+            }
+            if (existing.isEditLocked()) {
+                return "Không thể sửa suất trong vòng " + Showtime.EDIT_LOCK_MINUTES
+                        + " phút trước giờ chiếu hoặc khi suất đã bắt đầu/đã hủy";
             }
             // Trạng thái không chỉnh tay trên form: giữ nguyên; hủy suất dùng action delete.
             Showtime showtime = new Showtime();

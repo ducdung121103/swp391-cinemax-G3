@@ -47,18 +47,11 @@
             padding: 8px 12px; border: 1px solid #cbd5e0; border-radius: 8px; background: #fff;
             width: 100%; box-sizing: border-box;
         }
-        .filter-apply, .filter-today {
-            height: 38px; padding: 0 14px; border-radius: 8px; font-weight: 700; cursor: pointer;
-            text-decoration: none; display: inline-flex; align-items: center;
-        }
         .filter-apply {
+            height: 38px; padding: 0 14px; border-radius: 8px; font-weight: 700; cursor: pointer;
             border: 0; background: #14141e; color: #fff;
         }
         .filter-apply:hover { background: #e50914; }
-        .filter-today {
-            border: 1px solid #cbd5e0; background: #fff; color: #334155;
-        }
-        .filter-today:hover { background: #fff; border-color: #e50914; color: #e50914; }
         .filter-empty {
             padding: 18px; border: 1px dashed #cbd5e0; border-radius: 12px; color: #64748b;
             margin-bottom: 8px;
@@ -90,18 +83,42 @@
             display: flex; flex-wrap: wrap; gap: 10px; align-items: end;
             padding: 12px; border: 1px solid #e2e8f0; border-radius: 10px; background: #fff;
         }
-        .slot-form > div { flex: 1 1 160px; min-width: 0; }
+        .slot-form.is-cancelled {
+            background: #fff8f8; border-color: #fecaca; opacity: 0.95;
+        }
+        .slot-form.is-finished {
+            background: #f8fafc; border-color: #e2e8f0;
+        }
+        .slot-form > div { flex: 1 1 140px; min-width: 0; }
+        .slot-status-wrap { flex: 0 0 120px !important; }
         .slot-input { width: 100%; }
+        .slot-input:disabled { background: #f1f5f9; color: #64748b; cursor: not-allowed; }
+        .status-badge {
+            display: inline-flex; align-items: center; justify-content: center;
+            height: 38px; padding: 0 12px; border-radius: 999px;
+            font-size: 12px; font-weight: 700; white-space: nowrap; width: 100%;
+            box-sizing: border-box;
+        }
+        .status-scheduled { background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; }
+        .status-opening { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+        .status-finished { background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; }
+        .status-cancelled { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
+        .status-other { background: #f8fafc; color: #64748b; border: 1px solid #e2e8f0; }
         .save-btn {
             height: 38px; padding: 0 14px; border: 0; border-radius: 8px;
             background: #14141e; color: #fff; font-weight: 700; cursor: pointer;
         }
         .save-btn:hover { background: #e50914; }
+        .save-btn:disabled, .delete-btn:disabled {
+            opacity: 0.45; cursor: not-allowed;
+        }
+        .save-btn:disabled:hover { background: #14141e; }
         .delete-btn {
             height: 38px; padding: 0 14px; border: 1px solid #e50914; border-radius: 8px;
             background: #fff; color: #e50914; font-weight: 700; cursor: pointer;
         }
         .delete-btn:hover { background: #fff5f5; }
+        .delete-btn:disabled:hover { background: #fff; }
         .empty-slot {
             padding: 14px; border: 1px dashed #cbd5e0; border-radius: 10px; color: #64748b;
         }
@@ -169,12 +186,19 @@
                                 </c:forEach>
                             </select>
                         </div>
+                        <div class="filter-field">
+                            <label>Trạng thái</label>
+                            <select class="filter-select" name="status">
+                                <option value="" ${empty selectedStatus ? 'selected' : ''}>Tất cả</option>
+                                <option value="ACTIVE" ${selectedStatus == 'ACTIVE' ? 'selected' : ''}>Đang hoạt động</option>
+                                <option value="SCHEDULED" ${selectedStatus == 'SCHEDULED' ? 'selected' : ''}>Đã lên lịch</option>
+                                <option value="OPENING" ${selectedStatus == 'OPENING' ? 'selected' : ''}>Đang chiếu</option>
+                                <option value="FINISHED" ${selectedStatus == 'FINISHED' ? 'selected' : ''}>Đã chiếu</option>
+                                <option value="CANCELLED" ${selectedStatus == 'CANCELLED' ? 'selected' : ''}>Đã hủy</option>
+                            </select>
+                        </div>
                         <div class="filter-actions">
                             <button class="filter-apply" type="submit">Áp dụng</button>
-                            <a class="filter-today"
-                               href="${pageContext.request.contextPath}${listPath}?date=${today}<c:if test='${not empty selectedCinemaId}'>&amp;cinemaId=${selectedCinemaId}</c:if><c:if test='${not empty selectedMovieId}'>&amp;movieId=${selectedMovieId}</c:if><c:if test='${not empty selectedRoomId}'>&amp;roomId=${selectedRoomId}</c:if>">Hôm nay</a>
-                            <a class="filter-today"
-                               href="${pageContext.request.contextPath}${listPath}?<c:if test='${not empty selectedCinemaId}'>cinemaId=${selectedCinemaId}&amp;</c:if><c:if test='${not empty selectedMovieId}'>movieId=${selectedMovieId}&amp;</c:if><c:if test='${not empty selectedRoomId}'>roomId=${selectedRoomId}</c:if>">Tất cả ngày</a>
                         </div>
                     </form>
 
@@ -203,15 +227,39 @@
                                 <c:forEach var="showtime" items="${showtimes}">
                                     <c:if test="${showtime.movieId == movie.id}">
                                         <c:set var="hasSlot" value="true" />
-                                        <form class="slot-form" method="post" action="${pageContext.request.contextPath}${listPath}">
+                                        <c:set var="stStatus" value="${showtime.displayStatus}" />
+                                        <c:set var="locked" value="${showtime.editLocked}" />
+                                        <form class="slot-form ${stStatus == 'CANCELLED' ? 'is-cancelled' : ''} ${stStatus == 'FINISHED' ? 'is-finished' : ''} ${locked && stStatus == 'SCHEDULED' ? 'is-finished' : ''}"
+                                              method="post" action="${pageContext.request.contextPath}${listPath}">
                                             <input type="hidden" name="showtimeId" value="${showtime.id}" />
                                             <input type="hidden" name="cinemaId" value="${selectedCinemaId}" />
                                             <input type="hidden" name="date" value="${selectedDate}" />
                                             <input type="hidden" name="movieId" value="${selectedMovieId}" />
                                             <input type="hidden" name="roomId" value="${selectedRoomId}" />
+                                            <input type="hidden" name="status" value="${selectedStatus}" />
+                                            <div class="slot-status-wrap">
+                                                <label>Trạng thái</label>
+                                                <c:choose>
+                                                    <c:when test="${stStatus == 'SCHEDULED'}">
+                                                        <span class="status-badge status-scheduled">Đã lên lịch</span>
+                                                    </c:when>
+                                                    <c:when test="${stStatus == 'OPENING'}">
+                                                        <span class="status-badge status-opening">Đang chiếu</span>
+                                                    </c:when>
+                                                    <c:when test="${stStatus == 'FINISHED'}">
+                                                        <span class="status-badge status-finished">Đã chiếu</span>
+                                                    </c:when>
+                                                    <c:when test="${stStatus == 'CANCELLED'}">
+                                                        <span class="status-badge status-cancelled">Đã hủy</span>
+                                                    </c:when>
+                                                    <c:otherwise>
+                                                        <span class="status-badge status-other">${stStatus}</span>
+                                                    </c:otherwise>
+                                                </c:choose>
+                                            </div>
                                             <div>
                                                 <label>Phòng</label>
-                                                <select class="slot-input" name="screeningRoomId" required>
+                                                <select class="slot-input" name="screeningRoomId" required ${locked ? 'disabled' : ''}>
                                                     <c:forEach var="room" items="${rooms}">
                                                         <option value="${room.id}" ${showtime.screeningRoomId == room.id ? 'selected' : ''}>${room.name}</option>
                                                     </c:forEach>
@@ -220,18 +268,28 @@
                                             <div>
                                                 <label>Giờ bắt đầu</label>
                                                 <input class="slot-input" type="datetime-local" name="startTime" required
-                                                       value="${fn:substring(showtime.startTime, 0, 16)}" />
+                                                       value="${fn:substring(showtime.startTime, 0, 16)}" ${locked ? 'disabled' : ''} />
                                             </div>
                                             <div>
                                                 <label>Định dạng</label>
-                                                <select class="slot-input" name="experienceFormat">
+                                                <select class="slot-input" name="experienceFormat" ${locked ? 'disabled' : ''}>
                                                     <option value="2D" ${showtime.experienceFormat == '2D' ? 'selected' : ''}>2D</option>
                                                     <option value="3D" ${showtime.experienceFormat == '3D' ? 'selected' : ''}>3D</option>
                                                     <option value="IMAX" ${showtime.experienceFormat == 'IMAX' ? 'selected' : ''}>IMAX</option>
                                                 </select>
                                             </div>
-                                            <button class="save-btn" type="submit" name="action" value="update">Lưu</button>
-                                            <button class="delete-btn" type="submit" name="action" value="delete" onclick="return confirm('Xóa suất này? Suất đã có vé sẽ được hủy, không xóa khỏi lịch sử vé.');">Xóa</button>
+                                            <c:choose>
+                                                <c:when test="${!locked}">
+                                                    <button class="save-btn" type="submit" name="action" value="update">Lưu</button>
+                                                    <button class="delete-btn" type="submit" name="action" value="delete"
+                                                            onclick="return confirm('Xóa suất này? Suất đã có vé sẽ được hủy, không xóa khỏi lịch sử vé.');">Xóa</button>
+                                                </c:when>
+                                                <c:when test="${stStatus == 'SCHEDULED'}">
+                                                    <span class="empty-slot" style="flex:1 1 180px;margin:0;padding:8px 12px;font-size:12px;">
+                                                        Khóa sửa (&lt; 30 phút trước giờ chiếu)
+                                                    </span>
+                                                </c:when>
+                                            </c:choose>
                                         </form>
                                     </c:if>
                                 </c:forEach>
