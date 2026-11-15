@@ -104,12 +104,52 @@ public class ScreeningRoomServiceImpl implements ScreeningRoomService {
 
     @Override
     public Long createCinema(Cinema cinema) throws Exception {
-        if (cinema == null || cinema.getCinemaCode() == null || cinema.getCinemaCode().trim().isEmpty()) {
+        if (cinema == null) {
+            throw new IllegalArgumentException("Dữ liệu cụm rạp không hợp lệ!");
+        }
+        // 1. Mã cụm rạp
+        if (cinema.getCinemaCode() == null || cinema.getCinemaCode().trim().isEmpty()) {
             throw new IllegalArgumentException("Mã cụm rạp không được để trống!");
         }
+        String code = cinema.getCinemaCode().trim().toUpperCase();
+        if (!code.matches("^[A-Za-z0-9\\-_]{3,20}$")) {
+            throw new IllegalArgumentException("Mã cụm rạp phải từ 3 đến 20 ký tự chữ và số (VD: C-HN01)!");
+        }
+        cinema.setCinemaCode(code);
+
+        // 2. Tên cụm rạp: chuẩn hóa viết hoa chữ cái đầu (Title Case)
         if (cinema.getName() == null || cinema.getName().trim().isEmpty()) {
             throw new IllegalArgumentException("Tên cụm rạp không được để trống!");
         }
+        cinema.setName(ValidationUtil.capitalizeWords(cinema.getName()));
+
+        // 3. Thành phố: chuẩn hóa viết hoa chữ cái đầu
+        if (cinema.getCity() == null || cinema.getCity().trim().isEmpty()) {
+            throw new IllegalArgumentException("Vui lòng nhập thành phố của cụm rạp!");
+        }
+        cinema.setCity(ValidationUtil.capitalizeWords(cinema.getCity()));
+
+        // 4. Địa chỉ chi tiết
+        if (cinema.getAddress() == null || cinema.getAddress().trim().isEmpty()) {
+            throw new IllegalArgumentException("Địa chỉ cụm rạp không được để trống!");
+        }
+        cinema.setAddress(cinema.getAddress().trim());
+
+        // 5. Số điện thoại (Hotline): kiểm tra số lượng chữ số hợp lệ (8 - 15 số)
+        String phoneErr = ValidationUtil.getPhoneValidationError(cinema.getPhone());
+        if (phoneErr != null) {
+            throw new IllegalArgumentException(phoneErr);
+        }
+        cinema.setPhone(cinema.getPhone().trim());
+
+        // 6. Email: nếu có nhập thì kiểm tra định dạng
+        if (cinema.getEmail() != null && !cinema.getEmail().trim().isEmpty()) {
+            if (!ValidationUtil.isValidEmail(cinema.getEmail().trim())) {
+                throw new IllegalArgumentException("Địa chỉ email cụm rạp không đúng định dạng!");
+            }
+            cinema.setEmail(cinema.getEmail().trim().toLowerCase());
+        }
+
         return cinemaDAO.insert(cinema);
     }
 
@@ -118,6 +158,49 @@ public class ScreeningRoomServiceImpl implements ScreeningRoomService {
         if (cinema == null || cinema.getId() == null) {
             throw new IllegalArgumentException("ID cụm rạp không hợp lệ!");
         }
+        // 1. Mã cụm rạp
+        if (cinema.getCinemaCode() == null || cinema.getCinemaCode().trim().isEmpty()) {
+            throw new IllegalArgumentException("Mã cụm rạp không được để trống!");
+        }
+        String code = cinema.getCinemaCode().trim().toUpperCase();
+        if (!code.matches("^[A-Za-z0-9\\-_]{3,20}$")) {
+            throw new IllegalArgumentException("Mã cụm rạp phải từ 3 đến 20 ký tự chữ và số (VD: C-HN01)!");
+        }
+        cinema.setCinemaCode(code);
+
+        // 2. Tên cụm rạp
+        if (cinema.getName() == null || cinema.getName().trim().isEmpty()) {
+            throw new IllegalArgumentException("Tên cụm rạp không được để trống!");
+        }
+        cinema.setName(ValidationUtil.capitalizeWords(cinema.getName()));
+
+        // 3. Thành phố
+        if (cinema.getCity() == null || cinema.getCity().trim().isEmpty()) {
+            throw new IllegalArgumentException("Vui lòng nhập thành phố của cụm rạp!");
+        }
+        cinema.setCity(ValidationUtil.capitalizeWords(cinema.getCity()));
+
+        // 4. Địa chỉ chi tiết
+        if (cinema.getAddress() == null || cinema.getAddress().trim().isEmpty()) {
+            throw new IllegalArgumentException("Địa chỉ cụm rạp không được để trống!");
+        }
+        cinema.setAddress(cinema.getAddress().trim());
+
+        // 5. Số điện thoại
+        String phoneErr = ValidationUtil.getPhoneValidationError(cinema.getPhone());
+        if (phoneErr != null) {
+            throw new IllegalArgumentException(phoneErr);
+        }
+        cinema.setPhone(cinema.getPhone().trim());
+
+        // 6. Email
+        if (cinema.getEmail() != null && !cinema.getEmail().trim().isEmpty()) {
+            if (!ValidationUtil.isValidEmail(cinema.getEmail().trim())) {
+                throw new IllegalArgumentException("Địa chỉ email cụm rạp không đúng định dạng!");
+            }
+            cinema.setEmail(cinema.getEmail().trim().toLowerCase());
+        }
+
         return cinemaDAO.update(cinema);
     }
 
@@ -164,6 +247,29 @@ public class ScreeningRoomServiceImpl implements ScreeningRoomService {
         if (room.getName() == null || room.getName().trim().isEmpty()) {
             throw new IllegalArgumentException("Tên phòng chiếu không được để trống!");
         }
+        room.setName(ValidationUtil.capitalizeWords(room.getName()));
+        if (room.getName().length() > 100) {
+            throw new IllegalArgumentException("Tên phòng chiếu không được vượt quá 100 ký tự!");
+        }
+        int rows = room.getTotalRows() != null ? room.getTotalRows() : 10;
+        int cols = room.getTotalColumns() != null ? room.getTotalColumns() : 10;
+        if (rows < 4 || rows > 26) {
+            throw new IllegalArgumentException("Số hàng ghế phòng chiếu phải từ 4 đến 26 hàng (A đến Z)!");
+        }
+        if (cols < 4 || cols > 30) {
+            throw new IllegalArgumentException("Số cột ghế phòng chiếu phải từ 4 đến 30 ghế mỗi hàng!");
+        }
+        room.setTotalRows(rows);
+        room.setTotalColumns(cols);
+
+        String type = room.getRoomType();
+        if (type == null || (!type.equals("STANDARD_2D") && !type.equals("VIP_2D") && !type.equals("IMAX_3D") && !type.equals("4DX"))) {
+            room.setRoomType("STANDARD_2D");
+        }
+        String status = room.getStatus();
+        if (status == null || (!status.equals("ACTIVE") && !status.equals("MAINTENANCE") && !status.equals("INACTIVE"))) {
+            room.setStatus("ACTIVE");
+        }
         return screeningRoomDAO.insertRoom(room);
     }
 
@@ -171,6 +277,21 @@ public class ScreeningRoomServiceImpl implements ScreeningRoomService {
     public boolean updateRoom(ScreeningRoom room) {
         if (room == null || room.getId() == null) {
             throw new IllegalArgumentException("ID phòng chiếu không hợp lệ!");
+        }
+        if (room.getName() == null || room.getName().trim().isEmpty()) {
+            throw new IllegalArgumentException("Tên phòng chiếu không được để trống!");
+        }
+        room.setName(ValidationUtil.capitalizeWords(room.getName()));
+        if (room.getName().length() > 100) {
+            throw new IllegalArgumentException("Tên phòng chiếu không được vượt quá 100 ký tự!");
+        }
+        String type = room.getRoomType();
+        if (type == null || (!type.equals("STANDARD_2D") && !type.equals("VIP_2D") && !type.equals("IMAX_3D") && !type.equals("4DX"))) {
+            room.setRoomType("STANDARD_2D");
+        }
+        String status = room.getStatus();
+        if (status == null || (!status.equals("ACTIVE") && !status.equals("MAINTENANCE") && !status.equals("INACTIVE"))) {
+            room.setStatus("ACTIVE");
         }
         return screeningRoomDAO.updateRoom(room);
     }
@@ -232,13 +353,32 @@ public class ScreeningRoomServiceImpl implements ScreeningRoomService {
 
     @Override
     public boolean updateSeatTypeSurcharge(Long seatTypeId, BigDecimal surcharge, String colorHex) {
+        if (seatTypeId == null) {
+            throw new IllegalArgumentException("Loại ghế không hợp lệ!");
+        }
+        if (surcharge != null && surcharge.compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalArgumentException("Phụ thu loại ghế không được là số âm!");
+        }
+        if (colorHex != null && !colorHex.trim().isEmpty() && !colorHex.trim().matches("^#[0-9A-Fa-f]{6}$")) {
+            colorHex = "#e50914"; // fallback màu chuẩn nếu nhập sai
+        }
         return screeningRoomDAO.updateSeatTypeSurcharge(seatTypeId, surcharge, colorHex);
     }
 
     @Override
     public boolean regenerateRoomSeatMatrix(Long roomId, int totalRows, int totalColumns, int stdRows, int vipRows) {
-        if (totalRows <= 0 || totalRows > 26 || totalColumns <= 0 || totalColumns > 30) {
-            throw new IllegalArgumentException("Kích thước ma trận không hợp lệ (Hàng từ 1 đến 26, Cột từ 1 đến 30)!");
+        if (roomId == null) {
+            throw new IllegalArgumentException("ID phòng chiếu không hợp lệ!");
+        }
+        if (totalRows < 4 || totalRows > 26 || totalColumns < 4 || totalColumns > 30) {
+            throw new IllegalArgumentException("Kích thước ma trận không hợp lệ (Hàng từ 4 đến 26, Cột từ 4 đến 30)!");
+        }
+        if (stdRows < 0 || vipRows < 0) {
+            throw new IllegalArgumentException("Số hàng Standard và VIP không được là số âm!");
+        }
+        if ((stdRows + vipRows) > totalRows) {
+            throw new IllegalArgumentException("Tổng số hàng Standard (" + stdRows + ") và VIP (" + vipRows 
+                    + ") không được vượt quá tổng số hàng của phòng chiếu (" + totalRows + ")!");
         }
         return screeningRoomDAO.regenerateRoomSeatMatrix(roomId, totalRows, totalColumns, stdRows, vipRows);
     }

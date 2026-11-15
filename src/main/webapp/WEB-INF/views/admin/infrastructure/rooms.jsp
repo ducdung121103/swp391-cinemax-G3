@@ -363,7 +363,7 @@
 
                 <div class="form-group">
                     <label>Tên Phòng Chiếu (*):</label>
-                    <input type="text" name="name" class="form-control" required placeholder="VD: Cinema Room 03 (2D Digital), IMAX Laser Room 01">
+                    <input type="text" name="name" class="form-control" required placeholder="VD: Cinema Room 03 (2D Digital), IMAX Laser Room 01" style="text-transform: capitalize;" maxlength="100">
                 </div>
 
                 <div class="form-group">
@@ -423,7 +423,7 @@
 
                 <div class="form-group">
                     <label>Tên Phòng Chiếu (*):</label>
-                    <input type="text" id="editRoomName" name="name" class="form-control" required>
+                    <input type="text" id="editRoomName" name="name" class="form-control" required style="text-transform: capitalize;" maxlength="100">
                 </div>
 
                 <div class="form-group">

@@ -234,7 +234,7 @@
 
             <%-- Filter Toolbar --%>
             <div class="filter-toolbar">
-                <form action="${pageContext.request.contextPath}/admin/reports/revenue" method="GET" class="filter-group">
+                <form action="${pageContext.request.contextPath}/admin/reports/revenue" method="GET" class="filter-group" onsubmit="return validateRevenueFilter()">
                     <div>
                         <label style="font-size:0.75rem; color:#64748b; font-weight:700; display:block; margin-bottom:2px;">TỪ NGÀY</label>
                         <input type="date" name="from" value="${filter.from}" class="filter-input" required />
@@ -455,6 +455,20 @@
     </div>
 </div>
 
+<script>
+function validateRevenueFilter() {
+    const fromInput = document.querySelector('input[name="from"]');
+    const toInput = document.querySelector('input[name="to"]');
+    if (fromInput && toInput && fromInput.value && toInput.value) {
+        if (fromInput.value > toInput.value) {
+            alert('Ngày bắt đầu (' + fromInput.value + ') không được lớn hơn ngày kết thúc (' + toInput.value + ')!');
+            fromInput.focus();
+            return false;
+        }
+    }
+    return true;
+}
+</script>
 <%-- Script Render Chart.js --%>
 </body>
 </html>

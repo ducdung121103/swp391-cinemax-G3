@@ -160,7 +160,11 @@ public class CinemaAdminServlet extends HttpServlet {
 
         } catch (Exception e) {
             e.printStackTrace();
-            String errorMsg = URLEncoder.encode(e.getMessage() != null ? e.getMessage() : "Đã có lỗi xảy ra", StandardCharsets.UTF_8);
+            String raw = e.getMessage() != null ? e.getMessage() : "Đã có lỗi xảy ra";
+            if (raw.contains("Violation of UNIQUE KEY") || raw.contains("UQ__cinemas__") || raw.contains("cinema_code") || raw.toLowerCase().contains("duplicate key")) {
+                raw = "Mã cụm rạp này đã tồn tại trong hệ thống! Vui lòng chọn mã khác.";
+            }
+            String errorMsg = URLEncoder.encode(raw, StandardCharsets.UTF_8);
             resp.sendRedirect(req.getContextPath() + "/admin/infrastructure/cinemas?error=" + errorMsg);
             return;
         }

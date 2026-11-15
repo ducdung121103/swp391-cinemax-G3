@@ -29,6 +29,83 @@ public final class ValidationUtil {
         return phone != null && PHONE_PATTERN.matcher(phone.trim()).matches();
     }
 
+    /**
+     * Kiểm tra số điện thoại đơn giản theo số lượng chữ số:
+     * - Loại bỏ khoảng trắng, dấu gạch ngang, dấu chấm.
+     * - Cho phép dấu '+' ở đầu (mã quốc tế).
+     * - Bắt buộc chỉ chứa chữ số.
+     * - Độ dài hợp lệ: từ 8 đến 15 chữ số.
+     *
+     * @param phone chuỗi số điện thoại
+     * @return true nếu hợp lệ
+     */
+    public static boolean isValidSimplePhone(String phone) {
+        if (phone == null || phone.trim().isEmpty()) {
+            return false;
+        }
+        String clean = phone.trim().replaceAll("[\\s\\-\\.]", "");
+        if (clean.startsWith("+")) {
+            clean = clean.substring(1);
+        }
+        return clean.matches("^\\d+$") && clean.length() >= 8 && clean.length() <= 15;
+    }
+
+    /**
+     * Trả về thông báo lỗi chi tiết khi nhập sai số điện thoại để báo ra giao diện.
+     *
+     * @param phone chuỗi số điện thoại
+     * @return thông báo lỗi tiếng Việt nếu không hợp lệ, null nếu hợp lệ
+     */
+    public static String getPhoneValidationError(String phone) {
+        if (phone == null || phone.trim().isEmpty()) {
+            return "Số điện thoại không được để trống!";
+        }
+        String clean = phone.trim().replaceAll("[\\s\\-\\.]", "");
+        if (clean.startsWith("+")) {
+            clean = clean.substring(1);
+        }
+        if (!clean.matches("^\\d+$")) {
+            return "Số điện thoại chỉ được chứa các chữ số (không được chứa chữ cái hay ký tự đặc biệt)!";
+        }
+        if (clean.length() < 8) {
+            return "Số điện thoại quá ngắn (bạn đang nhập " + clean.length() + " chữ số; tối thiểu phải từ 8 chữ số)!";
+        }
+        if (clean.length() > 15) {
+            return "Số điện thoại quá dài (bạn đang nhập " + clean.length() + " chữ số; tối đa 15 chữ số)!";
+        }
+        return null;
+    }
+
+    /**
+     * Chuẩn hóa xâu ký tự: Viết hoa chữ cái đầu tiên của mỗi từ (Title Case),
+     * gộp khoảng trắng thừa thành 1 dấu cách duy nhất. Hỗ trợ tiếng Việt Unicode.
+     * Ví dụ: "  cinemax   hà nội  " -> "Cinemax Hà Nội"
+     *
+     * @param input chuỗi đầu vào
+     * @return chuỗi đã được chuẩn hóa Title Case
+     */
+    public static String capitalizeWords(String input) {
+        if (input == null || input.isBlank()) {
+            return "";
+        }
+        String trimmed = input.trim();
+        String[] words = trimmed.split("\\s+");
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < words.length; i++) {
+            String w = words[i];
+            if (!w.isEmpty()) {
+                sb.append(Character.toUpperCase(w.charAt(0)));
+                if (w.length() > 1) {
+                    sb.append(w.substring(1));
+                }
+                if (i < words.length - 1) {
+                    sb.append(" ");
+                }
+            }
+        }
+        return sb.toString();
+    }
+
     public static boolean isValidPassword(String password) {
         return password != null && PASSWORD_PATTERN.matcher(password).matches();
     }

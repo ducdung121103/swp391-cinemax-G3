@@ -317,32 +317,32 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label>Mã Rạp (*):</label>
-                        <input type="text" name="cinemaCode" class="form-control" required placeholder="VD: C-HN03, C-DN01" pattern="[A-Za-z0-9\-_]{3,20}">
+                        <input type="text" name="cinemaCode" class="form-control" required placeholder="VD: C-HN03, C-DN01" pattern="[A-Za-z0-9\-_]{3,20}" style="text-transform: uppercase;" title="Mã cụm rạp từ 3 đến 20 ký tự chữ và số">
                     </div>
                     <div class="form-group">
                         <label>Thành Phố (*):</label>
-                        <input type="text" name="city" class="form-control" required placeholder="VD: Hà Nội, TP.HCM, Đà Nẵng">
+                        <input type="text" name="city" class="form-control" required placeholder="VD: Hà Nội, TP.HCM, Đà Nẵng" style="text-transform: capitalize;" maxlength="100">
                     </div>
                 </div>
 
                 <div class="form-group">
                     <label>Tên Cụm Rạp (*):</label>
-                    <input type="text" name="name" class="form-control" required placeholder="VD: CineMax Landmark 81">
+                    <input type="text" name="name" class="form-control" required placeholder="VD: CineMax Landmark 81" style="text-transform: capitalize;" maxlength="150">
                 </div>
 
                 <div class="form-group">
                     <label>Địa Chỉ Chi Tiết (*):</label>
-                    <input type="text" name="address" class="form-control" required placeholder="VD: Tầng B1, TTTM Landmark 81, 720A Điện Biên Phủ, P.22, Bình Thạnh">
+                    <input type="text" name="address" class="form-control" required placeholder="VD: Tầng B1, TTTM Landmark 81, 720A Điện Biên Phủ, P.22, Bình Thạnh" maxlength="255">
                 </div>
 
                 <div class="form-row">
                     <div class="form-group">
-                        <label>Hotline Hỗ Trợ:</label>
-                        <input type="text" name="phone" class="form-control" placeholder="VD: 028 7300 8888">
+                        <label>Hotline Hỗ Trợ (*):</label>
+                        <input type="text" name="phone" class="form-control" required placeholder="VD: 024 3974 1234, 1900 6017" pattern="[0-9\s\-\.]{8,20}" minlength="8" maxlength="20" title="Số điện thoại phải từ 8 đến 15 chữ số">
                     </div>
                     <div class="form-group">
                         <label>Email Liên Hệ:</label>
-                        <input type="email" name="email" class="form-control" placeholder="VD: c-sg02@cinemax.vn">
+                        <input type="email" name="email" class="form-control" placeholder="VD: c-sg02@cinemax.vn" maxlength="100">
                     </div>
                 </div>
 
@@ -373,32 +373,32 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label>Mã Rạp (*):</label>
-                        <input type="text" id="editCode" name="cinemaCode" class="form-control" required>
+                        <input type="text" id="editCode" name="cinemaCode" class="form-control" required pattern="[A-Za-z0-9\-_]{3,20}" style="text-transform: uppercase;" title="Mã cụm rạp từ 3 đến 20 ký tự chữ và số">
                     </div>
                     <div class="form-group">
                         <label>Thành Phố (*):</label>
-                        <input type="text" id="editCity" name="city" class="form-control" required>
+                        <input type="text" id="editCity" name="city" class="form-control" required style="text-transform: capitalize;" maxlength="100">
                     </div>
                 </div>
 
                 <div class="form-group">
                     <label>Tên Cụm Rạp (*):</label>
-                    <input type="text" id="editName" name="name" class="form-control" required>
+                    <input type="text" id="editName" name="name" class="form-control" required style="text-transform: capitalize;" maxlength="150">
                 </div>
 
                 <div class="form-group">
                     <label>Địa Chỉ Chi Tiết (*):</label>
-                    <input type="text" id="editAddress" name="address" class="form-control" required>
+                    <input type="text" id="editAddress" name="address" class="form-control" required maxlength="255">
                 </div>
 
                 <div class="form-row">
                     <div class="form-group">
-                        <label>Hotline Hỗ Trợ:</label>
-                        <input type="text" id="editPhone" name="phone" class="form-control">
+                        <label>Hotline Hỗ Trợ (*):</label>
+                        <input type="text" id="editPhone" name="phone" class="form-control" required placeholder="VD: 024 3974 1234, 1900 6017" pattern="[0-9\s\-\.]{8,20}" minlength="8" maxlength="20" title="Số điện thoại phải từ 8 đến 15 chữ số">
                     </div>
                     <div class="form-group">
                         <label>Email Liên Hệ:</label>
-                        <input type="email" id="editEmail" name="email" class="form-control">
+                        <input type="email" id="editEmail" name="email" class="form-control" maxlength="100">
                     </div>
                 </div>
 

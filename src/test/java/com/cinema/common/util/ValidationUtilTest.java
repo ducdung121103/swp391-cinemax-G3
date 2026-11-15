@@ -70,6 +70,44 @@ class ValidationUtilTest {
         assertFalse(ValidationUtil.isValidPassword(pwd));
     }
 
+    @ParameterizedTest
+    @ValueSource(strings = {"02439741234", "028 3899 1234", "1900-6017", "0912.345.678", "+84912345678", "02363991234"})
+    @DisplayName("Should validate valid simple phone numbers with 8 to 15 digits")
+    void testValidSimplePhone(String phone) {
+        assertTrue(ValidationUtil.isValidSimplePhone(phone));
+        assertNull(ValidationUtil.getPhoneValidationError(phone));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"12", "09", "1234567", "090abc123", "1234567890123456", "", "   "})
+    @DisplayName("Should reject invalid simple phone numbers (too short, too long, or letters)")
+    void testInvalidSimplePhone(String phone) {
+        assertFalse(ValidationUtil.isValidSimplePhone(phone));
+        assertNotNull(ValidationUtil.getPhoneValidationError(phone));
+    }
+
+    @Test
+    @DisplayName("Should test detailed error messages for phone validation")
+    void testPhoneValidationErrorMessages() {
+        assertEquals("Số điện thoại không được để trống!", ValidationUtil.getPhoneValidationError(null));
+        assertEquals("Số điện thoại không được để trống!", ValidationUtil.getPhoneValidationError("   "));
+        assertTrue(ValidationUtil.getPhoneValidationError("12").contains("quá ngắn"));
+        assertTrue(ValidationUtil.getPhoneValidationError("12345678901234567").contains("quá dài"));
+        assertTrue(ValidationUtil.getPhoneValidationError("090abc123").contains("chỉ được chứa các chữ số"));
+    }
+
+    @Test
+    @DisplayName("Should capitalize words correctly for title casing and collapse spaces")
+    void testCapitalizeWords() {
+        assertEquals("Cinemax Bà Triệu", ValidationUtil.capitalizeWords("cinemax bà triệu"));
+        assertEquals("Hà Nội", ValidationUtil.capitalizeWords("  hà    nội  "));
+        assertEquals("Đà Nẵng", ValidationUtil.capitalizeWords("đà nẵng"));
+        assertEquals("Phòng Chiếu 01", ValidationUtil.capitalizeWords("phòng chiếu 01"));
+        assertEquals("CineMax Landmark 81", ValidationUtil.capitalizeWords("CineMax Landmark 81"));
+        assertEquals("", ValidationUtil.capitalizeWords(null));
+        assertEquals("", ValidationUtil.capitalizeWords("   "));
+    }
+
     private Seat createSeat(long id, String row, int number, String code, long typeId, String typeCode) {
         Seat s = new Seat();
         s.setId(id);
