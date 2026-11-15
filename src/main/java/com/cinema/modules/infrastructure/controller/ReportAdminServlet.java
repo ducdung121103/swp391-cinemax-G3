@@ -128,6 +128,8 @@ public class ReportAdminServlet extends HttpServlet {
         String roomIdParam = req.getParameter("roomId");
         String roomType = req.getParameter("roomType");
         String timeSlot = req.getParameter("timeSlot");
+        boolean pastOnly = "1".equals(req.getParameter("pastOnly"))
+                || "true".equalsIgnoreCase(req.getParameter("pastOnly"));
 
         Long cinemaId = null;
         if (cinemaIdParam != null && !cinemaIdParam.isBlank() && !"ALL".equalsIgnoreCase(cinemaIdParam)) {
@@ -146,8 +148,8 @@ public class ReportAdminServlet extends HttpServlet {
                 : screeningRoomService.getAllRoomsWithCinema(null, null, null);
 
         // Summaries and showtime details
-        List<InfrastructureReportDAO.RoomOccupancyDTO> roomSummaries = reportDAO.getRoomOccupancySummaries(cinemaId, roomType);
-        List<InfrastructureReportDAO.ShowtimeOccupancyDTO> showtimeDetails = reportDAO.getShowtimeOccupancyDetails(cinemaId, roomId, roomType, timeSlot);
+        List<InfrastructureReportDAO.RoomOccupancyDTO> roomSummaries = reportDAO.getRoomOccupancySummaries(cinemaId, roomId, roomType, pastOnly, timeSlot);
+        List<InfrastructureReportDAO.ShowtimeOccupancyDTO> showtimeDetails = reportDAO.getShowtimeOccupancyDetails(cinemaId, roomId, roomType, timeSlot, pastOnly);
 
         int totalSold = 0;
         int totalSupply = 0;
@@ -178,6 +180,7 @@ public class ReportAdminServlet extends HttpServlet {
         req.setAttribute("selectedRoomId", roomId);
         req.setAttribute("selectedRoomType", roomType != null ? roomType : "ALL");
         req.setAttribute("selectedTimeSlot", timeSlot != null ? timeSlot : "ALL");
+        req.setAttribute("pastOnly", pastOnly);
 
         req.setAttribute("roomSummaries", roomSummaries);
         req.setAttribute("showtimeDetails", showtimeDetails);

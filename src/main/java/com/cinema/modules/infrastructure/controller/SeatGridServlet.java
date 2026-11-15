@@ -154,8 +154,16 @@ public class SeatGridServlet extends HttpServlet {
                     }
                 }
 
-                if (!seatIds.isEmpty()) {
-                    screeningRoomService.updateBatchSeats(roomId, seatIds, seatTypeId, status, isActive);
+                if (seatIds.isEmpty()) {
+                    resp.sendRedirect(req.getContextPath() + "/admin/infrastructure/seats?roomId=" + roomId
+                            + "&error=" + URLEncoder.encode("Vui lòng chọn ít nhất một ghế!", StandardCharsets.UTF_8));
+                    return;
+                }
+                boolean updated = screeningRoomService.updateBatchSeats(currentUser, roomId, seatIds, seatTypeId, status, isActive);
+                if (!updated) {
+                    resp.sendRedirect(req.getContextPath() + "/admin/infrastructure/seats?roomId=" + roomId
+                            + "&error=" + URLEncoder.encode("Không thể cập nhật ghế. Vui lòng thử lại!", StandardCharsets.UTF_8));
+                    return;
                 }
                 resp.sendRedirect(req.getContextPath() + "/admin/infrastructure/seats?roomId=" + roomId + "&msg=seats_updated");
                 return;
@@ -164,7 +172,12 @@ public class SeatGridServlet extends HttpServlet {
                 String seatRow = req.getParameter("seatRow");
                 Long seatTypeId = Long.parseLong(req.getParameter("seatTypeId"));
 
-                screeningRoomService.updateRowSeatType(roomId, seatRow, seatTypeId);
+                boolean rowUpdated = screeningRoomService.updateRowSeatType(currentUser, roomId, seatRow, seatTypeId);
+                if (!rowUpdated) {
+                    resp.sendRedirect(req.getContextPath() + "/admin/infrastructure/seats?roomId=" + roomId
+                            + "&error=" + URLEncoder.encode("Không tìm thấy hàng ghế cần cập nhật!", StandardCharsets.UTF_8));
+                    return;
+                }
                 resp.sendRedirect(req.getContextPath() + "/admin/infrastructure/seats?roomId=" + roomId + "&msg=row_updated");
                 return;
 
@@ -174,7 +187,12 @@ public class SeatGridServlet extends HttpServlet {
                 int stdRows = Integer.parseInt(req.getParameter("stdRows"));
                 int vipRows = Integer.parseInt(req.getParameter("vipRows"));
 
-                screeningRoomService.regenerateRoomSeatMatrix(roomId, totalRows, totalColumns, stdRows, vipRows);
+                boolean regenerated = screeningRoomService.regenerateRoomSeatMatrix(currentUser, roomId, totalRows, totalColumns, stdRows, vipRows);
+                if (!regenerated) {
+                    resp.sendRedirect(req.getContextPath() + "/admin/infrastructure/seats?roomId=" + roomId
+                            + "&error=" + URLEncoder.encode("Không thể tái tạo ma trận ghế. Vui lòng thử lại!", StandardCharsets.UTF_8));
+                    return;
+                }
                 resp.sendRedirect(req.getContextPath() + "/admin/infrastructure/seats?roomId=" + roomId + "&msg=matrix_regenerated");
                 return;
 
@@ -188,7 +206,12 @@ public class SeatGridServlet extends HttpServlet {
                     surcharge = new BigDecimal(surchargeStr.trim());
                 }
 
-                screeningRoomService.updateSeatTypeSurcharge(seatTypeId, surcharge, colorHex);
+                boolean typeUpdated = screeningRoomService.updateSeatTypeSurcharge(currentUser, seatTypeId, surcharge, colorHex);
+                if (!typeUpdated) {
+                    resp.sendRedirect(req.getContextPath() + "/admin/infrastructure/seats?roomId=" + roomId
+                            + "&error=" + URLEncoder.encode("Không thể cập nhật loại ghế. Vui lòng thử lại!", StandardCharsets.UTF_8));
+                    return;
+                }
                 resp.sendRedirect(req.getContextPath() + "/admin/infrastructure/seats?roomId=" + roomId + "&msg=type_updated");
                 return;
 
@@ -198,14 +221,27 @@ public class SeatGridServlet extends HttpServlet {
                 boolean underMaintenance = underMaintStr == null || Boolean.parseBoolean(underMaintStr);
 
                 List<Long> seatIds = parseSeatIds(seatIdsRaw);
-                if (!seatIds.isEmpty()) {
-                    screeningRoomService.toggleSeatsMaintenance(roomId, seatIds, underMaintenance);
+                if (seatIds.isEmpty()) {
+                    resp.sendRedirect(req.getContextPath() + "/admin/infrastructure/seats?roomId=" + roomId
+                            + "&error=" + URLEncoder.encode("Vui lòng chọn ít nhất một ghế!", StandardCharsets.UTF_8));
+                    return;
+                }
+                boolean toggled = screeningRoomService.toggleSeatsMaintenance(currentUser, roomId, seatIds, underMaintenance);
+                if (!toggled) {
+                    resp.sendRedirect(req.getContextPath() + "/admin/infrastructure/seats?roomId=" + roomId
+                            + "&error=" + URLEncoder.encode("Không thể cập nhật trạng thái bảo trì!", StandardCharsets.UTF_8));
+                    return;
                 }
                 resp.sendRedirect(req.getContextPath() + "/admin/infrastructure/seats?roomId=" + roomId + "&msg=maintenance_toggled");
                 return;
 
             } else if ("restoreAllRoomSeats".equalsIgnoreCase(action)) {
-                screeningRoomService.restoreAllMaintenanceSeatsInRoom(roomId);
+                boolean restored = screeningRoomService.restoreAllMaintenanceSeatsInRoom(currentUser, roomId);
+                if (!restored) {
+                    resp.sendRedirect(req.getContextPath() + "/admin/infrastructure/seats?roomId=" + roomId
+                            + "&error=" + URLEncoder.encode("Không thể khôi phục ghế. Vui lòng thử lại!", StandardCharsets.UTF_8));
+                    return;
+                }
                 resp.sendRedirect(req.getContextPath() + "/admin/infrastructure/seats?roomId=" + roomId + "&msg=all_seats_restored");
                 return;
             }

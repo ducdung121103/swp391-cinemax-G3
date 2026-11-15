@@ -100,7 +100,8 @@ public class RoomAdminServlet extends HttpServlet {
                         .status(status != null ? status : "ACTIVE")
                         .build();
 
-                screeningRoomService.createRoom(room);
+                User actor = currentUser(req);
+                screeningRoomService.createRoom(actor, room);
                 resp.sendRedirect(req.getContextPath() + "/admin/infrastructure/rooms?cinemaId=" + cinemaId + "&msg=created");
                 return;
 
@@ -117,14 +118,26 @@ public class RoomAdminServlet extends HttpServlet {
                         .build();
                 room.setId(id);
 
-                screeningRoomService.updateRoom(room);
+                User actor = currentUser(req);
+                boolean updated = screeningRoomService.updateRoom(actor, room);
+                if (!updated) {
+                    resp.sendRedirect(req.getContextPath() + "/admin/infrastructure/rooms?error=" +
+                            URLEncoder.encode("Không thể cập nhật phòng chiếu. Vui lòng thử lại!", StandardCharsets.UTF_8));
+                    return;
+                }
                 resp.sendRedirect(req.getContextPath() + "/admin/infrastructure/rooms?msg=updated");
                 return;
 
             } else if ("changeStatus".equalsIgnoreCase(action)) {
                 Long id = Long.parseLong(req.getParameter("id"));
                 String status = req.getParameter("status");
-                screeningRoomService.updateRoomStatus(id, status);
+                User actor = currentUser(req);
+                boolean changed = screeningRoomService.updateRoomStatus(actor, id, status);
+                if (!changed) {
+                    resp.sendRedirect(req.getContextPath() + "/admin/infrastructure/rooms?error=" +
+                            URLEncoder.encode("Không thể đổi trạng thái phòng chiếu. Vui lòng thử lại!", StandardCharsets.UTF_8));
+                    return;
+                }
                 resp.sendRedirect(req.getContextPath() + "/admin/infrastructure/rooms?msg=status_updated");
                 return;
 

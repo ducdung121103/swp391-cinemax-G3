@@ -45,6 +45,7 @@ public class RevenueReportDAO {
         sql.append("  WHERE p.status = 'SUCCESS' AND b.status = 'CONFIRMED' AND b.is_deleted = 0 ");
         sql.append("    AND sr.is_deleted = 0 AND c.is_deleted = 0 ");
         sql.append("    AND p.payment_time >= ? AND p.payment_time <= ? ");
+        sql.append("    AND p.id = (SELECT MAX(p2.id) FROM payments p2 WHERE p2.booking_id = b.id AND p2.status = 'SUCCESS') ");
 
         List<Object> params = new ArrayList<>();
         params.add(Timestamp.valueOf(from.atStartOfDay()));
@@ -99,6 +100,7 @@ public class RevenueReportDAO {
         sql.append("  WHERE p.status = 'SUCCESS' AND b.status = 'CONFIRMED' AND b.is_deleted = 0 ");
         sql.append("    AND sr.is_deleted = 0 AND c.is_deleted = 0 ");
         sql.append("    AND p.payment_time >= ? AND p.payment_time <= ? ");
+        sql.append("    AND p.id = (SELECT MAX(p2.id) FROM payments p2 WHERE p2.booking_id = b.id AND p2.status = 'SUCCESS') ");
 
         List<Object> params = new ArrayList<>();
         params.add(Timestamp.valueOf(from.atStartOfDay()));
@@ -135,6 +137,7 @@ public class RevenueReportDAO {
         sql.append("  WHERE p.status = 'SUCCESS' AND b.status = 'CONFIRMED' AND b.is_deleted = 0 ");
         sql.append("    AND sr.is_deleted = 0 AND c.is_deleted = 0 ");
         sql.append("    AND p.payment_time >= ? AND p.payment_time <= ? ");
+        sql.append("    AND p.id = (SELECT MAX(p2.id) FROM payments p2 WHERE p2.booking_id = b.id AND p2.status = 'SUCCESS') ");
 
         List<Object> params = new ArrayList<>();
         params.add(Timestamp.valueOf(from.atStartOfDay()));
@@ -168,6 +171,7 @@ public class RevenueReportDAO {
         whereClause.append("WHERE p.status = 'SUCCESS' AND b.status = 'CONFIRMED' AND b.is_deleted = 0 ");
         whereClause.append("  AND sr.is_deleted = 0 AND c.is_deleted = 0 ");
         whereClause.append("  AND p.payment_time >= ? AND p.payment_time <= ? ");
+        whereClause.append("  AND p.id = (SELECT MAX(p2.id) FROM payments p2 WHERE p2.booking_id = b.id AND p2.status = 'SUCCESS') ");
 
         List<Object> params = new ArrayList<>();
         params.add(Timestamp.valueOf(filter.getFrom().atStartOfDay()));

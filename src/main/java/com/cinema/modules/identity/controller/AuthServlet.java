@@ -178,7 +178,7 @@ public class AuthServlet extends HttpServlet {
 
         // Validate input cÆ¡ báº£n
         if (isBlank(email) || isBlank(password)) {
-            req.setAttribute("errorMessage", "Vui lÃ²ng nháº­p Ä‘áº§y Ä‘á»§ email vÃ  máº­t kháº©u.");
+            req.setAttribute("errorMessage", "Vui lòng nhập đầy đủ email và mật khẩu.");
             req.getRequestDispatcher("/WEB-INF/views/customer/account/login.jsp").forward(req, resp);
             return;
         }
@@ -186,7 +186,7 @@ public class AuthServlet extends HttpServlet {
         User user = userService.authenticate(email.trim(), password);
 
         if (user == null) {
-            req.setAttribute("errorMessage", "Email hoáº·c máº­t kháº©u khÃ´ng chÃ­nh xÃ¡c!");
+            req.setAttribute("errorMessage", "Email hoặc mật khẩu không chính xác!");
             req.getRequestDispatcher("/WEB-INF/views/customer/account/login.jsp").forward(req, resp);
             return;
         }

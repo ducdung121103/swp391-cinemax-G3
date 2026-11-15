@@ -98,6 +98,16 @@ public class ScreeningRoomServiceImpl implements ScreeningRoomService {
     }
 
     @Override
+    public List<Cinema> getAllCinemasForAdmin(String keyword, String city, Boolean isActive, int page, int pageSize) {
+        return cinemaDAO.findAllForAdmin(keyword, city, isActive, page, pageSize);
+    }
+
+    @Override
+    public int countCinemasForAdmin(String keyword, String city, Boolean isActive) {
+        return cinemaDAO.countForAdmin(keyword, city, isActive);
+    }
+
+    @Override
     public List<String> getAllCities() {
         return cinemaDAO.findAllCities();
     }
@@ -233,6 +243,11 @@ public class ScreeningRoomServiceImpl implements ScreeningRoomService {
         return cinemaDAO.countTotalCinemas();
     }
 
+    @Override
+    public int getTotalCinemasCount(Long cinemaId) {
+        return cinemaDAO.countTotalCinemas(cinemaId);
+    }
+
     // --- 2. Screening Room Management ---
     @Override
     public List<ScreeningRoom> getAllRoomsWithCinema(Long cinemaId, String roomType, String status) {
@@ -270,6 +285,9 @@ public class ScreeningRoomServiceImpl implements ScreeningRoomService {
         if (status == null || (!status.equals("ACTIVE") && !status.equals("MAINTENANCE") && !status.equals("INACTIVE"))) {
             room.setStatus("ACTIVE");
         }
+        if (cinemaDAO.findById(room.getCinemaId()) == null) {
+            throw new IllegalArgumentException("Cụm rạp không tồn tại hoặc đã bị xóa!");
+        }
         return screeningRoomDAO.insertRoom(room);
     }
 
@@ -299,6 +317,55 @@ public class ScreeningRoomServiceImpl implements ScreeningRoomService {
     @Override
     public boolean updateRoomStatus(Long roomId, String status) {
         return screeningRoomDAO.updateRoomStatus(roomId, status);
+    }
+
+    @Override
+    public Long createRoom(User actor, ScreeningRoom room) {
+        assertCanManageCinema(actor, room != null ? room.getCinemaId() : null);
+        return createRoom(room);
+    }
+
+    @Override
+    public boolean updateRoom(User actor, ScreeningRoom room) {
+        if (room == null || room.getId() == null) {
+            throw new IllegalArgumentException("ID phòng chiếu không hợp lệ!");
+        }
+        ScreeningRoom existing = screeningRoomDAO.findById(room.getId());
+        if (existing == null) {
+            throw new IllegalArgumentException("Không tìm thấy phòng chiếu cần cập nhật!");
+        }
+        assertCanManageCinema(actor, existing.getCinemaId());
+        return updateRoom(room);
+    }
+
+    @Override
+    public boolean updateRoomStatus(User actor, Long roomId, String status) {
+        ScreeningRoom existing = roomId != null ? screeningRoomDAO.findById(roomId) : null;
+        if (existing == null) {
+            throw new IllegalArgumentException("Không tìm thấy phòng chiếu cần đổi trạng thái!");
+        }
+        assertCanManageCinema(actor, existing.getCinemaId());
+        return updateRoomStatus(roomId, status);
+    }
+
+    /**
+     * Branch Guard: Admin toàn quyền; Manager chỉ thao tác phòng thuộc rạp mình.
+     */
+    private void assertCanManageCinema(User actor, Long cinemaId) {
+        if (actor == null || actor.getRole() == null) {
+            throw new IllegalArgumentException("Bạn không có quyền thực hiện thao tác này!");
+        }
+        String role = actor.getRole().getRoleName();
+        if (RoleConstant.ADMIN.equalsIgnoreCase(role)) {
+            return;
+        }
+        if (RoleConstant.MANAGER.equalsIgnoreCase(role)) {
+            if (cinemaId == null || actor.getCinemaId() == null || !actor.getCinemaId().equals(cinemaId)) {
+                throw new IllegalArgumentException("Bạn chỉ được thao tác phòng chiếu thuộc chi nhánh rạp của mình!");
+            }
+            return;
+        }
+        throw new IllegalArgumentException("Bạn không có quyền thực hiện thao tác này!");
     }
 
     @Override
@@ -341,8 +408,18 @@ public class ScreeningRoomServiceImpl implements ScreeningRoomService {
     }
 
     @Override
+    public int getTotalRoomsCount(Long cinemaId) {
+        return screeningRoomDAO.countTotalRooms(cinemaId);
+    }
+
+    @Override
     public int getTotalSeatsCount() {
         return screeningRoomDAO.countTotalSeats();
+    }
+
+    @Override
+    public int getTotalSeatsCount(Long cinemaId) {
+        return screeningRoomDAO.countTotalSeats(cinemaId);
     }
 
     // --- 3. Seat Layout Designer ---
@@ -379,6 +456,9 @@ public class ScreeningRoomServiceImpl implements ScreeningRoomService {
         if ((stdRows + vipRows) > totalRows) {
             throw new IllegalArgumentException("Tổng số hàng Standard (" + stdRows + ") và VIP (" + vipRows 
                     + ") không được vượt quá tổng số hàng của phòng chiếu (" + totalRows + ")!");
+        }
+        if (screeningRoomDAO.hasTicketsForRoom(roomId)) {
+            throw new IllegalArgumentException("Phòng chiếu đã phát sinh vé, không thể tái tạo ma trận ghế. Vui lòng xử lý vé trước!");
         }
         return screeningRoomDAO.regenerateRoomSeatMatrix(roomId, totalRows, totalColumns, stdRows, vipRows);
     }
@@ -523,6 +603,49 @@ public class ScreeningRoomServiceImpl implements ScreeningRoomService {
     @Override
     public boolean restoreAllMaintenanceSeatsInRoom(Long roomId) {
         return screeningRoomDAO.restoreAllMaintenanceSeatsInRoom(roomId);
+    }
+
+    @Override
+    public boolean updateSeatTypeSurcharge(User actor, Long seatTypeId, BigDecimal surcharge, String colorHex) {
+        assertAdmin(actor);
+        return updateSeatTypeSurcharge(seatTypeId, surcharge, colorHex);
+    }
+
+    @Override
+    public boolean regenerateRoomSeatMatrix(User actor, Long roomId, int totalRows, int totalColumns, int stdRows, int vipRows) {
+        assertAdmin(actor);
+        return regenerateRoomSeatMatrix(roomId, totalRows, totalColumns, stdRows, vipRows);
+    }
+
+    @Override
+    public boolean updateBatchSeats(User actor, Long roomId, List<Long> seatIds, Long seatTypeId, String status, Boolean isActive) {
+        assertAdmin(actor);
+        return updateBatchSeats(roomId, seatIds, seatTypeId, status, isActive);
+    }
+
+    @Override
+    public boolean updateRowSeatType(User actor, Long roomId, String seatRow, Long seatTypeId) {
+        assertAdmin(actor);
+        return updateRowSeatType(roomId, seatRow, seatTypeId);
+    }
+
+    @Override
+    public boolean toggleSeatsMaintenance(User actor, Long roomId, List<Long> seatIds, boolean underMaintenance) {
+        assertAdmin(actor);
+        return toggleSeatsMaintenance(roomId, seatIds, underMaintenance);
+    }
+
+    @Override
+    public boolean restoreAllMaintenanceSeatsInRoom(User actor, Long roomId) {
+        assertAdmin(actor);
+        return restoreAllMaintenanceSeatsInRoom(roomId);
+    }
+
+    private void assertAdmin(User actor) {
+        if (actor == null || actor.getRole() == null
+                || !RoleConstant.ADMIN.equalsIgnoreCase(actor.getRole().getRoleName())) {
+            throw new IllegalArgumentException("Chỉ Quản trị viên (Admin) mới có quyền chỉnh sửa sơ đồ ghế!");
+        }
     }
 
     @Override

@@ -38,6 +38,7 @@ public interface BookingFlowService {
     BookingCheckoutResult checkout(BookingCheckoutCommand command);
     String retryVnpayPayment(String bookingCode, Long userId, HttpServletRequest request);
     boolean cancelPendingVnpayBooking(String bookingCode, Long userId);
+    boolean cancelConfirmedBooking(String bookingCode, Long userId);
 
     /**
      * Lấy lịch sử đặt vé xem phim của khách hàng.

@@ -288,6 +288,8 @@
                                                 <i class="fa-solid fa-couch"></i> Sơ Đồ Ghế
                                             </a>
 
+                                            <c:set var="canManageRoom" value="${sessionScope.currentUser.role.roleName == 'ADMIN' || sessionScope.currentUser.roleId == 1 || (sessionScope.currentUser.role.roleName == 'MANAGER' && sessionScope.currentUser.cinemaId == r.cinemaId)}" />
+                                            <c:if test="${canManageRoom}">
                                             <button type="button" class="btn-sm btn-secondary" 
                                                     onclick="openEditModal('${r.id}', '${r.name}', '${r.roomType}', '${r.status}')">
                                                 <i class="fa-solid fa-pen-to-square"></i> Sửa
@@ -311,6 +313,7 @@
                                                     </c:otherwise>
                                                 </c:choose>
                                             </form>
+                                            </c:if>
 
                                             <c:set var="canDeleteRoom" value="${sessionScope.currentUser.role.roleName == 'ADMIN' || sessionScope.currentUser.roleId == 1 || (sessionScope.currentUser.role.roleName == 'MANAGER' && sessionScope.currentUser.cinemaId == r.cinemaId)}" />
                                             <c:if test="${canDeleteRoom}">

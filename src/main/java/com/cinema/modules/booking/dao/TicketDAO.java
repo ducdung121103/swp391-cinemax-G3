@@ -231,6 +231,16 @@ public class TicketDAO {
         return null;
     }
 
+    public int cancelByBooking(Connection conn, Long bookingId) throws SQLException {
+        // Xóa ticket để giải phóng ràng buộc UNIQUE(showtime_id, seat_id), cho phép bán lại ghế.
+        // Booking vẫn giữ trạng thái CANCELLED để bảo toàn lịch sử đơn.
+        String sql = "DELETE FROM tickets WHERE booking_id = ? AND status IN ('VALID', 'USED')";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setLong(1, bookingId);
+            return ps.executeUpdate();
+        }
+    }
+
     public boolean updateStatus(Connection conn, Long ticketId, String status) throws SQLException {
         String sql = "UPDATE tickets SET status = ? WHERE id = ?";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {

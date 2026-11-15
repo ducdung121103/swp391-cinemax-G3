@@ -257,6 +257,7 @@
                                             </span>
                                         </td>
                                         <td style="text-align: center;">
+                                            <c:if test="${sessionScope.currentUser.role.roleName == 'ADMIN' || sessionScope.currentUser.roleId == 1}">
                                             <button type="button" class="btn-sm btn-secondary" 
                                                     onclick="openEditModal('${c.id}', '${c.cinemaCode}', '${c.name}', '${c.city}', '${c.address}', '${c.phone}', '${c.email}', ${c.isActive})">
                                                 <i class="fa-solid fa-pen-to-square"></i> Sửa
@@ -270,6 +271,7 @@
                                                     <i class="fa-solid ${c.isActive ? 'fa-lock' : 'fa-lock-open'}"></i> ${c.isActive ? 'Khóa' : 'Mở'}
                                                 </button>
                                             </form>
+                                            </c:if>
 
                                             <a href="${pageContext.request.contextPath}/admin/infrastructure/rooms?cinemaId=${c.id}" class="btn-sm btn-secondary" style="background:#0284c7;" title="Xem phòng">
                                                 <i class="fa-solid fa-video"></i> Phòng
@@ -297,6 +299,34 @@
                                 </c:if>
                             </tbody>
                         </table>
+
+                        <c:if test="${totalPages > 1}">
+                            <c:url var="prevUrl" value="/admin/infrastructure/cinemas">
+                                <c:param name="keyword" value="${keyword}" />
+                                <c:param name="city" value="${selectedCity}" />
+                                <c:param name="status" value="${selectedStatus}" />
+                                <c:param name="page" value="${currentPage - 1}" />
+                            </c:url>
+                            <c:url var="nextUrl" value="/admin/infrastructure/cinemas">
+                                <c:param name="keyword" value="${keyword}" />
+                                <c:param name="city" value="${selectedCity}" />
+                                <c:param name="status" value="${selectedStatus}" />
+                                <c:param name="page" value="${currentPage + 1}" />
+                            </c:url>
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:16px; padding-top:16px; border-top:1px solid #e2e8f0;">
+                                <div style="font-size:0.85rem; color:#64748b;">
+                                    Trang <strong>${currentPage}</strong> / <strong>${totalPages}</strong> — ${totalElements} cụm rạp
+                                </div>
+                                <div style="display:flex; gap:8px;">
+                                    <c:if test="${currentPage > 1}">
+                                        <a href="${prevUrl}" class="btn-sm btn-secondary" style="text-decoration:none;">&laquo; Trước</a>
+                                    </c:if>
+                                    <c:if test="${currentPage < totalPages}">
+                                        <a href="${nextUrl}" class="btn-sm btn-secondary" style="text-decoration:none;">Sau &raquo;</a>
+                                    </c:if>
+                                </div>
+                            </div>
+                        </c:if>
                     </div>
                 </div>
 

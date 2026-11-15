@@ -375,7 +375,7 @@
                             <div class="settings-card-footer">
                                 <div class="footer-note">
                                     <i class="fa-solid fa-shield-halved"></i>
-                                    <span>Áp dụng thời gian thực (Real-time) cho toàn bộ các cụm rạp trên hệ thống.</span>
+                                    <span>Áp dụng cho nghiệp vụ giữ ghế và xếp lịch chiếu trên toàn hệ thống.</span>
                                 </div>
                                 <button type="submit" class="btn-save-settings">
                                     <i class="fa-solid fa-floppy-disk"></i>

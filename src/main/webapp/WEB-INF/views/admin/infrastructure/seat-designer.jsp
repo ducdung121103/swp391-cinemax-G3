@@ -412,6 +412,39 @@
                                 </button>
                             </form>
 
+                            <!-- Cập nhật phụ thu loại ghế -->
+                            <div style="margin-top: 15px; padding-top: 15px; border-top: 1px dashed #e2e8f0;">
+                                <div style="font-size: 0.8rem; font-weight: 700; color: #4a5568; margin-bottom: 8px;">
+                                    <i class="fa-solid fa-tags" style="color: #8b5cf6;"></i> CẬP NHẬT PHỤ THU LOẠI GHẾ
+                                </div>
+                                <form method="POST" action="${pageContext.request.contextPath}/admin/infrastructure/seats">
+                                    <input type="hidden" name="action" value="updateSeatType">
+                                    <input type="hidden" name="roomId" value="${selectedRoomId}">
+
+                                    <label style="font-size: 0.8rem; font-weight: 600; color: #4a5568;">Loại ghế:</label>
+                                    <select name="seatTypeId" class="form-select">
+                                        <c:forEach items="${seatTypes}" var="st">
+                                            <option value="${st.id}">${st.name} (${st.typeCode})</option>
+                                        </c:forEach>
+                                    </select>
+
+                                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px;">
+                                        <div>
+                                            <label style="font-size: 0.8rem; font-weight: 600;">Phụ thu (VNĐ):</label>
+                                            <input type="number" name="surcharge" class="form-input" min="0" step="1000" value="0">
+                                        </div>
+                                        <div>
+                                            <label style="font-size: 0.8rem; font-weight: 600;">Màu (hex):</label>
+                                            <input type="text" name="colorHex" class="form-input" placeholder="#e50914" pattern="#[0-9A-Fa-f]{6}">
+                                        </div>
+                                    </div>
+
+                                    <button type="submit" class="btn-action-secondary" style="width: 100%; margin-top: 8px;">
+                                        <i class="fa-solid fa-floppy-disk"></i> Cập Nhật Loại Ghế
+                                    </button>
+                                </form>
+                            </div>
+
                             <!-- Thao tác bảo trì nhanh -->
                             <div style="margin-top: 15px; padding-top: 15px; border-top: 1px dashed #e2e8f0;">
                                 <div style="font-size: 0.8rem; font-weight: 700; color: #4a5568; margin-bottom: 8px;">
@@ -610,7 +643,7 @@
 
         function quickToggleMaint(underMaintenance) {
             if (selectedSeatIds.size === 0) {
-                showSeatError('Vui lòng chọn ít nhất một ghế trên sơ đồ!');
+                alert('Vui lòng chọn ít nhất một ghế trên sơ đồ!');
                 return;
             }
             const form = document.createElement('form');

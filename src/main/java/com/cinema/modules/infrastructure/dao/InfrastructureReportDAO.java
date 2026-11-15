@@ -110,12 +110,27 @@ public class InfrastructureReportDAO {
     // =========================================================================
 
     public BigDecimal getTotalRevenue() {
-        String sql = "SELECT COALESCE(SUM(amount), 0) FROM payments WHERE status = 'SUCCESS'";
+        return getTotalRevenue(null);
+    }
+
+    public BigDecimal getTotalRevenue(Long cinemaId) {
+        String sql;
+        if (cinemaId == null) {
+            sql = "SELECT COALESCE(SUM(amount), 0) FROM payments WHERE status = 'SUCCESS'";
+        } else {
+            sql = "SELECT COALESCE(SUM(p.amount), 0) FROM payments p " +
+                  "JOIN bookings b ON p.booking_id = b.id " +
+                  "JOIN showtimes st ON b.showtime_id = st.id " +
+                  "JOIN screening_rooms sr ON st.screening_room_id = sr.id " +
+                  "WHERE p.status = 'SUCCESS' AND sr.cinema_id = ?";
+        }
         try (Connection conn = DBContext.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
-            if (rs.next()) {
-                return rs.getBigDecimal(1).setScale(0, RoundingMode.HALF_UP);
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            if (cinemaId != null) ps.setLong(1, cinemaId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getBigDecimal(1).setScale(0, RoundingMode.HALF_UP);
+                }
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -124,12 +139,26 @@ public class InfrastructureReportDAO {
     }
 
     public int getTotalConfirmedBookings() {
-        String sql = "SELECT COUNT(*) FROM bookings WHERE status = 'CONFIRMED' AND is_deleted = 0";
+        return getTotalConfirmedBookings(null);
+    }
+
+    public int getTotalConfirmedBookings(Long cinemaId) {
+        String sql;
+        if (cinemaId == null) {
+            sql = "SELECT COUNT(*) FROM bookings WHERE status = 'CONFIRMED' AND is_deleted = 0";
+        } else {
+            sql = "SELECT COUNT(DISTINCT b.id) FROM bookings b " +
+                  "JOIN showtimes st ON b.showtime_id = st.id " +
+                  "JOIN screening_rooms sr ON st.screening_room_id = sr.id " +
+                  "WHERE b.status = 'CONFIRMED' AND b.is_deleted = 0 AND sr.cinema_id = ?";
+        }
         try (Connection conn = DBContext.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
-            if (rs.next()) {
-                return rs.getInt(1);
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            if (cinemaId != null) ps.setLong(1, cinemaId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -138,12 +167,26 @@ public class InfrastructureReportDAO {
     }
 
     public int getTotalValidTickets() {
-        String sql = "SELECT COUNT(*) FROM tickets WHERE status IN ('VALID', 'USED') AND is_deleted = 0";
+        return getTotalValidTickets(null);
+    }
+
+    public int getTotalValidTickets(Long cinemaId) {
+        String sql;
+        if (cinemaId == null) {
+            sql = "SELECT COUNT(*) FROM tickets WHERE status IN ('VALID', 'USED') AND is_deleted = 0";
+        } else {
+            sql = "SELECT COUNT(*) FROM tickets t " +
+                  "JOIN showtimes st ON t.showtime_id = st.id " +
+                  "JOIN screening_rooms sr ON st.screening_room_id = sr.id " +
+                  "WHERE t.status IN ('VALID', 'USED') AND t.is_deleted = 0 AND sr.cinema_id = ?";
+        }
         try (Connection conn = DBContext.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
-            if (rs.next()) {
-                return rs.getInt(1);
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            if (cinemaId != null) ps.setLong(1, cinemaId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -152,12 +195,24 @@ public class InfrastructureReportDAO {
     }
 
     public int getMaintenanceSeatsCount() {
-        String sql = "SELECT COUNT(*) FROM seats WHERE (status = 'MAINTENANCE' OR is_active = 0) AND is_deleted = 0";
+        return getMaintenanceSeatsCount(null);
+    }
+
+    public int getMaintenanceSeatsCount(Long cinemaId) {
+        String sql;
+        if (cinemaId == null) {
+            sql = "SELECT COUNT(*) FROM seats WHERE (status = 'MAINTENANCE' OR is_active = 0) AND is_deleted = 0";
+        } else {
+            sql = "SELECT COUNT(*) FROM seats s JOIN screening_rooms sr ON s.screening_room_id = sr.id " +
+                  "WHERE (s.status = 'MAINTENANCE' OR s.is_active = 0) AND s.is_deleted = 0 AND sr.cinema_id = ?";
+        }
         try (Connection conn = DBContext.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
-            if (rs.next()) {
-                return rs.getInt(1);
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            if (cinemaId != null) ps.setLong(1, cinemaId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -166,6 +221,10 @@ public class InfrastructureReportDAO {
     }
 
     public double getAverageOccupancyRate() {
+        return getAverageOccupancyRate(null);
+    }
+
+    public double getAverageOccupancyRate(Long cinemaId) {
         String sql = "SELECT " +
                      "  CAST(COALESCE(SUM(sub.sold_tickets), 0) AS FLOAT) * 100.0 / NULLIF(SUM(sub.capacity), 0) AS avg_rate " +
                      "FROM (" +
@@ -173,14 +232,18 @@ public class InfrastructureReportDAO {
                      "         (SELECT COUNT(*) FROM tickets t WHERE t.showtime_id = st.id AND t.is_deleted = 0 AND t.status IN ('VALID', 'USED')) AS sold_tickets " +
                      "  FROM showtimes st " +
                      "  JOIN screening_rooms sr ON st.screening_room_id = sr.id " +
-                     "  WHERE st.is_deleted = 0 AND st.status != 'CANCELLED'" +
+                     "  WHERE st.is_deleted = 0 AND st.status != 'CANCELLED' " +
+                     "    AND (? IS NULL OR sr.cinema_id = ?)" +
                      ") sub";
         try (Connection conn = DBContext.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
-            if (rs.next()) {
-                double val = rs.getDouble("avg_rate");
-                return Math.round(val * 10.0) / 10.0;
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setObject(1, cinemaId, java.sql.Types.BIGINT);
+            ps.setObject(2, cinemaId, java.sql.Types.BIGINT);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    double val = rs.getDouble("avg_rate");
+                    return Math.round(val * 10.0) / 10.0;
+                }
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -193,8 +256,12 @@ public class InfrastructureReportDAO {
     // =========================================================================
 
     public List<BranchPerformanceDTO> getBranchPerformanceList() {
+        return getBranchPerformanceList(null);
+    }
+
+    public List<BranchPerformanceDTO> getBranchPerformanceList(Long cinemaId) {
         List<BranchPerformanceDTO> list = new ArrayList<>();
-        BigDecimal totalSysRevenue = getTotalRevenue();
+        BigDecimal totalSysRevenue = getTotalRevenue(cinemaId);
 
         String sql = "SELECT " +
                      "  c.id AS cinema_id, " +
@@ -207,8 +274,11 @@ public class InfrastructureReportDAO {
                      "  (SELECT COUNT(DISTINCT b.id) FROM bookings b JOIN showtimes st ON b.showtime_id = st.id JOIN screening_rooms sr ON st.screening_room_id = sr.id WHERE sr.cinema_id = c.id AND b.status = 'CONFIRMED' AND b.is_deleted = 0) AS total_bookings, " +
                      "  (SELECT COALESCE(SUM(p.amount), 0) FROM payments p JOIN bookings b ON p.booking_id = b.id JOIN showtimes st ON b.showtime_id = st.id JOIN screening_rooms sr ON st.screening_room_id = sr.id WHERE sr.cinema_id = c.id AND p.status = 'SUCCESS') AS total_revenue " +
                      "FROM cinemas c " +
-                     "WHERE c.is_deleted = 0 " +
-                     "ORDER BY total_revenue DESC, c.id ASC";
+                     "WHERE c.is_deleted = 0 ";
+        if (cinemaId != null) {
+            sql += "AND c.id = " + cinemaId + " ";
+        }
+        sql += "ORDER BY total_revenue DESC, c.id ASC";
 
         try (Connection conn = DBContext.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql);
@@ -246,6 +316,10 @@ public class InfrastructureReportDAO {
     // =========================================================================
 
     public List<RecentTransactionDTO> getRecentTransactions(int limit) {
+        return getRecentTransactions(limit, null);
+    }
+
+    public List<RecentTransactionDTO> getRecentTransactions(int limit, Long cinemaId) {
         List<RecentTransactionDTO> list = new ArrayList<>();
         String sql = "SELECT TOP (?) " +
                      "  b.id AS booking_id, " +
@@ -266,8 +340,11 @@ public class InfrastructureReportDAO {
                      "JOIN movies m ON st.movie_id = m.id " +
                      "JOIN screening_rooms sr ON st.screening_room_id = sr.id " +
                      "JOIN cinemas c ON sr.cinema_id = c.id " +
-                     "WHERE b.is_deleted = 0 " +
-                     "ORDER BY b.created_at DESC";
+                     "WHERE b.is_deleted = 0 ";
+        if (cinemaId != null) {
+            sql += "AND c.id = " + cinemaId + " ";
+        }
+        sql += "ORDER BY b.created_at DESC";
 
         try (Connection conn = DBContext.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -302,8 +379,23 @@ public class InfrastructureReportDAO {
     // 4. BÁO CÁO LẤP ĐẦY THEO PHÒNG CHIẾU (HALL OCCUPANCY SUMMARY)
     // =========================================================================
 
-    public List<RoomOccupancyDTO> getRoomOccupancySummaries(Long cinemaId, String roomType) {
+    private String buildShowtimeFilter(boolean pastOnly, String timeSlot) {
+        StringBuilder f = new StringBuilder();
+        if (pastOnly) {
+            f.append(" AND st.start_time <= GETDATE() ");
+        }
+        if ("PRIME_TIME".equalsIgnoreCase(timeSlot)) {
+            f.append(" AND DATEPART(HOUR, st.start_time) BETWEEN 18 AND 22 ");
+        } else if ("OFF_PEAK".equalsIgnoreCase(timeSlot)) {
+            f.append(" AND (DATEPART(HOUR, st.start_time) < 18 OR DATEPART(HOUR, st.start_time) > 22) ");
+        }
+        return f.toString();
+    }
+
+    public List<RoomOccupancyDTO> getRoomOccupancySummaries(Long cinemaId, Long roomId, String roomType,
+                                                              boolean pastOnly, String timeSlot) {
         List<RoomOccupancyDTO> list = new ArrayList<>();
+        String stFilter = buildShowtimeFilter(pastOnly, timeSlot);
         String sql = "SELECT " +
                      "  sr.id AS room_id, " +
                      "  sr.name AS room_name, " +
@@ -312,13 +404,14 @@ public class InfrastructureReportDAO {
                      "  sr.room_type, " +
                      "  sr.total_capacity, " +
                      "  (SELECT COUNT(*) FROM seats s WHERE s.screening_room_id = sr.id AND (s.status = 'MAINTENANCE' OR s.is_active = 0) AND s.is_deleted = 0) AS maintenance_seats, " +
-                     "  (SELECT COUNT(*) FROM showtimes st WHERE st.screening_room_id = sr.id AND st.is_deleted = 0 AND st.status != 'CANCELLED') AS total_showtimes, " +
-                     "  (SELECT COUNT(t.id) FROM tickets t JOIN showtimes st ON t.showtime_id = st.id WHERE st.screening_room_id = sr.id AND t.is_deleted = 0 AND t.status IN ('VALID', 'USED')) AS total_sold_tickets, " +
-                     "  (SELECT COALESCE(SUM(t.ticket_price), 0) FROM tickets t JOIN showtimes st ON t.showtime_id = st.id WHERE st.screening_room_id = sr.id AND t.is_deleted = 0 AND t.status IN ('VALID', 'USED')) AS room_ticket_revenue " +
+                     "  (SELECT COUNT(*) FROM showtimes st WHERE st.screening_room_id = sr.id AND st.is_deleted = 0 AND st.status != 'CANCELLED'" + stFilter + ") AS total_showtimes, " +
+                     "  (SELECT COUNT(t.id) FROM tickets t JOIN showtimes st ON t.showtime_id = st.id WHERE st.screening_room_id = sr.id AND t.is_deleted = 0 AND t.status IN ('VALID', 'USED')" + stFilter + ") AS total_sold_tickets, " +
+                     "  (SELECT COALESCE(SUM(t.ticket_price), 0) FROM tickets t JOIN showtimes st ON t.showtime_id = st.id WHERE st.screening_room_id = sr.id AND t.is_deleted = 0 AND t.status IN ('VALID', 'USED')" + stFilter + ") AS room_ticket_revenue " +
                      "FROM screening_rooms sr " +
                      "JOIN cinemas c ON sr.cinema_id = c.id " +
                      "WHERE sr.is_deleted = 0 " +
                      "  AND (? IS NULL OR sr.cinema_id = ?) " +
+                     "  AND (? IS NULL OR sr.id = ?) " +
                      "  AND (? IS NULL OR sr.room_type = ?) " +
                      "ORDER BY c.id ASC, sr.id ASC";
 
@@ -332,20 +425,30 @@ public class InfrastructureReportDAO {
                 ps.setNull(2, java.sql.Types.BIGINT);
             }
 
-            if (roomType != null && !roomType.isBlank() && !"ALL".equalsIgnoreCase(roomType)) {
-                ps.setString(3, roomType.trim());
-                ps.setString(4, roomType.trim());
+            if (roomId != null && roomId > 0) {
+                ps.setLong(3, roomId);
+                ps.setLong(4, roomId);
             } else {
-                ps.setNull(3, java.sql.Types.VARCHAR);
-                ps.setNull(4, java.sql.Types.VARCHAR);
+                ps.setNull(3, java.sql.Types.BIGINT);
+                ps.setNull(4, java.sql.Types.BIGINT);
+            }
+
+            if (roomType != null && !roomType.isBlank() && !"ALL".equalsIgnoreCase(roomType)) {
+                ps.setString(5, roomType.trim());
+                ps.setString(6, roomType.trim());
+            } else {
+                ps.setNull(5, java.sql.Types.VARCHAR);
+                ps.setNull(6, java.sql.Types.VARCHAR);
             }
 
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     int cap = rs.getInt("total_capacity");
+                    int maintenance = rs.getInt("maintenance_seats");
+                    int effectiveCap = Math.max(0, cap - maintenance);
                     int totalSt = rs.getInt("total_showtimes");
                     int totalSold = rs.getInt("total_sold_tickets");
-                    int totalSeatSupply = totalSt * cap;
+                    int totalSeatSupply = totalSt * effectiveCap;
                     double rate = 0.0;
                     if (totalSeatSupply > 0) {
                         rate = Math.round((totalSold * 100.0 / totalSeatSupply) * 10.0) / 10.0;
@@ -377,8 +480,10 @@ public class InfrastructureReportDAO {
     // 5. BÁO CÁO LẤP ĐẦY THEO TỪNG SUẤT CHIẾU (SHOWTIME OCCUPANCY DETAILS)
     // =========================================================================
 
-    public List<ShowtimeOccupancyDTO> getShowtimeOccupancyDetails(Long cinemaId, Long roomId, String roomType, String timeSlot) {
+    public List<ShowtimeOccupancyDTO> getShowtimeOccupancyDetails(Long cinemaId, Long roomId, String roomType,
+                                                                  String timeSlot, boolean pastOnly) {
         List<ShowtimeOccupancyDTO> list = new ArrayList<>();
+        String stFilter = buildShowtimeFilter(pastOnly, timeSlot);
         String sql = "SELECT " +
                      "  st.id AS showtime_id, " +
                      "  m.id AS movie_id, " +
@@ -391,14 +496,14 @@ public class InfrastructureReportDAO {
                      "  st.experience_format, " +
                      "  st.start_time, " +
                      "  st.end_time, " +
-                     "  sr.total_capacity AS capacity, " +
+                     "  (sr.total_capacity - (SELECT COUNT(*) FROM seats s WHERE s.screening_room_id = sr.id AND (s.status = 'MAINTENANCE' OR s.is_active = 0) AND s.is_deleted = 0)) AS capacity, " +
                      "  (SELECT COUNT(*) FROM tickets t WHERE t.showtime_id = st.id AND t.is_deleted = 0 AND t.status IN ('VALID', 'USED')) AS sold_seats, " +
                      "  (SELECT COALESCE(SUM(t.ticket_price), 0) FROM tickets t WHERE t.showtime_id = st.id AND t.is_deleted = 0 AND t.status IN ('VALID', 'USED')) AS revenue " +
                      "FROM showtimes st " +
                      "JOIN movies m ON st.movie_id = m.id " +
                      "JOIN screening_rooms sr ON st.screening_room_id = sr.id " +
                      "JOIN cinemas c ON sr.cinema_id = c.id " +
-                     "WHERE st.is_deleted = 0 AND st.status != 'CANCELLED' " +
+                     "WHERE st.is_deleted = 0 AND st.status != 'CANCELLED' " + stFilter +
                      "  AND (? IS NULL OR c.id = ?) " +
                      "  AND (? IS NULL OR sr.id = ?) " +
                      "  AND (? IS NULL OR sr.room_type = ?) " +
@@ -441,12 +546,7 @@ public class InfrastructureReportDAO {
                     int hour = startTime.getHour();
                     String slot = (hour >= 18 && hour <= 22) ? "PRIME_TIME" : "OFF_PEAK";
 
-                    // Filter by timeSlot in memory if specified
-                    if (timeSlot != null && !timeSlot.isBlank() && !"ALL".equalsIgnoreCase(timeSlot)) {
-                        if (!timeSlot.equalsIgnoreCase(slot)) {
-                            continue;
-                        }
-                    }
+                    // timeSlot đã được lọc trong SQL bằng DATEPART
 
                     int cap = rs.getInt("capacity");
                     int sold = rs.getInt("sold_seats");

@@ -234,6 +234,24 @@ public class ScreeningRoomDAO {
         return false;
     }
 
+    /**
+     * Kiểm tra phòng đã phát sinh vé hay chưa (phục vụ chặn tái tạo ma trận ghế).
+     */
+    public boolean hasTicketsForRoom(Long roomId) {
+        if (roomId == null) return false;
+        String sql = "SELECT COUNT(*) FROM tickets t JOIN seats s ON t.seat_id = s.id WHERE s.screening_room_id = ?";
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setLong(1, roomId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) return rs.getInt(1) > 0;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
     public boolean softDeleteRoom(Long roomId) {
         return TransactionManager.executeInTransaction(conn -> {
             Long cinemaId = null;
@@ -249,6 +267,13 @@ public class ScreeningRoomDAO {
 
             String sql = "UPDATE screening_rooms SET is_deleted = 1, status = 'INACTIVE', updated_at = GETDATE() WHERE id = ?";
             try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                ps.setLong(1, roomId);
+                ps.executeUpdate();
+            }
+
+            // Đóng toàn bộ ghế thuộc phòng để không còn hiển thị/đặt vé
+            String sqlSeats = "UPDATE seats SET is_deleted = 1, is_active = 0, status = 'INACTIVE', updated_at = GETDATE() WHERE screening_room_id = ? AND is_deleted = 0";
+            try (PreparedStatement ps = conn.prepareStatement(sqlSeats)) {
                 ps.setLong(1, roomId);
                 ps.executeUpdate();
             }
@@ -613,7 +638,14 @@ public class ScreeningRoomDAO {
     }
 
     public int countTotalRooms() {
+        return countTotalRooms(null);
+    }
+
+    public int countTotalRooms(Long cinemaId) {
         String sql = "SELECT COUNT(*) FROM screening_rooms WHERE is_deleted = 0 AND status = 'ACTIVE'";
+        if (cinemaId != null) {
+            sql += " AND cinema_id = " + cinemaId;
+        }
         try (Connection conn = DBContext.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
@@ -627,7 +659,14 @@ public class ScreeningRoomDAO {
     }
 
     public int countTotalSeats() {
+        return countTotalSeats(null);
+    }
+
+    public int countTotalSeats(Long cinemaId) {
         String sql = "SELECT COUNT(*) FROM seats WHERE is_deleted = 0 AND is_active = 1 AND status = 'ACTIVE'";
+        if (cinemaId != null) {
+            sql += " AND screening_room_id IN (SELECT id FROM screening_rooms WHERE cinema_id = " + cinemaId + " AND is_deleted = 0)";
+        }
         try (Connection conn = DBContext.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {

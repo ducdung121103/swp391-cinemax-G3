@@ -223,3 +223,5 @@
                 <span style="color: #10b981;">● Online</span>
             </div>
         </aside>
+        <script>window.__CSRF_TOKEN__ = '${csrfToken}';</script>
+        <script src="${pageContext.request.contextPath}/assets/js/csrf.js"></script>

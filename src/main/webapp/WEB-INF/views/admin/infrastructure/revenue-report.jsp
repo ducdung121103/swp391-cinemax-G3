@@ -465,6 +465,14 @@ function validateRevenueFilter() {
             fromInput.focus();
             return false;
         }
+        const fromDate = new Date(fromInput.value);
+        const toDate = new Date(toInput.value);
+        const days = Math.round((toDate - fromDate) / (1000 * 60 * 60 * 24));
+        if (days > 366) {
+            alert('Khoảng thời gian báo cáo không được vượt quá 366 ngày (1 năm)!');
+            fromInput.focus();
+            return false;
+        }
     }
     return true;
 }

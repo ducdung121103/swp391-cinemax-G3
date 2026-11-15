@@ -54,41 +54,29 @@ public class CinemaDAO {
      * Cập nhật đếm số phòng chiếu thực tế từ bảng screening_rooms.
      */
     public List<Cinema> findAllForAdmin(String keyword, String city, Boolean isActive) {
+        return findAllForAdmin(keyword, city, isActive, 1, 10000);
+    }
+
+    public List<Cinema> findAllForAdmin(String keyword, String city, Boolean isActive, int page, int pageSize) {
         List<Cinema> list = new ArrayList<>();
-        StringBuilder sql = new StringBuilder(
-                "SELECT c.*, " +
-                "(SELECT COUNT(*) FROM screening_rooms r WHERE r.cinema_id = c.id AND r.is_deleted = 0) AS actual_rooms " +
-                "FROM cinemas c WHERE c.is_deleted = 0 "
-        );
-
         List<Object> params = new ArrayList<>();
+        String where = buildAdminFilter(keyword, city, isActive, params);
+        int safePage = Math.max(1, page);
+        int safeSize = Math.max(1, pageSize);
 
-        if (keyword != null && !keyword.trim().isEmpty()) {
-            sql.append("AND (LOWER(c.name) LIKE ? OR LOWER(c.cinema_code) LIKE ? OR LOWER(c.address) LIKE ?) ");
-            String kw = "%" + keyword.trim().toLowerCase() + "%";
-            params.add(kw);
-            params.add(kw);
-            params.add(kw);
-        }
-
-        if (city != null && !city.trim().isEmpty() && !"ALL".equalsIgnoreCase(city.trim())) {
-            sql.append("AND LOWER(c.city) = LOWER(?) ");
-            params.add(city.trim());
-        }
-
-        if (isActive != null) {
-            sql.append("AND c.is_active = ? ");
-            params.add(isActive ? 1 : 0);
-        }
-
-        sql.append("ORDER BY c.id DESC");
+        String sql = "SELECT c.*, " +
+                "(SELECT COUNT(*) FROM screening_rooms r WHERE r.cinema_id = c.id AND r.is_deleted = 0) AS actual_rooms " +
+                "FROM cinemas c WHERE c.is_deleted = 0 " + where +
+                " ORDER BY c.id DESC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
 
         try (Connection conn = DBContext.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
-
-            for (int i = 0; i < params.size(); i++) {
-                ps.setObject(i + 1, params.get(i));
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            int idx = 1;
+            for (Object p : params) {
+                ps.setObject(idx++, p);
             }
+            ps.setInt(idx++, (safePage - 1) * safeSize);
+            ps.setInt(idx, safeSize);
 
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
@@ -104,6 +92,45 @@ public class CinemaDAO {
             e.printStackTrace();
         }
         return list;
+    }
+
+    public int countForAdmin(String keyword, String city, Boolean isActive) {
+        List<Object> params = new ArrayList<>();
+        String where = buildAdminFilter(keyword, city, isActive, params);
+        String sql = "SELECT COUNT(*) FROM cinemas c WHERE c.is_deleted = 0 " + where;
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            int idx = 1;
+            for (Object p : params) {
+                ps.setObject(idx++, p);
+            }
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) return rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    private String buildAdminFilter(String keyword, String city, Boolean isActive, List<Object> params) {
+        StringBuilder where = new StringBuilder();
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            where.append("AND (LOWER(c.name) LIKE ? OR LOWER(c.cinema_code) LIKE ? OR LOWER(c.address) LIKE ?) ");
+            String kw = "%" + keyword.trim().toLowerCase() + "%";
+            params.add(kw);
+            params.add(kw);
+            params.add(kw);
+        }
+        if (city != null && !city.trim().isEmpty() && !"ALL".equalsIgnoreCase(city.trim())) {
+            where.append("AND LOWER(c.city) = LOWER(?) ");
+            params.add(city.trim());
+        }
+        if (isActive != null) {
+            where.append("AND c.is_active = ? ");
+            params.add(isActive ? 1 : 0);
+        }
+        return where.toString();
     }
 
     /**
@@ -218,7 +245,15 @@ public class CinemaDAO {
                 ps.executeUpdate();
             }
 
-            // 2. Cascading soft delete toàn bộ phòng chiếu thuộc rạp
+            // 2. Đóng toàn bộ ghế thuộc các phòng của rạp (trước khi đóng phòng để subquery còn thấy phòng)
+            String sqlSeats = "UPDATE seats SET is_deleted = 1, is_active = 0, status = 'INACTIVE', updated_at = GETDATE() " +
+                              "WHERE screening_room_id IN (SELECT id FROM screening_rooms WHERE cinema_id = ? AND is_deleted = 0)";
+            try (PreparedStatement ps = conn.prepareStatement(sqlSeats)) {
+                ps.setLong(1, id);
+                ps.executeUpdate();
+            }
+
+            // 3. Cascading soft delete toàn bộ phòng chiếu thuộc rạp
             String sqlRooms = "UPDATE screening_rooms SET is_deleted = 1, status = 'INACTIVE', updated_at = GETDATE() WHERE cinema_id = ? AND is_deleted = 0";
             try (PreparedStatement ps = conn.prepareStatement(sqlRooms)) {
                 ps.setLong(1, id);
@@ -285,7 +320,14 @@ public class CinemaDAO {
     }
 
     public int countTotalCinemas() {
+        return countTotalCinemas(null);
+    }
+
+    public int countTotalCinemas(Long cinemaId) {
         String sql = "SELECT COUNT(*) FROM cinemas WHERE is_deleted = 0 AND is_active = 1";
+        if (cinemaId != null) {
+            sql += " AND id = " + cinemaId;
+        }
         try (Connection conn = DBContext.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {

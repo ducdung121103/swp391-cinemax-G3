@@ -67,6 +67,11 @@ public class AuthorizationFilter implements Filter {
                         "Báo cáo Tỷ lệ Lấp đầy chỉ dành riêng cho Quản trị viên (Admin)!");
                 return;
             }
+            if (uri.contains("/admin/infrastructure/seats") || uri.contains("/admin/seats")) {
+                res.sendError(HttpServletResponse.SC_FORBIDDEN,
+                        "Thiết kế sơ đồ ghế chỉ dành riêng cho Quản trị viên (Admin)!");
+                return;
+            }
             if (uri.contains("/admin/catalog/movies") || uri.contains("/admin/movies")) {
                 res.sendError(HttpServletResponse.SC_FORBIDDEN,
                         "Chỉ Admin hệ thống mới được quyền quản lý danh mục Phim!");

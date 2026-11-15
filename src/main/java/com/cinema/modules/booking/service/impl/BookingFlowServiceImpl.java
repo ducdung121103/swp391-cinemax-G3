@@ -1,7 +1,9 @@
 package com.cinema.modules.booking.service.impl;
 
 import com.cinema.common.dao.SystemSettingDAO;
+import com.cinema.common.transaction.TransactionManager;
 import com.cinema.common.util.ValidationUtil;
+import com.cinema.model.Booking;
 import com.cinema.model.Cinema;
 import com.cinema.model.FnBItem;
 import com.cinema.model.Seat;
@@ -15,6 +17,8 @@ import com.cinema.modules.booking.dto.BookingResult;
 import com.cinema.modules.booking.dto.CreateBookingDTO;
 import com.cinema.modules.booking.dto.CustomerBookingHistoryDTO;
 import com.cinema.modules.booking.dao.BookingDAO;
+import com.cinema.modules.booking.dao.PaymentDAO;
+import com.cinema.modules.booking.dao.TicketDAO;
 import com.cinema.modules.booking.service.BookingEngineService;
 import com.cinema.modules.booking.service.BookingFlowService;
 import com.cinema.modules.booking.service.VNPayService;
@@ -32,6 +36,7 @@ import com.cinema.modules.operation.service.impl.FnBMenuServiceImpl;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.sql.SQLException;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
@@ -51,6 +56,8 @@ public class BookingFlowServiceImpl implements BookingFlowService {
     private final BookingEngineService bookingEngineService;
     private final VNPayService vnpayService;
     private final BookingDAO bookingDAO;
+    private final TicketDAO ticketDAO = new TicketDAO();
+    private final PaymentDAO paymentDAO = new PaymentDAO();
 
     public BookingFlowServiceImpl() {
         this(new ShowtimeServiceImpl(), new ScreeningRoomServiceImpl(), new PricingServiceImpl(),
@@ -317,6 +324,32 @@ public class BookingFlowServiceImpl implements BookingFlowService {
     @Override
     public boolean cancelPendingVnpayBooking(String bookingCode, Long userId) {
         return bookingEngineService.cancelPendingVnpayBooking(bookingCode, userId);
+    }
+
+    @Override
+    public boolean cancelConfirmedBooking(String bookingCode, Long userId) {
+        if (bookingCode == null || bookingCode.isBlank() || userId == null) {
+            return false;
+        }
+        int deadlineHours = systemSettingDAO.getIntSetting("CANCELLATION_DEADLINE_HOURS", 2);
+        return TransactionManager.executeInTransaction(conn -> {
+            Booking booking = bookingDAO.findByCode(conn, bookingCode);
+            if (booking == null || booking.getUserId() == null || !userId.equals(booking.getUserId())
+                    || !"CONFIRMED".equalsIgnoreCase(booking.getStatus())) {
+                return false;
+            }
+            Showtime showtime = showtimeService.getShowtimeById(booking.getShowtimeId());
+            if (showtime == null || showtime.getStartTime() == null) {
+                return false;
+            }
+            if (LocalDateTime.now().plusHours(deadlineHours).isAfter(showtime.getStartTime())) {
+                throw new IllegalArgumentException("Chỉ được hủy vé trước giờ chiếu tối thiểu " + deadlineHours + " giờ!");
+            }
+            bookingDAO.updateStatusByCode(conn, bookingCode, "CANCELLED");
+            ticketDAO.cancelByBooking(conn, booking.getId());
+            paymentDAO.refundByBooking(conn, booking.getId());
+            return true;
+        });
     }
 
     @Override

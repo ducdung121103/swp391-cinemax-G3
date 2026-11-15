@@ -2,6 +2,7 @@ package com.cinema.modules.infrastructure.controller;
 
 import com.cinema.model.Cinema;
 import com.cinema.model.ScreeningRoom;
+import com.cinema.model.User;
 import com.cinema.modules.infrastructure.dao.InfrastructureReportDAO;
 import com.cinema.modules.infrastructure.service.ScreeningRoomService;
 import com.cinema.modules.infrastructure.service.impl.ScreeningRoomServiceImpl;
@@ -10,6 +11,7 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -34,28 +36,39 @@ public class AdminDashboardServlet extends HttpServlet {
     // 5. Response: Forward /WEB-INF/views/admin/infrastructure/dashboard.jsp
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        // 1. KPI chỉ số toàn cục từ database
-        BigDecimal totalRevenue = reportDAO.getTotalRevenue();
-        int totalConfirmedBookings = reportDAO.getTotalConfirmedBookings();
-        int totalValidTickets = reportDAO.getTotalValidTickets();
-        double avgOccupancyRate = reportDAO.getAverageOccupancyRate();
+        HttpSession session = req.getSession(false);
+        User currentUser = (session != null) ? (User) session.getAttribute("currentUser") : null;
+        boolean isManager = currentUser != null && currentUser.getRole() != null
+                && "MANAGER".equalsIgnoreCase(currentUser.getRole().getRoleName());
+        Long scopeCinemaId = null;
+        if (isManager) {
+            scopeCinemaId = currentUser.getCinemaId();
+            if (scopeCinemaId == null) scopeCinemaId = -1L;
+        }
 
-        int totalCinemas = screeningRoomService.getTotalCinemasCount();
-        int totalRooms = screeningRoomService.getTotalRoomsCount();
-        int totalSeats = screeningRoomService.getTotalSeatsCount();
-        int maintenanceSeats = reportDAO.getMaintenanceSeatsCount();
+        // 1. KPI chỉ số (Manager chỉ thấy chi nhánh của mình)
+        BigDecimal totalRevenue = reportDAO.getTotalRevenue(scopeCinemaId);
+        int totalConfirmedBookings = reportDAO.getTotalConfirmedBookings(scopeCinemaId);
+        int totalValidTickets = reportDAO.getTotalValidTickets(scopeCinemaId);
+        double avgOccupancyRate = reportDAO.getAverageOccupancyRate(scopeCinemaId);
+
+        int totalCinemas = screeningRoomService.getTotalCinemasCount(scopeCinemaId);
+        int totalRooms = screeningRoomService.getTotalRoomsCount(scopeCinemaId);
+        int totalSeats = screeningRoomService.getTotalSeatsCount(scopeCinemaId);
+        int maintenanceSeats = reportDAO.getMaintenanceSeatsCount(scopeCinemaId);
 
         // 2. Hiệu suất kinh doanh theo cụm rạp
-        List<InfrastructureReportDAO.BranchPerformanceDTO> branchPerformances = reportDAO.getBranchPerformanceList();
+        List<InfrastructureReportDAO.BranchPerformanceDTO> branchPerformances = reportDAO.getBranchPerformanceList(scopeCinemaId);
 
         // 3. Giao dịch đặt vé & thanh toán mới nhất
-        List<InfrastructureReportDAO.RecentTransactionDTO> recentTransactions = reportDAO.getRecentTransactions(8);
+        List<InfrastructureReportDAO.RecentTransactionDTO> recentTransactions = reportDAO.getRecentTransactions(8, scopeCinemaId);
 
         // 4. Danh sách cụm rạp và phòng chiếu
         List<Cinema> cinemas = screeningRoomService.getAllCinemas();
         List<ScreeningRoom> recentRooms = screeningRoomService.getAllRoomsWithCinema(null, null, null);
 
         // Truyền attributes ra JSP
+        req.setAttribute("scopeCinemaId", scopeCinemaId);
         req.setAttribute("totalRevenue", totalRevenue);
         req.setAttribute("totalConfirmedBookings", totalConfirmedBookings);
         req.setAttribute("totalValidTickets", totalValidTickets);

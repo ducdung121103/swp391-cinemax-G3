@@ -36,6 +36,14 @@ public class PaymentDAO {
         }
     }
 
+    public int refundByBooking(Connection conn, Long bookingId) throws SQLException {
+        String sql = "UPDATE payments SET status = 'REFUNDED' WHERE booking_id = ?";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setLong(1, bookingId);
+            return ps.executeUpdate();
+        }
+    }
+
     public void updatePaymentStatusByBookingId(Connection conn, Long bookingId, String transactionNo,
                                               String status) throws SQLException {
         String sql = "UPDATE payments SET transaction_no = ?, status = ?, payment_time = GETDATE() WHERE booking_id = ?";

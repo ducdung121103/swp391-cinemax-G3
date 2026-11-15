@@ -191,9 +191,15 @@
                         <!-- Lọc Khung Giờ Chiếu -->
                         <select name="timeSlot" class="filter-select" onchange="document.getElementById('filterForm').submit()">
                             <option value="ALL" ${selectedTimeSlot == 'ALL' ? 'selected' : ''}>-- Khung giờ chiếu --</option>
-                            <option value="PRIME_TIME" ${selectedTimeSlot == 'PRIME_TIME' ? 'selected' : ''}>🔥 Giờ Vàng (18:00 - 23:00)</option>
-                            <option value="OFF_PEAK" ${selectedTimeSlot == 'OFF_PEAK' ? 'selected' : ''}>☀️ Giờ Thường (Trước 18:00)</option>
+                            <option value="PRIME_TIME" ${selectedTimeSlot == 'PRIME_TIME' ? 'selected' : ''}>🔥 Giờ Vàng (18:00 - 22:59)</option>
+                            <option value="OFF_PEAK" ${selectedTimeSlot == 'OFF_PEAK' ? 'selected' : ''}>☀️ Giờ Thường (Trước 18:00 hoặc sau 22:59)</option>
                         </select>
+
+                        <label style="display:flex; align-items:center; gap:6px; font-size:0.8rem; color:#475569; margin-left:8px;">
+                            <input type="checkbox" name="pastOnly" value="1" ${pastOnly ? 'checked' : ''}
+                                   onchange="document.getElementById('filterForm').submit()">
+                            Chỉ suất đã diễn ra
+                        </label>
                     </div>
 
                     <div>
@@ -214,7 +220,7 @@
                     <div class="kpi-stat-card">
                         <h4>Hiệu Suất Khung Giờ Vàng</h4>
                         <div class="kpi-value" style="color: #d97706;">${primeTimeOccupancyRate}%</div>
-                        <small style="color: #64748b; font-size: 0.75rem;">18:00 - 23:00 hàng ngày (Prime Time)</small>
+                        <small style="color: #64748b; font-size: 0.75rem;">18:00 - 22:59 hàng ngày (Prime Time)</small>
                     </div>
 
                     <div class="kpi-stat-card">

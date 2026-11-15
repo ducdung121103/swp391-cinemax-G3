@@ -44,7 +44,17 @@ public class CinemaAdminServlet extends HttpServlet {
             isActive = false;
         }
 
-        List<Cinema> cinemas = screeningRoomService.getAllCinemasForAdmin(keyword, city, isActive);
+        int page = 1;
+        String pageParam = req.getParameter("page");
+        if (pageParam != null && !pageParam.trim().isEmpty()) {
+            try { page = Math.max(1, Integer.parseInt(pageParam.trim())); } catch (NumberFormatException ignored) {}
+        }
+        final int pageSize = 10;
+        int totalElements = screeningRoomService.countCinemasForAdmin(keyword, city, isActive);
+        int totalPages = Math.max(1, (int) Math.ceil((double) totalElements / pageSize));
+        if (page > totalPages) page = totalPages;
+
+        List<Cinema> cinemas = screeningRoomService.getAllCinemasForAdmin(keyword, city, isActive, page, pageSize);
         List<String> cities = screeningRoomService.getAllCities();
 
         req.setAttribute("cinemas", cinemas);
@@ -53,6 +63,10 @@ public class CinemaAdminServlet extends HttpServlet {
         req.setAttribute("selectedCity", city);
         req.setAttribute("selectedStatus", statusParam);
         req.setAttribute("actor", currentUser(req));
+        req.setAttribute("currentPage", page);
+        req.setAttribute("totalPages", totalPages);
+        req.setAttribute("totalElements", totalElements);
+        req.setAttribute("pageSize", pageSize);
 
         // Flash message handling
         String msg = req.getParameter("msg");

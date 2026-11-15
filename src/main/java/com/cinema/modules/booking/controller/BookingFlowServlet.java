@@ -26,7 +26,7 @@ import java.util.*;
  * Bắt buộc đăng nhập để lấy thông tin khách và gắn tài khoản vào vé đã mua.
  */
 @WebServlet(name = "BookingFlowServlet", urlPatterns = {
-        "/booking/hold", "/booking/checkout", "/booking/retry-payment", "/booking/cancel-payment"
+        "/booking/hold", "/booking/checkout", "/booking/retry-payment", "/booking/cancel-payment", "/booking/cancel"
 })
 public class BookingFlowServlet extends HttpServlet {
 
@@ -95,6 +95,30 @@ public class BookingFlowServlet extends HttpServlet {
             } catch (Exception e) {
                 resp.getWriter().write(JsonUtil.toJson(
                         ApiResponse.error("PAYMENT_CANCEL_FAILED", e.getMessage())));
+            }
+            return;
+        }
+
+        if ("/booking/cancel".equals(path)) {
+            try {
+                boolean cancelled = bookingFlowService.cancelConfirmedBooking(
+                        req.getParameter("bookingCode"), currentUser.getId());
+                if (!cancelled) {
+                    resp.getWriter().write(JsonUtil.toJson(
+                            ApiResponse.error("BOOKING_CANCEL_FAILED",
+                                    "Đơn không còn ở trạng thái có thể hủy hoặc không thuộc tài khoản của bạn.")));
+                    return;
+                }
+                Map<String, Object> responseData = new HashMap<>();
+                responseData.put("success", true);
+                responseData.put("message", "Đã hủy vé, hoàn tiền và giải phóng ghế.");
+                resp.getWriter().write(JsonUtil.toJson(responseData));
+            } catch (IllegalArgumentException e) {
+                resp.getWriter().write(JsonUtil.toJson(
+                        ApiResponse.error("BOOKING_CANCEL_NOT_ALLOWED", e.getMessage())));
+            } catch (Exception e) {
+                resp.getWriter().write(JsonUtil.toJson(
+                        ApiResponse.error("BOOKING_CANCEL_FAILED", e.getMessage())));
             }
             return;
         }
