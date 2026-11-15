@@ -46,3 +46,9 @@ plans/
 *.xlsx
 cine-diagram/
 Feature_Tree*.md
+
+# Local execution scripts (Giữ trên máy cá nhân, không đẩy lên Git)
+run.bat
+*.bat
+*.cmd
+*.ps1.bak
