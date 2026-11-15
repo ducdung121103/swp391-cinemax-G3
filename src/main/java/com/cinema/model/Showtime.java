@@ -45,5 +45,42 @@ public class Showtime extends BaseEntity {
         if (startTime == null) return "";
         return startTime.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"));
     }
+
+    /** Số phút trước giờ chiếu mà Manager/Admin không còn được sửa/xóa suất. */
+    public static final int EDIT_LOCK_MINUTES = 30;
+
+    /**
+     * Trạng thái hiển thị (Cách A): tính theo đồng hồ, không cần job cập nhật DB.
+     * CANCELLED trong DB luôn thắng; còn lại suy ra từ start/end.
+     */
+    public String getDisplayStatus() {
+        if (status != null && "CANCELLED".equalsIgnoreCase(status.trim())) {
+            return "CANCELLED";
+        }
+        if (startTime == null) {
+            return status == null || status.isBlank() ? "SCHEDULED" : status.trim();
+        }
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime end = endTime != null ? endTime : startTime;
+        if (!now.isBefore(end)) {
+            return "FINISHED";
+        }
+        if (!now.isBefore(startTime)) {
+            return "OPENING";
+        }
+        return "SCHEDULED";
+    }
+
+    /** true nếu đã hủy / đã chiếu / còn &lt; 30 phút trước giờ chiếu (hoặc đã bắt đầu). */
+    public boolean isEditLocked() {
+        if (status != null && "CANCELLED".equalsIgnoreCase(status.trim())) {
+            return true;
+        }
+        if (startTime == null) {
+            return true;
+        }
+        LocalDateTime lockFrom = startTime.minusMinutes(EDIT_LOCK_MINUTES);
+        return !LocalDateTime.now().isBefore(lockFrom);
+    }
 }
 
