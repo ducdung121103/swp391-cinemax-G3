@@ -44,7 +44,7 @@ public class TicketDAO {
                          "AND st.status IN ('SCHEDULED', 'OPENING') AND st.start_time > GETDATE() " +
                          "AND sr.is_deleted = 0 AND sr.status = 'ACTIVE' AND c.is_deleted = 0 AND c.is_active = 1";
         String ticketSql = "SELECT 1 FROM tickets WITH (UPDLOCK, HOLDLOCK) " +
-                           "WHERE showtime_id = ? AND seat_id = ?";
+                           "WHERE showtime_id = ? AND seat_id = ? AND status NOT IN ('CANCELLED', 'REFUNDED')";
         String holdingSql = "SELECT session_id FROM seat_holdings WITH (UPDLOCK, HOLDLOCK) " +
                             "WHERE showtime_id = ? AND seat_id = ? AND expires_at > GETDATE()";
 
@@ -86,8 +86,13 @@ public class TicketDAO {
     }
 
     public void insertTickets(Connection conn, Long bookingId, Long showtimeId, List<Long> seatIds, List<BigDecimal> prices) throws SQLException {
+        insertTickets(conn, bookingId, showtimeId, seatIds, prices, "VALID");
+    }
+
+    public void insertTickets(Connection conn, Long bookingId, Long showtimeId, List<Long> seatIds,
+                              List<BigDecimal> prices, String status) throws SQLException {
         String sql = "INSERT INTO tickets (booking_id, showtime_id, seat_id, barcode, ticket_price, status) " +
-                     "VALUES (?, ?, ?, ?, ?, 'VALID')";
+                     "VALUES (?, ?, ?, ?, ?, ?)";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             for (int i = 0; i < seatIds.size(); i++) {
                 Long seatId = seatIds.get(i);
@@ -99,30 +104,39 @@ public class TicketDAO {
                 ps.setLong(3, seatId);
                 ps.setString(4, barcode);
                 ps.setBigDecimal(5, price);
+                ps.setString(6, status);
                 ps.addBatch();
             }
             ps.executeBatch();
         }
     }
 
-public List<TicketReceipt> findReceiptItems(Connection conn, Long bookingId) throws SQLException {
-        String sql = "SELECT s.seat_code, t.barcode, t.ticket_price " +
-                     "FROM tickets t JOIN seats s ON s.id = t.seat_id " +
-                     "WHERE t.booking_id = ? ORDER BY s.seat_row, s.seat_number";
-        List<TicketReceipt> items = new java.util.ArrayList<>();
+    public int activatePendingTickets(Connection conn, Long bookingId) throws SQLException {
+        String sql = "UPDATE tickets SET status = 'VALID' WHERE booking_id = ? AND status = 'PENDING'";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setLong(1, bookingId);
+            return ps.executeUpdate();
+        }
+    }
+
+    public List<Long> findSeatIdsByBooking(Connection conn, Long bookingId) throws SQLException {
+        String sql = "SELECT seat_id FROM tickets WHERE booking_id = ? AND status IN ('PENDING', 'VALID')";
+        List<Long> seatIds = new ArrayList<>();
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setLong(1, bookingId);
             try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    items.add(TicketReceipt.builder()
-                            .seatCode(rs.getString("seat_code"))
-                            .barcode(rs.getString("barcode"))
-                            .ticketPrice(rs.getBigDecimal("ticket_price"))
-                            .build());
-                }
+                while (rs.next()) seatIds.add(rs.getLong("seat_id"));
             }
         }
-        return items;
+        return seatIds;
+    }
+
+    public int deleteBookingTickets(Connection conn, Long bookingId) throws SQLException {
+        String sql = "DELETE FROM tickets WHERE booking_id = ? AND status = 'PENDING'";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setLong(1, bookingId);
+            return ps.executeUpdate();
+        }
     }
 
     public int countByShowtime(Long showtimeId) {
@@ -160,6 +174,26 @@ public List<TicketReceipt> findReceiptItems(Connection conn, Long bookingId) thr
             e.printStackTrace();
         }
         return codes;
+    }
+
+    public List<TicketReceipt> findReceiptItems(Connection conn, Long bookingId) throws SQLException {
+        String sql = "SELECT s.seat_code, t.barcode, t.ticket_price " +
+                     "FROM tickets t JOIN seats s ON s.id = t.seat_id " +
+                     "WHERE t.booking_id = ? ORDER BY s.seat_row, s.seat_number";
+        List<TicketReceipt> items = new ArrayList<>();
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setLong(1, bookingId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    items.add(TicketReceipt.builder()
+                            .seatCode(rs.getString("seat_code"))
+                            .barcode(rs.getString("barcode"))
+                            .ticketPrice(rs.getBigDecimal("ticket_price"))
+                            .build());
+                }
+            }
+        }
+        return items;
     }
 
     public Ticket findByBarcode(String barcode) {

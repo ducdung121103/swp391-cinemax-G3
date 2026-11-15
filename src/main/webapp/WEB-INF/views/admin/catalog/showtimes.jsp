@@ -95,10 +95,6 @@
             <section class="admin-card schedule-board">
                 <div class="schedule-head">
                     <h2>Quản lý lịch chiếu</h2>
-                    <a class="create-btn" href="${pageContext.request.contextPath}${listPath}/create">
-                        <span class="create-plus">+</span>
-                        Tạo lịch chiếu
-                    </a>
                 </div>
                 <div class="schedule-body">
                     <c:if test="${msg == 'created'}">
@@ -127,10 +123,6 @@
                     </c:if>
 
                     <c:forEach var="movie" items="${movies}" varStatus="st">
-                        <c:set var="hasSlot" value="false" />
-                        <c:forEach var="showtime" items="${showtimes}">
-                            <c:if test="${showtime.movieId == movie.id}"><c:set var="hasSlot" value="true" /></c:if>
-                        </c:forEach>
                         <article class="movie-frame">
                             <header class="movie-head">
                                 <span class="stt">${st.index + 1}</span>
@@ -144,9 +136,7 @@
                                         </c:choose>
                                     </p>
                                 </div>
-                                <c:if test="${hasSlot == 'true'}">
-                                    <a class="add-slot" href="${pageContext.request.contextPath}${listPath}/create?movieId=${movie.id}&amp;cinemaId=${selectedCinemaId}">Thêm suất</a>
-                                </c:if>
+                                <a class="add-slot" href="${pageContext.request.contextPath}${listPath}/create?movieId=${movie.id}&amp;cinemaId=${selectedCinemaId}">Thêm suất</a>
                             </header>
                             <div class="slot-list">
                                 <c:set var="hasSlot" value="false" />
@@ -175,15 +165,6 @@
                                                     <option value="2D" ${showtime.experienceFormat == '2D' ? 'selected' : ''}>2D</option>
                                                     <option value="3D" ${showtime.experienceFormat == '3D' ? 'selected' : ''}>3D</option>
                                                     <option value="IMAX" ${showtime.experienceFormat == 'IMAX' ? 'selected' : ''}>IMAX</option>
-                                                </select>
-                                            </div>
-                                            <div>
-                                                <label>Trạng thái</label>
-                                                <select class="slot-input" name="status">
-                                                    <option value="SCHEDULED" ${showtime.status == 'SCHEDULED' ? 'selected' : ''}>Đã lên lịch</option>
-                                                    <option value="OPENING" ${showtime.status == 'OPENING' ? 'selected' : ''}>Đang chiếu</option>
-                                                    <option value="FINISHED" ${showtime.status == 'FINISHED' ? 'selected' : ''}>Đã xong</option>
-                                                    <option value="CANCELLED" ${showtime.status == 'CANCELLED' ? 'selected' : ''}>Đã hủy</option>
                                                 </select>
                                             </div>
                                             <button class="save-btn" type="submit" name="action" value="update">Lưu</button>

@@ -58,15 +58,29 @@ public class CustomerBookingHistoryDTO {
     @Builder.Default
     private List<FnbReceipt> fnbItems = new ArrayList<>();
 
+    // Các trường định dạng sẵn cho JSON API và hiển thị JSP
+    private String formattedShowtime;
+    private String formattedCreatedAt;
+    private String displayCustomerName;
+    private String seatCodesString;
+    private Integer ticketCount;
+    private Boolean upcoming;
+
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm - dd/MM/yyyy");
     private static final DateTimeFormatter TIME_ONLY = DateTimeFormatter.ofPattern("HH:mm");
     private static final DateTimeFormatter DATE_ONLY = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
     public String getFormattedCreatedAt() {
+        if (formattedCreatedAt != null && !formattedCreatedAt.isBlank()) {
+            return formattedCreatedAt;
+        }
         return createdAt != null ? createdAt.format(DATE_TIME_FORMATTER) : "";
     }
 
     public String getDisplayCustomerName() {
+        if (displayCustomerName != null && !displayCustomerName.isBlank()) {
+            return displayCustomerName;
+        }
         if (customerName != null && !customerName.isBlank()) {
             return customerName;
         }
@@ -74,11 +88,17 @@ public class CustomerBookingHistoryDTO {
     }
 
     public String getFormattedShowtime() {
+        if (formattedShowtime != null && !formattedShowtime.isBlank()) {
+            return formattedShowtime;
+        }
         if (showtimeStartTime == null) return "";
         return showtimeStartTime.format(TIME_ONLY) + " &bull; " + showtimeStartTime.format(DATE_ONLY);
     }
 
     public String getSeatCodesString() {
+        if (seatCodesString != null && !seatCodesString.isBlank()) {
+            return seatCodesString;
+        }
         if (tickets == null || tickets.isEmpty()) return "Chưa có ghế";
         return tickets.stream()
                 .map(TicketReceipt::getSeatCode)
@@ -87,10 +107,12 @@ public class CustomerBookingHistoryDTO {
     }
 
     public int getTicketCount() {
+        if (ticketCount != null) return ticketCount;
         return tickets != null ? tickets.size() : 0;
     }
 
     public boolean isUpcoming() {
+        if (upcoming != null) return upcoming;
         return showtimeStartTime != null && showtimeStartTime.isAfter(LocalDateTime.now());
     }
 }

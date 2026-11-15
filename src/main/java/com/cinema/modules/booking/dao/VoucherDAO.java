@@ -56,6 +56,15 @@ public class VoucherDAO {
         return false;
     }
 
+    public boolean decrementUsedCount(Connection conn, Long voucherId) throws SQLException {
+        String sql = "UPDATE vouchers SET used_count = used_count - 1, updated_at = GETDATE() "
+                + "WHERE id = ? AND used_count > 0";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setLong(1, voucherId);
+            return ps.executeUpdate() == 1;
+        }
+    }
+
     private Voucher mapVoucher(ResultSet rs) throws SQLException {
         Voucher v = new Voucher();
         v.setId(rs.getLong("id"));

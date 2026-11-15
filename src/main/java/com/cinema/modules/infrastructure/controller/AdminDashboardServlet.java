@@ -19,7 +19,7 @@ import java.util.List;
  * Controller hiển thị Bảng điều khiển Quản trị Trung tâm (Admin Dashboard - Function 6 - Iter 2).
  * Do Leader (TV 1 - Dũng) phụ trách quản trị tổng quan hệ sinh thái rạp.
  */
-@WebServlet(name = "AdminDashboardServlet", urlPatterns = {"/admin/dashboard"})
+@WebServlet(name = "AdminDashboardServlet", urlPatterns = {"/admin/dashboard", "/admin", "/admin/"})
 public class AdminDashboardServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
 

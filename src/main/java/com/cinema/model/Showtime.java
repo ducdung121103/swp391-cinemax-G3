@@ -30,5 +30,20 @@ public class Showtime extends BaseEntity {
     // Quan há»‡ Ä‘iá»u hÆ°á»›ng
     private Movie movie;
     private ScreeningRoom screeningRoom;
+
+    public String getFormattedStartTime() {
+        if (startTime == null) return "";
+        return startTime.format(java.time.format.DateTimeFormatter.ofPattern("HH:mm - dd/MM/yyyy"));
+    }
+
+    public String getFormattedTimeOnly() {
+        if (startTime == null) return "";
+        return startTime.format(java.time.format.DateTimeFormatter.ofPattern("HH:mm"));
+    }
+
+    public String getFormattedDateOnly() {
+        if (startTime == null) return "";
+        return startTime.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+    }
 }
 

@@ -136,6 +136,22 @@ public class OrderItemDAO {
         return items;
     }
 
+    public void restoreFnbStock(Connection conn, Long bookingId) throws SQLException {
+        String sql = "UPDATE inventory SET inventory.stock_quantity = inventory.stock_quantity + items.quantity, "
+                + "inventory.updated_at = GETDATE() "
+                + "FROM cinema_inventories inventory "
+                + "JOIN (SELECT sr.cinema_id, oi.fnb_item_id, SUM(oi.quantity) AS quantity "
+                + "FROM order_items oi JOIN bookings b ON b.id = oi.booking_id "
+                + "JOIN showtimes st ON st.id = b.showtime_id "
+                + "JOIN screening_rooms sr ON sr.id = st.screening_room_id "
+                + "WHERE oi.booking_id = ? GROUP BY sr.cinema_id, oi.fnb_item_id) items "
+                + "ON inventory.cinema_id = items.cinema_id AND inventory.fnb_item_id = items.fnb_item_id";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setLong(1, bookingId);
+            ps.executeUpdate();
+        }
+    }
+
     public Long findCinemaIdByBooking(Connection conn, Long bookingId) {
         String sql = "SELECT sr.cinema_id FROM bookings b " +
                      "JOIN showtimes st ON b.showtime_id = st.id " +

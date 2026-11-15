@@ -280,7 +280,7 @@
 .seat-option.is-held,
 .seat-option.is-unavailable { cursor: not-allowed; }
 .seat-option.is-sold span { color: #858a96; background: #d9dce3; border-color: #c1c5ce; }
-.seat-option.is-held span { color: #88620e; background: #fff0c5; border-color: #e4c56e; }
+.seat-option.is-held span { color: #475569; background: repeating-linear-gradient(45deg, #f1f5f9, #f1f5f9 4px, #e2e8f0 4px, #e2e8f0 8px); border-color: #94a3b8; }
 .seat-option.is-unavailable span { color: #969aa4; background: repeating-linear-gradient(135deg, #f0f1f4, #f0f1f4 4px, #e0e2e8 4px, #e0e2e8 8px); border-color: #d1d4dc; }
 .seat-option.is-sold:hover span,
 .seat-option.is-held:hover span,

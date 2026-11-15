@@ -135,17 +135,31 @@
                     </div>
 
                     <div class="quick-actions" style="margin-top: 18px;">
-                        <c:set var="userRole" value="${sessionScope.currentUser.role.roleName}" />
+                        <c:set var="userRole" value="${not empty sessionScope.currentUser.role.roleName ? sessionScope.currentUser.role.roleName : (sessionScope.currentUser.roleId == 1 ? 'ADMIN' : (sessionScope.currentUser.roleId == 2 ? 'MANAGER' : (sessionScope.currentUser.roleId == 3 ? 'STAFF' : 'CUSTOMER')))}" />
                         <c:choose>
-                            <c:when test="${userRole == 'MANAGER'}">
+                            <c:when test="${userRole == 'STAFF' || sessionScope.currentUser.roleId == 3}">
+                                <a href="${pageContext.request.contextPath}/operation/pos" class="btn-action">
+                                    <i class="fa-solid fa-cash-register"></i> Quầy Bán Vé & POS
+                                </a>
+                                <a href="${pageContext.request.contextPath}/operation/ticket-print" class="btn-action btn-action-secondary">
+                                    <i class="fa-solid fa-print"></i> In Vé Đặt Online
+                                </a>
+                            </c:when>
+                            <c:when test="${userRole == 'MANAGER' || sessionScope.currentUser.roleId == 2}">
                                 <a href="${pageContext.request.contextPath}/manager/showtimes" class="btn-action">
                                     <i class="fa-solid fa-calendar-days"></i> Quản lý Lịch Chiếu
                                 </a>
                                 <a href="${pageContext.request.contextPath}/admin/infrastructure/rooms" class="btn-action btn-action-secondary">
                                     <i class="fa-solid fa-video"></i> Quản lý Phòng Chiếu
                                 </a>
-                                <a href="${pageContext.request.contextPath}/admin/operation/fnb" class="btn-action" style="background: #1e293b; color: #fff;">
+                                <a href="${pageContext.request.contextPath}/manager/operation/fnb" class="btn-action" style="background: #1e293b; color: #fff;">
                                     <i class="fa-solid fa-boxes-stacked"></i> Tồn Kho Bắp Nước
+                                </a>
+                                <a href="${pageContext.request.contextPath}/operation/pos" class="btn-action btn-action-outline">
+                                    <i class="fa-solid fa-cash-register"></i> Quầy POS
+                                </a>
+                                <a href="${pageContext.request.contextPath}/operation/ticket-print" class="btn-action btn-action-outline">
+                                    <i class="fa-solid fa-print"></i> In Vé Online
                                 </a>
                             </c:when>
                             <c:otherwise>

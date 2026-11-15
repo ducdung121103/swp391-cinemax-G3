@@ -95,4 +95,9 @@ public class VoucherServiceImpl implements VoucherService {
         }
         return true;
     }
+
+    @Override
+    public boolean reverseVoucherUsage(Connection conn, Long voucherId) throws java.sql.SQLException {
+        return voucherId == null || voucherDAO.decrementUsedCount(conn, voucherId);
+    }
 }

@@ -139,18 +139,19 @@ Kế hoạch tái cơ cấu giải quyết dứt điểm 3 điểm nghẽn về 
   8. `Booking & Ticket Notification Service` (M-09.1) — Tự động gửi email xác nhận đặt vé kèm QR e-ticket sau thanh toán.
   9. `Showtime Alert & Refund Notification` (M-09.1, M-09.2) — Gửi email nhắc giờ chiếu và thông báo hoàn tiền/hủy suất chiếu.
 
-#### 5. Tuyển — Concession Catalog, POS Counter Sales & Entry Gate (8 tasks)
-* **Iteration 1 (2 tasks):**
-  1. `Concession Public Menu` (M-08.2) — Hiển thị danh mục bắp nước, combo công khai.
-  2. `Admin F&B Catalog Management` (M-08.1) — Quản lý danh mục món, combo và giá bán toàn hệ thống.
-* **Iteration 2 (3 tasks):**
-  3. `Branch F&B Inventory Management` (M-08.1) — Quản lý tồn kho rạp, tự động trừ kho và bật cờ Out-of-Stock.
-  4. `POS Counter Sales` (M-05.2) — Bán vé và bắp nước tại quầy, chọn giá ưu đãi đối tượng (HSSV/Senior).
-  5. `POS Counter Payment & Physical Receipt` (M-06.2) — Thu tiền mặt / quét QR VNPay POS và in hóa đơn/vé quầy.
-* **Iteration 3 (3 tasks):**
-  6. `QR Ticket Scanner & Check-in` (M-07.2) — Quét mã QR tại cửa phòng chiếu, lật trạng thái USED.
-  7. `Gate Age & Concession Eligibility Verification` (M-07.2) — Đối chiếu độ tuổi và giấy tờ HSSV tại cửa soát vé.
-  8. `Ticket Reissue / Cancel & Reprint` (M-07.1) — In lại vé mất theo SĐT/mã, xử lý hủy vé sự cố tại quầy.
+#### 5. Tuyến — F&B Catalog, POS Counter Operations & Online Booking Flow (9 tasks)
+* **Iteration 1 — Luồng F&B (3 tasks):**
+  1. `Concession Public Menu` (M-08.2) — Hiển thị danh mục bắp nước, combo công khai kèm giá bán.
+  2. `Admin F&B Catalog Management` (M-08.1) — Quản lý danh mục món, combo, tìm kiếm tức thì, ngừng bán và xóa mềm (soft delete).
+  3. `Branch F&B Inventory Management` (M-08.1) — Quản lý tồn kho rạp chi nhánh, tự động trừ kho khi bán và cảnh báo Out-of-Stock.
+* **Iteration 2 — Luồng POS (3 tasks):**
+  4. `POS Counter Sales` (M-05.2) — Bán vé và combo tại quầy, chọn suất chiếu, ghế trực quan (Thường/VIP/Đôi) và bắp nước.
+  5. `POS Counter Payment & Physical Receipt` (M-06.2) — Thu tiền mặt hoặc quét VNPay Sandbox QR, trừ kho F&B và in hóa đơn/vé quầy.
+  6. `Counter Ticket Lookup & Online Ticket Printing` (M-07.1) — Tra cứu đơn hàng theo ký tự linh hoạt (mã đơn, tên khách, SĐT) và in vé cứng tại quầy.
+* **Iteration 3 — Luồng Booking (3 tasks):**
+  7. `Online Seat Selection & Concession Combo Checkout` (M-05.1) — Khách hàng chọn ghế theo sơ đồ phòng, chọn combo bắp nước và tóm tắt đơn giá.
+  8. `Online Booking Flow & VNPay Payment Gateway` (M-06.1) — Tạo đơn đặt vé, tích hợp cổng thanh toán VNPay Sandbox & Test bypass checkout tức thì.
+  9. `Customer Booking History & Electronic Ticket` (M-05.4) — Xem lịch sử mua vé trong hồ sơ cá nhân, tra cứu mã đơn và vé điện tử chi tiết.
 
 ---
 

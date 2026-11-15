@@ -25,7 +25,9 @@ import java.util.*;
  * Controller điều hướng Giữ ghế & Thanh toán trực tuyến (TV 4 & Online Booking).
  * Bắt buộc đăng nhập để lấy thông tin khách và gắn tài khoản vào vé đã mua.
  */
-@WebServlet(name = "BookingFlowServlet", urlPatterns = {"/booking/hold", "/booking/checkout"})
+@WebServlet(name = "BookingFlowServlet", urlPatterns = {
+        "/booking/hold", "/booking/checkout", "/booking/retry-payment", "/booking/cancel-payment"
+})
 public class BookingFlowServlet extends HttpServlet {
 
     private final BookingFlowService bookingFlowService = new BookingFlowServiceImpl();
@@ -57,6 +59,42 @@ public class BookingFlowServlet extends HttpServlet {
                         "Vui lòng đăng nhập tài khoản để tiếp tục đặt vé.")));
             } else {
                 resp.sendRedirect(req.getContextPath() + "/login?msg=login_required");
+            }
+            return;
+        }
+
+        if ("/booking/retry-payment".equals(path)) {
+            try {
+                String paymentUrl = bookingFlowService.retryVnpayPayment(
+                        req.getParameter("bookingCode"), currentUser.getId(), req);
+                Map<String, Object> responseData = new HashMap<>();
+                responseData.put("success", true);
+                responseData.put("paymentUrl", paymentUrl);
+                resp.getWriter().write(JsonUtil.toJson(responseData));
+            } catch (Exception e) {
+                resp.getWriter().write(JsonUtil.toJson(
+                        ApiResponse.error("PAYMENT_RETRY_FAILED", e.getMessage())));
+            }
+            return;
+        }
+
+        if ("/booking/cancel-payment".equals(path)) {
+            try {
+                boolean cancelled = bookingFlowService.cancelPendingVnpayBooking(
+                        req.getParameter("bookingCode"), currentUser.getId());
+                if (!cancelled) {
+                    resp.getWriter().write(JsonUtil.toJson(
+                            ApiResponse.error("PAYMENT_CANCEL_FAILED",
+                                    "Đơn không còn chờ thanh toán hoặc không thuộc tài khoản của bạn.")));
+                    return;
+                }
+                Map<String, Object> responseData = new HashMap<>();
+                responseData.put("success", true);
+                responseData.put("message", "Đã hủy đơn và giải phóng ghế.");
+                resp.getWriter().write(JsonUtil.toJson(responseData));
+            } catch (Exception e) {
+                resp.getWriter().write(JsonUtil.toJson(
+                        ApiResponse.error("PAYMENT_CANCEL_FAILED", e.getMessage())));
             }
             return;
         }

@@ -13,4 +13,5 @@ public interface VoucherService {
     Voucher getVoucherByCode(String code);
     BigDecimal calculateAndValidateDiscount(Connection conn, Long voucherId, BigDecimal orderTotal);
     boolean applyVoucherUsage(Connection conn, Long voucherId);
+    boolean reverseVoucherUsage(Connection conn, Long voucherId) throws java.sql.SQLException;
 }

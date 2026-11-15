@@ -1,8 +1,7 @@
 package com.cinema.modules.booking.controller;
 
-import com.cinema.common.context.DBContext;
-import com.cinema.common.transaction.TransactionManager;
-import com.cinema.modules.booking.dao.BookingDAO;
+import com.cinema.modules.booking.service.BookingEngineService;
+import com.cinema.modules.booking.service.impl.BookingEngineServiceImpl;
 import com.cinema.modules.booking.service.VNPayService;
 import com.cinema.modules.booking.service.impl.VNPayServiceImpl;
 import jakarta.servlet.ServletException;
@@ -21,25 +20,36 @@ import java.util.Map;
 public class VNPayReturnServlet extends HttpServlet {
 
     private final VNPayService vnpayService = new VNPayServiceImpl();
-    private final BookingDAO bookingDAO = new BookingDAO();
+    private final BookingEngineService bookingEngineService = new BookingEngineServiceImpl();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         Map<String, Object> returnData = vnpayService.processReturn(request);
 
-        boolean isSuccess = Boolean.TRUE.equals(returnData.get("success"));
+        boolean gatewaySuccess = Boolean.TRUE.equals(returnData.get("success"));
+        boolean signatureValid = Boolean.TRUE.equals(returnData.get("signatureValid"));
         String orderCode = (String) returnData.get("orderCode");
+        String transactionNo = (String) returnData.get("transactionNo");
+        Object rawAmount = returnData.get("amount");
+        java.math.BigDecimal amount = rawAmount instanceof java.math.BigDecimal
+                ? (java.math.BigDecimal) rawAmount : null;
 
-        if (isSuccess && orderCode != null && !orderCode.isBlank()) {
+        boolean isSuccess = false;
+        if (signatureValid && orderCode != null && !orderCode.isBlank() && amount != null) {
             try {
-                TransactionManager.executeInTransaction(conn -> {
-                    bookingDAO.updateStatusByCode(conn, orderCode, "CONFIRMED");
-                    return true;
-                });
-            } catch (Exception e) {
-                System.err.println("[VNPayReturnServlet] Lỗi cập nhật trạng thái đơn hàng: " + e.getMessage());
+                boolean finalized = bookingEngineService.finalizeVnpayPayment(
+                        orderCode, amount, transactionNo, gatewaySuccess);
+                isSuccess = gatewaySuccess && finalized;
+                if (gatewaySuccess && !finalized) {
+                    returnData.put("message",
+                            "Không thể xác nhận thanh toán: mã đơn, số tiền hoặc trạng thái giao dịch không khớp.");
+                }
+            } catch (RuntimeException e) {
+                throw new ServletException("Không thể cập nhật kết quả thanh toán VNPay.", e);
             }
+        } else if (gatewaySuccess) {
+            returnData.put("message", "Phản hồi thanh toán VNPay không hợp lệ.");
         }
 
         request.setAttribute("isSuccess", isSuccess);
@@ -54,4 +64,3 @@ public class VNPayReturnServlet extends HttpServlet {
                 .forward(request, response);
     }
 }
-

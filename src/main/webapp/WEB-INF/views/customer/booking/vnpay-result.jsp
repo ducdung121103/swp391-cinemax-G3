@@ -15,7 +15,11 @@
                     </span>
                 </div>
                 <h3 class="fw-bold text-success mb-2">Thanh Toán Thành Công!</h3>
-                <p class="text-secondary small mb-4">Giao dịch qua Cổng VNPay đã được xử lý thành công. Vé điện tử và bắp nước của bạn đã được ghi nhận vào hệ thống.</p>
+                <p class="text-secondary small mb-2">Giao dịch qua Cổng VNPay đã được xử lý thành công. Vé điện tử và bắp nước của bạn đã được ghi nhận vào hệ thống.</p>
+                <p class="text-warning small mb-4">
+                    <i class="fa-solid fa-envelope-open-text me-1"></i>
+                    Email xác nhận kèm <strong>E-Ticket QR</strong> đã được gửi tới hộp thư của bạn (kiểm tra cả Spam).
+                </p>
 
                 <div class="bg-black bg-opacity-50 p-4 rounded-3 border border-secondary mb-4 text-start">
                     <div class="d-flex justify-content-between py-2 border-bottom border-secondary border-opacity-50">

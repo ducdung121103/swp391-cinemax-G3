@@ -120,7 +120,30 @@
                                 <div>${user.email}</div>
                                 <c:if test="${not empty user.phone}"><small style="color: #718096;">${user.phone}</small></c:if>
                             </td>
-                            <td><span style="font-weight: 700; color: #2d3748;">${user.role.roleName}</span></td>
+                            <td>
+                                <c:choose>
+                                    <c:when test="${user.role.roleName == 'STAFF' || user.role.roleName == 'MANAGER'}">
+                                        <form method="post" action="${pageContext.request.contextPath}/admin/identity/users"
+                                              style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
+                                            <input type="hidden" name="action" value="assign" />
+                                            <input type="hidden" name="userId" value="${user.id}" />
+                                            <input type="hidden" name="cinemaId" value="${user.cinemaId}" />
+                                            <input type="hidden" name="keyword" value="${keyword}" />
+                                            <input type="hidden" name="role" value="${selectedRole}" />
+                                            <input type="hidden" name="status" value="${selectedStatus}" />
+                                            <input type="hidden" name="page" value="${page}" />
+                                            <select name="roleName" style="padding: 4px 8px; border-radius: 6px; border: 1px solid #cbd5e0; font-size: 12px;">
+                                                <option value="STAFF" ${user.role.roleName == 'STAFF' ? 'selected' : ''}>STAFF</option>
+                                                <option value="MANAGER" ${user.role.roleName == 'MANAGER' ? 'selected' : ''}>MANAGER</option>
+                                            </select>
+                                            <button class="btn btn-sm btn-primary" type="submit" style="border-radius: 6px; padding: 4px 10px; font-size: 12px;">Lưu</button>
+                                        </form>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <span style="font-weight: 700; color: #2d3748;">${user.role.roleName}</span>
+                                    </c:otherwise>
+                                </c:choose>
+                            </td>
                             <td>${empty user.cinema ? '<span style="color:#a0aec0;">—</span>' : user.cinema.name}</td>
                             <td>
                                 <span class="badge-status ${user.status == 'ACTIVE' ? 'badge-active' : (user.status == 'LOCKED' ? 'badge-locked' : 'badge-unverified')}">
@@ -145,18 +168,16 @@
                             <td>
                                 <c:choose>
                                     <c:when test="${user.role.roleName == 'STAFF' || user.role.roleName == 'MANAGER'}">
-                                        <form method="post" action="${pageContext.request.contextPath}/admin/identity/users">
+                                        <form method="post" action="${pageContext.request.contextPath}/admin/identity/users"
+                                              style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
                                             <input type="hidden" name="action" value="assign" />
                                             <input type="hidden" name="userId" value="${user.id}" />
+                                            <input type="hidden" name="roleName" value="${user.role.roleName}" />
                                             <input type="hidden" name="keyword" value="${keyword}" />
                                             <input type="hidden" name="role" value="${selectedRole}" />
                                             <input type="hidden" name="status" value="${selectedStatus}" />
                                             <input type="hidden" name="page" value="${page}" />
-                                            <select name="roleName" style="padding: 4px 8px; border-radius: 6px; border: 1px solid #cbd5e0; font-size: 12px;">
-                                                <option value="STAFF" ${user.role.roleName == 'STAFF' ? 'selected' : ''}>STAFF</option>
-                                                <option value="MANAGER" ${user.role.roleName == 'MANAGER' ? 'selected' : ''}>MANAGER</option>
-                                            </select>
-                                            <select name="cinemaId" required style="padding: 4px 8px; border-radius: 6px; border: 1px solid #cbd5e0; font-size: 12px; max-width: 140px;">
+                                            <select name="cinemaId" required style="padding: 4px 8px; border-radius: 6px; border: 1px solid #cbd5e0; font-size: 12px; max-width: 160px;">
                                                 <option value="">Chọn rạp</option>
                                                 <c:forEach var="cinema" items="${cinemas}">
                                                     <option value="${cinema.id}" ${user.cinemaId == cinema.id ? 'selected' : ''}>${cinema.name}</option>

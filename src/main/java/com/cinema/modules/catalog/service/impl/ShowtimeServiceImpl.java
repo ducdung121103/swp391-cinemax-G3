@@ -49,11 +49,6 @@ public class ShowtimeServiceImpl implements ShowtimeService {
     }
 
     @Override
-    public List<Showtime> getSellableShowtimesByCinemaAndDate(Long cinemaId, LocalDate date) {
-        return showtimeDAO.findSellableByCinemaAndDate(cinemaId, date);
-    }
-
-    @Override
     public List<Showtime> getShowtimesByCinema(Long cinemaId) {
         return cinemaId == null ? List.of() : showtimeDAO.findByCinema(cinemaId);
     }
@@ -72,6 +67,11 @@ public class ShowtimeServiceImpl implements ShowtimeService {
     @Override
     public LocalDate findLatestScheduledDate(Long movieId, Long cinemaId) {
         return showtimeDAO.findLatestScheduledDate(movieId, cinemaId);
+    }
+
+    @Override
+    public List<Showtime> getSellableShowtimesByCinemaAndDate(Long cinemaId, LocalDate date) {
+        return showtimeDAO.findSellableByCinemaAndDate(cinemaId, date);
     }
 
     @Override

@@ -3,6 +3,7 @@ package com.cinema.modules.booking.dao;
 import com.cinema.common.context.DBContext;
 import com.cinema.model.Booking;
 import com.cinema.modules.booking.dto.CustomerBookingHistoryDTO;
+import com.cinema.modules.booking.dto.TicketReceipt;
 import com.cinema.modules.booking.dto.ShowtimeReminderDTO;
 
 import java.sql.Connection;
@@ -11,9 +12,12 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * DAO quản lý bảng bookings (TV 4).
@@ -65,12 +69,12 @@ public class BookingDAO {
     }
 
     public Booking findByCode(Connection conn, String bookingCode) throws SQLException {
-        String sql = "SELECT * FROM bookings WHERE booking_code = ? AND is_deleted = 0";
+        String sql = "SELECT * FROM bookings WITH (UPDLOCK, HOLDLOCK) WHERE booking_code = ? AND is_deleted = 0";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, bookingCode);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    return Booking.builder()
+                    Booking booking = Booking.builder()
                             .bookingCode(rs.getString("booking_code"))
                             .userId(rs.getObject("user_id") != null ? rs.getLong("user_id") : null)
                             .staffId(rs.getObject("staff_id") != null ? rs.getLong("staff_id") : null)
@@ -83,10 +87,48 @@ public class BookingDAO {
                             .finalAmount(rs.getBigDecimal("final_amount"))
                             .status(rs.getString("status"))
                             .build();
+                    booking.setId(rs.getLong("id"));
+                    return booking;
                 }
             }
         }
         return null;
+    }
+
+    public boolean updatePendingStatus(Connection conn, Long bookingId, String status) throws SQLException {
+        String sql = "UPDATE bookings SET status = ?, updated_at = GETDATE() "
+                + "WHERE id = ? AND status = 'PENDING' AND is_deleted = 0";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, status);
+            ps.setLong(2, bookingId);
+            return ps.executeUpdate() == 1;
+        }
+    }
+
+    public boolean refreshPendingVnpayExpiry(Connection conn, Long bookingId, Long userId) throws SQLException {
+        String sql = "UPDATE bookings SET updated_at = GETDATE() "
+                + "WHERE id = ? AND user_id = ? AND status = 'PENDING' AND is_deleted = 0 "
+                + "AND EXISTS (SELECT 1 FROM payments WHERE booking_id = bookings.id "
+                + "AND payment_method = 'VNPAY' AND status = 'PENDING')";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setLong(1, bookingId);
+            ps.setLong(2, userId);
+            return ps.executeUpdate() == 1;
+        }
+    }
+
+    public List<String> findExpiredVnpayBookingCodes(Connection conn) throws SQLException {
+        String sql = "SELECT b.booking_code FROM bookings b WITH (UPDLOCK, READPAST) "
+                + "JOIN payments p WITH (UPDLOCK, READPAST) ON p.booking_id = b.id "
+                + "WHERE b.status = 'PENDING' AND b.is_deleted = 0 "
+                + "AND p.payment_method = 'VNPAY' AND p.status = 'PENDING' "
+                + "AND b.updated_at <= DATEADD(MINUTE, -15, GETDATE())";
+        List<String> codes = new java.util.ArrayList<>();
+        try (PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) codes.add(rs.getString("booking_code"));
+        }
+        return codes;
     }
 
     public boolean updateStatusByCode(Connection conn, String bookingCode, String status) throws SQLException {
@@ -316,15 +358,31 @@ public class BookingDAO {
         Timestamp startTs = rs.getTimestamp("start_time");
         Timestamp endTs = rs.getTimestamp("end_time");
 
+        LocalDateTime createdAtLdt = createdAtTs != null ? createdAtTs.toLocalDateTime() : null;
+        LocalDateTime startLdt = startTs != null ? startTs.toLocalDateTime() : null;
+        LocalDateTime endLdt = endTs != null ? endTs.toLocalDateTime() : null;
+
         Long customerId = rs.getObject("customer_id") != null ? rs.getLong("customer_id") : null;
         String customerName = rs.getString("customer_name");
         String customerPhone = rs.getString("customer_phone");
         String customerEmail = rs.getString("customer_email");
 
+        String displayCustomerName = (customerName != null && !customerName.isBlank()) ? customerName : "Khách lẻ tại quầy";
+        String formattedShowtime = "";
+        if (startLdt != null) {
+            formattedShowtime = startLdt.format(DateTimeFormatter.ofPattern("HH:mm")) + " · " + startLdt.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+        }
+        String formattedCreatedAt = createdAtLdt != null ? createdAtLdt.format(DateTimeFormatter.ofPattern("HH:mm - dd/MM/yyyy")) : "";
+
+        List<TicketReceipt> tickets = ticketDAO.findReceiptItems(conn, bookingId);
+        String seatCodes = (tickets != null && !tickets.isEmpty()) ?
+                tickets.stream().map(TicketReceipt::getSeatCode).filter(c -> c != null && !c.isBlank()).collect(Collectors.joining(", "))
+                : "Chưa có ghế";
+
         return CustomerBookingHistoryDTO.builder()
                 .bookingId(bookingId)
                 .bookingCode(rs.getString("booking_code"))
-                .createdAt(createdAtTs != null ? createdAtTs.toLocalDateTime() : null)
+                .createdAt(createdAtLdt)
                 .status(rs.getString("status"))
                 .channel(rs.getString("channel"))
                 .totalTicketsAmount(rs.getBigDecimal("total_tickets_amount"))
@@ -336,18 +394,24 @@ public class BookingDAO {
                 .customerName(customerName)
                 .customerPhone(customerPhone)
                 .customerEmail(customerEmail)
+                .displayCustomerName(displayCustomerName)
+                .formattedShowtime(formattedShowtime)
+                .formattedCreatedAt(formattedCreatedAt)
+                .seatCodesString(seatCodes)
+                .ticketCount(tickets != null ? tickets.size() : 0)
+                .upcoming(startLdt != null && startLdt.isAfter(LocalDateTime.now()))
                 .movieId(rs.getLong("movie_id"))
                 .movieTitle(rs.getString("movie_title"))
                 .posterUrl(rs.getString("poster_url"))
                 .durationMinutes((Integer) rs.getObject("duration_minutes"))
                 .ageRating(rs.getString("age_rating"))
-                .showtimeStartTime(startTs != null ? startTs.toLocalDateTime() : null)
-                .showtimeEndTime(endTs != null ? endTs.toLocalDateTime() : null)
+                .showtimeStartTime(startLdt)
+                .showtimeEndTime(endLdt)
                 .experienceFormat(rs.getString("experience_format"))
                 .roomName(rs.getString("room_name"))
                 .cinemaName(rs.getString("cinema_name"))
                 .cinemaAddress(rs.getString("cinema_address"))
-                .tickets(ticketDAO.findReceiptItems(conn, bookingId))
+                .tickets(tickets)
                 .fnbItems(orderItemDAO.findReceiptItems(conn, bookingId))
                 .build();
     }

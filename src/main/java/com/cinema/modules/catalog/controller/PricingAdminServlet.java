@@ -19,6 +19,8 @@ import java.math.BigDecimal;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Cấu hình bảng giá vé và phần trăm giảm HSSV/Senior.
@@ -35,7 +37,18 @@ public class PricingAdminServlet extends HttpServlet {
             resp.sendError(HttpServletResponse.SC_FORBIDDEN);
             return;
         }
-        req.setAttribute("prices", pricingService.listPrices());
+        String cinemaFilter = req.getParameter("cinemaId");
+        if (cinemaFilter == null) {
+            cinemaFilter = "";
+        } else {
+            cinemaFilter = cinemaFilter.trim();
+        }
+        List<TicketPricing> prices = pricingService.listPrices();
+        if (RoleConstant.ADMIN.equalsIgnoreCase(actor.getRole().getRoleName()) && !cinemaFilter.isEmpty()) {
+            prices = filterPrices(prices, cinemaFilter);
+        }
+        req.setAttribute("prices", prices);
+        req.setAttribute("selectedCinemaFilter", cinemaFilter);
         req.setAttribute("cinemas", screeningRoomService.getAllCinemas());
         req.setAttribute("seatTypes", screeningRoomService.getAllSeatTypes());
         req.setAttribute("studentDiscount", pricingService.getStudentDiscountPercent());
@@ -44,6 +57,34 @@ public class PricingAdminServlet extends HttpServlet {
         req.setAttribute("msg", req.getParameter("msg"));
         req.setAttribute("error", req.getParameter("error"));
         req.getRequestDispatcher("/WEB-INF/views/admin/catalog/pricing.jsp").forward(req, resp);
+    }
+
+    /**
+     * Lọc danh sách giá theo query cinemaId: "chain" = toàn chuỗi; số = theo rạp; rỗng = tất cả.
+     */
+    private List<TicketPricing> filterPrices(List<TicketPricing> prices, String cinemaFilter) {
+        List<TicketPricing> filtered = new ArrayList<>();
+        if (prices == null) {
+            return filtered;
+        }
+        if ("chain".equalsIgnoreCase(cinemaFilter) || "-1".equals(cinemaFilter)) {
+            for (TicketPricing price : prices) {
+                if (price.getCinemaId() == null) {
+                    filtered.add(price);
+                }
+            }
+            return filtered;
+        }
+        Long cinemaId = parseLong(cinemaFilter);
+        if (cinemaId == null) {
+            return prices;
+        }
+        for (TicketPricing price : prices) {
+            if (cinemaId.equals(price.getCinemaId())) {
+                filtered.add(price);
+            }
+        }
+        return filtered;
     }
 
     @Override
@@ -81,7 +122,13 @@ public class PricingAdminServlet extends HttpServlet {
         pricing.setEffectiveTo(parseDate(req.getParameter("effectiveTo")));
         try {
             String raw = req.getParameter("basePrice");
-            pricing.setBasePrice(raw == null || raw.isBlank() ? null : new BigDecimal(raw.trim()));
+            if (raw == null || raw.isBlank()) {
+                pricing.setBasePrice(null);
+            } else {
+                // Cho phép nhập có dấu ngăn nghìn: 50,000 / 105.000
+                String normalized = raw.trim().replace(",", "").replace(".", "").replace(" ", "");
+                pricing.setBasePrice(new BigDecimal(normalized));
+            }
         } catch (NumberFormatException e) {
             pricing.setBasePrice(null);
         }

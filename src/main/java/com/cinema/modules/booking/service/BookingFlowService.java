@@ -6,6 +6,7 @@ import com.cinema.modules.booking.dto.BookingPageData;
 import com.cinema.modules.booking.dto.BookingQuoteCommand;
 import com.cinema.modules.booking.dto.BookingQuoteResult;
 import com.cinema.modules.booking.dto.CustomerBookingHistoryDTO;
+import jakarta.servlet.http.HttpServletRequest;
 
 import java.sql.SQLException;
 import java.util.List;
@@ -35,6 +36,8 @@ public interface BookingFlowService {
      * Thực hiện thanh toán và tạo booking, sinh URL cổng thanh toán VNPay nếu là VNPAY.
      */
     BookingCheckoutResult checkout(BookingCheckoutCommand command);
+    String retryVnpayPayment(String bookingCode, Long userId, HttpServletRequest request);
+    boolean cancelPendingVnpayBooking(String bookingCode, Long userId);
 
     /**
      * Lấy lịch sử đặt vé xem phim của khách hàng.
@@ -46,4 +49,3 @@ public interface BookingFlowService {
      */
     CustomerBookingHistoryDTO getCustomerBookingDetail(String bookingCode, Long userId);
 }
-

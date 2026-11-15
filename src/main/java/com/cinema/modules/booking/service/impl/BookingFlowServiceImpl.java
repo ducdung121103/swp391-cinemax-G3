@@ -304,6 +304,22 @@ public class BookingFlowServiceImpl implements BookingFlowService {
     }
 
     @Override
+    public String retryVnpayPayment(String bookingCode, Long userId,
+                                    jakarta.servlet.http.HttpServletRequest request) {
+        BookingResult pendingBooking = bookingEngineService.renewPendingVnpayBooking(bookingCode, userId);
+        if (pendingBooking == null) {
+            throw new IllegalStateException("Đơn không còn chờ thanh toán hoặc không thuộc tài khoản của bạn.");
+        }
+        return vnpayService.createPaymentUrl(request, pendingBooking.getBookingCode(),
+                pendingBooking.getFinalAmount(), "Thanh toan ve CineMax " + pendingBooking.getBookingCode());
+    }
+
+    @Override
+    public boolean cancelPendingVnpayBooking(String bookingCode, Long userId) {
+        return bookingEngineService.cancelPendingVnpayBooking(bookingCode, userId);
+    }
+
+    @Override
     public List<CustomerBookingHistoryDTO> getCustomerBookingHistory(Long userId) {
         if (userId == null) {
             return Collections.emptyList();
@@ -350,4 +366,3 @@ public class BookingFlowServiceImpl implements BookingFlowService {
         return total;
     }
 }
-

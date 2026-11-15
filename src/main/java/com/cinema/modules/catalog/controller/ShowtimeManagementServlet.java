@@ -90,26 +90,23 @@ public class ShowtimeManagementServlet extends HttpServlet {
         req.setAttribute("skippedCount", countParam(req.getParameter("skippedCount")));
         req.setAttribute("rooms", cinemaId == null ? List.of() : screeningRoomService.getRoomsByCinema(cinemaId));
         if (createPage && parseLong(req.getParameter("movieId")) == null) {
-            Set<Long> scheduledMovieIds = new HashSet<>();
-            for (Showtime showtime : showtimeService.getShowtimesByCinema(cinemaId)) {
-                if (showtime.getMovieId() != null) scheduledMovieIds.add(showtime.getMovieId());
+            String target = req.getContextPath() + listPath;
+            if (cinemaId != null) {
+                target += "?cinemaId=" + cinemaId;
             }
-            Movie firstNewMovie = null;
-            for (Movie movie : movies) {
-                if (!scheduledMovieIds.contains(movie.getId())) {
-                    firstNewMovie = movie;
-                    break;
-                }
-            }
-            if (firstNewMovie != null) {
-                String target = req.getContextPath() + req.getServletPath() + "?movieId=" + firstNewMovie.getId();
-                if (cinemaId != null) target += "&cinemaId=" + cinemaId;
-                resp.sendRedirect(target);
-                return;
-            }
+            resp.sendRedirect(target);
+            return;
         }
         if (createPage) {
             prepareCreatePage(req);
+            if (req.getAttribute("selectedMovie") == null) {
+                String target = req.getContextPath() + listPath;
+                if (cinemaId != null) {
+                    target += "?cinemaId=" + cinemaId;
+                }
+                resp.sendRedirect(target);
+                return;
+            }
             req.getRequestDispatcher("/WEB-INF/views/admin/catalog/showtime-form.jsp").forward(req, resp);
             return;
         }
@@ -337,7 +334,6 @@ public class ShowtimeManagementServlet extends HttpServlet {
             Long screeningRoomId = Long.parseLong(req.getParameter("screeningRoomId"));
             LocalDateTime startTime = LocalDateTime.parse(req.getParameter("startTime"));
             String experienceFormat = req.getParameter("experienceFormat");
-            String status = req.getParameter("status");
             Showtime existing = showtimeService.getShowtimeById(showtimeId);
             if (existing == null || existing.getScreeningRoom() == null) return "Không tìm thấy suất chiếu!";
             ScreeningRoom room = screeningRoomService.getRoomById(screeningRoomId);
@@ -350,12 +346,13 @@ public class ShowtimeManagementServlet extends HttpServlet {
                     return "FORBIDDEN";
                 }
             }
+            // Trạng thái không chỉnh tay trên form: giữ nguyên; hủy suất dùng action delete.
             Showtime showtime = new Showtime();
             showtime.setId(showtimeId);
             showtime.setScreeningRoomId(screeningRoomId);
             showtime.setStartTime(startTime);
             showtime.setExperienceFormat(experienceFormat);
-            showtime.setStatus(status);
+            showtime.setStatus(existing.getStatus());
             return showtimeService.updateShowtime(showtime) ? "OK" : "Không thể cập nhật suất chiếu!";
         } catch (IllegalStateException e) {
             return "Phòng chiếu đang bận hoặc đang trong lịch bảo trì";
@@ -368,24 +365,6 @@ public class ShowtimeManagementServlet extends HttpServlet {
         int buffer = showtimeService.getCleaningBufferMinutes();
         req.setAttribute("bufferMinutes", buffer);
         List<?> movieValues = (List<?>) req.getAttribute("movies");
-        Object cinemaValue = req.getAttribute("selectedCinemaId");
-        Long cinemaId = cinemaValue instanceof Long ? (Long) cinemaValue : null;
-        Set<Long> scheduledMovieIds = new HashSet<>();
-        for (Showtime showtime : showtimeService.getShowtimesByCinema(cinemaId)) {
-            if (showtime.getMovieId() != null) {
-                scheduledMovieIds.add(showtime.getMovieId());
-            }
-        }
-        List<Movie> newMovies = new ArrayList<>();
-        if (movieValues != null) {
-            for (Object value : movieValues) {
-                Movie item = (Movie) value;
-                if (!scheduledMovieIds.contains(item.getId())) {
-                    newMovies.add(item);
-                }
-            }
-        }
-        req.setAttribute("newMovies", newMovies);
         Long movieId = parseLong(req.getParameter("movieId"));
         Movie movie = null;
         if (movieValues != null && movieId != null) {
