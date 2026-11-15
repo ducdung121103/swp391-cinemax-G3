@@ -110,7 +110,55 @@ public class ShowtimeManagementServlet extends HttpServlet {
             req.getRequestDispatcher("/WEB-INF/views/admin/catalog/showtime-form.jsp").forward(req, resp);
             return;
         }
-        req.setAttribute("showtimes", showtimeService.getShowtimesByCinema(cinemaId));
+        // date trống = xem toàn bộ suất; có date = lọc theo ngày
+        LocalDate selectedDate = parseDateOrNull(req.getParameter("date"));
+        Long selectedMovieId = parseLong(req.getParameter("movieId"));
+        Long selectedRoomId = parseLong(req.getParameter("roomId"));
+
+        List<Showtime> showtimes = cinemaId == null
+                ? List.of()
+                : (selectedDate != null
+                    ? showtimeService.getShowtimesByCinemaAndDate(cinemaId, selectedDate)
+                    : showtimeService.getShowtimesByCinema(cinemaId));
+        if (selectedMovieId != null) {
+            showtimes = showtimes.stream()
+                    .filter(s -> selectedMovieId.equals(s.getMovieId()))
+                    .toList();
+        }
+        if (selectedRoomId != null) {
+            showtimes = showtimes.stream()
+                    .filter(s -> selectedRoomId.equals(s.getScreeningRoomId()))
+                    .toList();
+        }
+
+        Set<Long> movieIdsWithSlots = new LinkedHashSet<>();
+        for (Showtime showtime : showtimes) {
+            if (showtime.getMovieId() != null) {
+                movieIdsWithSlots.add(showtime.getMovieId());
+            }
+        }
+        List<Movie> moviesToShow = new ArrayList<>();
+        if (selectedMovieId != null) {
+            for (Movie movie : movies) {
+                if (selectedMovieId.equals(movie.getId())) {
+                    moviesToShow.add(movie);
+                    break;
+                }
+            }
+        } else {
+            for (Movie movie : movies) {
+                if (movieIdsWithSlots.contains(movie.getId())) {
+                    moviesToShow.add(movie);
+                }
+            }
+        }
+
+        req.setAttribute("today", LocalDate.now().toString());
+        req.setAttribute("selectedDate", selectedDate == null ? "" : selectedDate.toString());
+        req.setAttribute("selectedMovieId", selectedMovieId);
+        req.setAttribute("selectedRoomId", selectedRoomId);
+        req.setAttribute("showtimes", showtimes);
+        req.setAttribute("moviesToShow", moviesToShow);
         req.getRequestDispatcher("/WEB-INF/views/admin/catalog/showtimes.jsp").forward(req, resp);
     }
 
@@ -172,6 +220,9 @@ public class ShowtimeManagementServlet extends HttpServlet {
         if (cinema != null && !cinema.isBlank()) {
             back += "&cinemaId=" + URLEncoder.encode(cinema, StandardCharsets.UTF_8);
         }
+        if (success) {
+            back = appendListFilters(back, req);
+        }
         resp.sendRedirect(back);
     }
 
@@ -194,6 +245,7 @@ public class ShowtimeManagementServlet extends HttpServlet {
         if (cinema != null && !cinema.isBlank()) {
             back += "&cinemaId=" + URLEncoder.encode(cinema, StandardCharsets.UTF_8);
         }
+        back = appendListFilters(back, req);
         resp.sendRedirect(back);
     }
 
@@ -216,7 +268,16 @@ public class ShowtimeManagementServlet extends HttpServlet {
         if (cinema != null && !cinema.isBlank()) {
             back += "&cinemaId=" + URLEncoder.encode(cinema, StandardCharsets.UTF_8);
         }
+        back = appendListFilters(back, req);
         resp.sendRedirect(back);
+    }
+
+    /** Giữ filter Ngày/Phim/Phòng khi redirect về list (Manager + Admin). */
+    private String appendListFilters(String url, HttpServletRequest req) {
+        url = append(url, "date", req.getParameter("date"));
+        url = append(url, "movieId", req.getParameter("movieId"));
+        url = append(url, "roomId", req.getParameter("roomId"));
+        return url;
     }
 
     private void writeJsonList(HttpServletRequest req, HttpServletResponse resp) throws IOException {
