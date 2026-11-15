@@ -52,3 +52,28 @@ run.bat
 *.bat
 *.cmd
 *.ps1.bak
+
+# SmartTomcat / local server metadata
+.smarttomcat/
+
+# Local environment, editor history & temporary merge files
+.env
+.env.*
+!.env.example
+.history/
+*.bak
+*.orig
+*.rej
+
+# Archives & office documents (chỉ đẩy code)
+*.zip
+*.rar
+*.7z
+*.tar
+*.gz
+*.docx
+*.pdf
+*.pptx
+
+# Frontend dependencies
+node_modules/
