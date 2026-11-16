@@ -302,9 +302,6 @@
             <button class="filter-pill" data-filter="upcoming" onclick="filterBookings('upcoming', this)">
                 <i class="fa-solid fa-clock me-1 text-warning"></i> Sắp chiếu
             </button>
-            <button class="filter-pill" data-filter="past" onclick="filterBookings('past', this)">
-                <i class="fa-solid fa-check-double me-1 text-secondary"></i> Đã xem
-            </button>
         </nav>
     </header>
 
@@ -593,8 +590,6 @@
                 card.style.display = 'block';
             } else if (type === 'upcoming') {
                 card.style.display = isUpcoming ? 'block' : 'none';
-            } else if (type === 'past') {
-                card.style.display = !isUpcoming ? 'block' : 'none';
             }
         });
     }
