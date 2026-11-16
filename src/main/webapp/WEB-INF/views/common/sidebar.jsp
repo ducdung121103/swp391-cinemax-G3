@@ -109,12 +109,6 @@
                             </li>
                             </a>
                             </li>
-                            <li class="${currentUri.contains('/operation/fnb-catalog') ? 'active' : ''}">
-                                <a href="${pageContext.request.contextPath}/admin/operation/fnb-catalog">
-                                    <i class="fa-solid fa-burger"></i>
-                                    <span>Danh Mục F&B</span>
-                                </a>
-                            </li>
                         </c:if>
 
                         <%--====================2. PHÂN HỆ MANAGER (QUẢN LÝ CỤM RẠP CHI NHÁNH)====================--%>
