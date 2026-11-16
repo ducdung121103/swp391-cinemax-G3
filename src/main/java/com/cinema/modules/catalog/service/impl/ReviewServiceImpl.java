@@ -33,9 +33,9 @@ public class ReviewServiceImpl implements ReviewService {
             throw new IllegalArgumentException("Ban da gui danh gia cho phim nay.");
         }
 
-        if (!reviewDAO.hasWatchedMovie(userId, movieId)) {
-            throw new IllegalArgumentException("Ban chi co the danh gia phim sau khi da xem phim tai rap.");
-        }
+//        if (!reviewDAO.hasWatchedMovie(userId, movieId)) {
+//            throw new IllegalArgumentException("Ban chi co the danh gia phim sau khi da xem phim tai rap.");
+//        }
 
         Review review = Review.builder()
                 .movieId(movieId)
