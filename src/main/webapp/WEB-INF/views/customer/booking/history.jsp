@@ -429,13 +429,6 @@
                                         </button>
                                     </c:if>
 
-                                    <c:if test="${item.status eq 'CONFIRMED'}">
-                                        <button type="button" class="btn btn-outline-danger btn-sm w-100"
-                                                onclick="cancelConfirmedBooking('${item.bookingCode}')">
-                                            <i class="fa-solid fa-rotate-left me-1"></i> Hủy vé (hoàn tiền)
-                                        </button>
-                                    </c:if>
-
                                     <c:if test="${not empty item.movieId}">
                                         <a href="${pageContext.request.contextPath}/movie/detail?id=${item.movieId}" class="btn btn-outline-secondary btn-sm w-100 text-white">
                                             <i class="fa-solid fa-film me-1"></i> Thông tin phim
@@ -732,26 +725,6 @@
             window.location.reload();
         } catch (error) {
             alert('Không thể kết nối để hủy đơn. Vui lòng tải lại trang.');
-        }
-    }
-
-    async function cancelConfirmedBooking(bookingCode) {
-        if (!confirm('Hủy vé đã thanh toán? Hệ thống sẽ hoàn tiền và giải phóng ghế.')) return;
-        try {
-            const response = await fetch('${pageContext.request.contextPath}/booking/cancel', {
-                method: 'POST',
-                headers: { 'Accept': 'application/json', 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
-                body: new URLSearchParams({ bookingCode, ajax: 'true' })
-            });
-            const data = await response.json();
-            if (data.success) {
-                window.location.reload();
-                return;
-            }
-            alert(data.message || 'Không thể hủy vé. Vui lòng tải lại trang.');
-            window.location.reload();
-        } catch (error) {
-            alert('Không thể kết nối để hủy vé. Vui lòng thử lại.');
         }
     }
 
