@@ -35,34 +35,6 @@
         font-size: 14px;
         margin: 0;
     }
-    .history-filter-nav {
-        display: flex;
-        gap: 8px;
-        background: #141b2b;
-        padding: 5px;
-        border-radius: 12px;
-        border: 1px solid #232f48;
-    }
-    .filter-pill {
-        background: transparent;
-        border: none;
-        color: #94a3b8;
-        font-size: 13px;
-        font-weight: 700;
-        padding: 8px 18px;
-        border-radius: 9px;
-        cursor: pointer;
-        transition: all 0.2s ease;
-    }
-    .filter-pill:hover {
-        color: #fff;
-    }
-    .filter-pill.is-active {
-        background: #e50914;
-        color: #fff;
-        box-shadow: 0 4px 12px rgba(229, 9, 20, 0.35);
-    }
-
     /* Booking Card */
     .booking-card {
         background: #0f1523;
@@ -283,7 +255,7 @@
 
 <div class="container booking-history-wrapper">
 
-    <!-- HEADER & BỘ LỌC -->
+    <!-- HEADER -->
     <header class="history-header">
         <div>
             <div class="d-inline-flex align-items-center gap-2 mb-2">
@@ -295,14 +267,6 @@
             <p>Quản lý toàn bộ thông tin vé, suất chiếu và mã đơn hàng dùng để in vé tại rạp.</p>
         </div>
 
-        <nav class="history-filter-nav" aria-label="Bộ lọc vé">
-            <button class="filter-pill is-active" data-filter="all" onclick="filterBookings('all', this)">
-                Tất cả (<c:out value="${totalBookings}" />)
-            </button>
-            <button class="filter-pill" data-filter="upcoming" onclick="filterBookings('upcoming', this)">
-                <i class="fa-solid fa-clock me-1 text-warning"></i> Sắp chiếu
-            </button>
-        </nav>
     </header>
 
     <!-- DANH SÁCH VÉ / ĐƠN HÀNG -->
@@ -310,7 +274,7 @@
         <c:when test="${not empty historyList}">
             <div id="booking-list-container">
                 <c:forEach items="${historyList}" var="item">
-                    <article class="booking-card" data-upcoming="${item.upcoming}" data-code="${item.bookingCode}">
+                    <article class="booking-card" data-code="${item.bookingCode}">
                         <div class="booking-card-body">
                             <!-- POSTER PHIM -->
                             <div class="booking-poster-wrap">
@@ -577,21 +541,6 @@
         if (currentModalBookingCode) {
             copyCode(currentModalBookingCode);
         }
-    }
-
-    function filterBookings(type, btn) {
-        document.querySelectorAll('.filter-pill').forEach(b => b.classList.remove('is-active'));
-        if (btn) btn.classList.add('is-active');
-
-        const cards = document.querySelectorAll('.booking-card');
-        cards.forEach(card => {
-            const isUpcoming = card.dataset.upcoming === 'true';
-            if (type === 'all') {
-                card.style.display = 'block';
-            } else if (type === 'upcoming') {
-                card.style.display = isUpcoming ? 'block' : 'none';
-            }
-        });
     }
 
     async function openTicketModal(bookingCode) {
